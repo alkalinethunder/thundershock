@@ -17,20 +17,13 @@ namespace Thundershock
         private App _app;
         private PostProcessor _postProcessor;
         private RenderTarget2D _renderTarget;
-        private TimeSpan _upTime;
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Texture2D _white;
         private Scene _activeScene;
-        private TimeSpan _frameTime;
-        
-        private List<GlobalComponent> _components = new List<GlobalComponent>();
 
-        public TimeSpan FrameTime => _frameTime;
         public Texture2D White => _white;
-
-        public TimeSpan UpTime => _upTime;
-
+        
         public PostProcessor.PostProcessSettings PostProcessSettings => _postProcessor.Settings;
         
         public SpriteBatch SpriteBatch => _spriteBatch;
@@ -51,23 +44,7 @@ namespace Thundershock
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
-
-        public T GetComponent<T>() where T : GlobalComponent, new()
-        {
-            return _components.OfType<T>().FirstOrDefault() ?? RegisterComponent<T>();
-        }
         
-        public T RegisterComponent<T>() where T : GlobalComponent, new()
-        {
-            if (_components.Any(x => x is T))
-                throw new InvalidOperationException("Component is already registered.");
-            
-            var instance = new T();
-            _components.Add(instance);
-            instance.Initialize(_app);
-            return instance;
-        }
-
         public void LoadScene(Scene scene)
         {
             if (scene == null)
@@ -77,7 +54,7 @@ namespace Thundershock
                 _activeScene.Unload();
 
             _activeScene = scene;
-            scene.Load(this);
+            scene.Load(_app, this);
         }
         
         public void LoadScene<T>() where T : Scene, new()
@@ -85,34 +62,71 @@ namespace Thundershock
             var scene = new T();
             LoadScene(scene);
         }
+
+        private void AllocateRenderTarget()
+        {
+            // clean up the old render target.
+            if (_renderTarget != null)
+            {
+                _renderTarget.Dispose();
+                _renderTarget = null;
+            }
+
+            // re-allocate the render target
+            _renderTarget = new RenderTarget2D(GraphicsDevice, ScreenWidth, ScreenHeight, false,
+                GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None, 0,
+                RenderTargetUsage.PreserveContents);
+            
+            // re-allocate post-process effect buffers
+            _postProcessor.ReallocateEffectBuffers();
+        }
         
         protected override void Initialize()
         {
-            _postProcessor = new PostProcessor(GraphicsDevice);
-            
+            // HACK: I don't like that we need to do this. But whatever.
             _white = new Texture2D(GraphicsDevice, 1, 1);
             _white.SetData<uint>(new[] {0xFFFFFFFF});
+            
+            // Initialize the post-processor.
+            // TODO: Honour the --no-postprocessor flag.
+            _postProcessor = new PostProcessor(GraphicsDevice);
 
+            // Allocate the game render target.
+            AllocateRenderTarget();
+
+            // Initialize the app. This officially completes the gluing of Thundershock to MonoGame.
+            // It also gives the game a chance to do pre-graphics initialization.
+            _app.Initialize(this);
+            
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
+            // Create our SpriteBatch object.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            // Load the shaders used by the post-processor.
             _postProcessor.LoadContent(Content);
+            
+            // Allow the app to do post-initialization.
+            _app.Load();
         }
 
         protected override void UnloadContent()
         {
+            // Allow the app to unload.
+            _app.Unload();
+            
+            // Tear down the post-processor.
+            _postProcessor.UnloadContent();
+            
+            // de-allocate the hack texture
             _white.Dispose();
 
-            while (_components.Any())
-            {
-                _components.First().Unload();
-                _components.RemoveAt(0);
-            }
-
+            // de-allocate the game render target
+            _renderTarget.Dispose();
+            
             if (_activeScene != null)
             {
                 _activeScene.Unload();
@@ -126,14 +140,9 @@ namespace Thundershock
         {
             base.Update(gameTime);
 
-            _upTime = gameTime.TotalGameTime;
-            _frameTime = gameTime.ElapsedGameTime;
+            // Allow the app to update
+            _app.Update(gameTime);
             
-            foreach (var component in _components.ToArray())
-            {   
-                component.Update(gameTime);
-            }
-
             _activeScene?.Update(gameTime);
         }
 

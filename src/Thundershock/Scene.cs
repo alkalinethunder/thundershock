@@ -8,9 +8,11 @@ namespace Thundershock
 {
     public abstract class Scene
     {
+        private App _app;
         private MonoGameLoop _gameLoop;
         private List<SceneComponent> _components = new List<SceneComponent>();
 
+        public App App => _app;
         public MonoGameLoop Game => _gameLoop;
 
         public void AddComponent(SceneComponent component)
@@ -39,8 +41,9 @@ namespace Thundershock
             _components.Remove(component);
         }
         
-        public void Load(MonoGameLoop gameLoop)
+        internal void Load(App app, MonoGameLoop gameLoop)
         {
+            _app = app ?? throw new ArgumentNullException(nameof(app));
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
             OnLoad();
         }
@@ -54,7 +57,7 @@ namespace Thundershock
             _gameLoop = null;
         }
 
-        public void Update(GameTime gameTime)
+        internal void Update(GameTime gameTime)
         {
             OnUpdate(gameTime);
             

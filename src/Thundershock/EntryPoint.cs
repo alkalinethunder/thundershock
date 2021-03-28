@@ -94,7 +94,23 @@ namespace Thundershock
 
         private static void Bootstrap(App app)
         {
+            if (_current != null)
+                throw new InvalidOperationException("Failed to bootstrap the app. Thundershock is already running.");
+
+            // bind this thundershock app to this instance of thundershock.
+            _current = app;
+
+            // Create a new MonoGame game for Thundershock to run inside.
+            using var mg = new MonoGameLoop(app);
             
+            // it's at this point we should register any core components that need to be available before the app starts.
+            // Right now, that's nothing.
+            
+            // To get the app to run, just run MonoGame. The MonoGame loop will finish bootstrapping Thundershock by design.
+            mg.Run();
+            
+            // The above method blocks until MonoGame tears itself down successfully. If we get this far, we can unbind the app.
+            _current = null;
         }
 
         private class EntryArgs

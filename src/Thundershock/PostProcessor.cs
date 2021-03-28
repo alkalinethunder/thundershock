@@ -63,6 +63,31 @@ namespace Thundershock
             _batch = new SpriteBatch(_gfx);
         }
 
+        public void UnloadContent()
+        {
+            // shaders
+            _bloom.Dispose();
+            _shadowmask.Dispose();
+            _glitch.Dispose();
+            
+            // effect buffers
+            _intermediate.Dispose();
+            _effectBuffer1.Dispose();
+            _effectBuffer2.Dispose();
+            
+            // batcher
+            _batch.Dispose();
+            
+            // null
+            _bloom = null;
+            _shadowmask = null;
+            _glitch = null;
+            _batch = null;
+            _intermediate = null;
+            _effectBuffer1 = null;
+            _effectBuffer2 = null;
+        }
+
         public void LoadContent(ContentManager content)
         {
             _brightnessThreshold = content.Load<Effect>("Effects/BrightnessThreshold");

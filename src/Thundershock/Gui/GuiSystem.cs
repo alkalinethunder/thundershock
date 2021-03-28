@@ -28,10 +28,10 @@ namespace Thundershock.Gui
         protected override void OnLoad()
         {
             base.OnLoad();
-            _input = Game.GetComponent<InputManager>();
+            _input = App.GetComponent<InputManager>();
             _rootElement = new RootElement(this);
 
-            _debugFont = Game.Content.Load<SpriteFont>("Fonts/DebugSmall");
+            _debugFont = App.Content.Load<SpriteFont>("Fonts/DebugSmall");
             
             _input.MouseMove += HandleMouseMove;
             _input.MouseDown += HandleMouseDown;
