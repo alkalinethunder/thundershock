@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Input;
 
@@ -21,7 +22,8 @@ namespace Thundershock
         private SpriteBatch _spriteBatch;
         private Texture2D _white;
         private Scene _activeScene;
-
+        private ContentManager _thundershockContent;
+        
         public Texture2D White => _white;
         
         public PostProcessor.PostProcessSettings PostProcessSettings => _postProcessor.Settings;
@@ -43,6 +45,8 @@ namespace Thundershock
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            _thundershockContent = new ContentManager(this.Services);
+            _thundershockContent.RootDirectory = "ThundershockContent";
         }
         
         public void LoadScene(Scene scene)
@@ -107,7 +111,7 @@ namespace Thundershock
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Load the shaders used by the post-processor.
-            _postProcessor.LoadContent(Content);
+            _postProcessor.LoadContent(_thundershockContent);
             
             // Allow the app to do post-initialization.
             _app.Load();
@@ -115,6 +119,12 @@ namespace Thundershock
 
         protected override void UnloadContent()
         {
+            if (_activeScene != null)
+            {
+                _activeScene.Unload();
+                _activeScene = null;
+            }
+
             // Allow the app to unload.
             _app.Unload();
             
@@ -126,12 +136,6 @@ namespace Thundershock
 
             // de-allocate the game render target
             _renderTarget.Dispose();
-            
-            if (_activeScene != null)
-            {
-                _activeScene.Unload();
-                _activeScene = null;
-            }
             
             base.UnloadContent();
         }
