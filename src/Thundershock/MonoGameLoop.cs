@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Config;
 using Thundershock.Input;
 
 namespace Thundershock
@@ -86,9 +88,74 @@ namespace Thundershock
             // re-allocate post-process effect buffers
             _postProcessor.ReallocateEffectBuffers();
         }
+
+        private void ApplyConfig()
+        {
+            var config = _app.GetComponent<ConfigurationManager>();
+
+            // the configured screen resolution
+            var displayMode = config.GetDisplayMode();
+            
+            // post-processor settings.
+            _postProcessor.EnableBloom = config.ActiveConfig.Effects.Bloom;
+            _postProcessor.EnableShadowMask = config.ActiveConfig.Effects.ShadowMask;
+            
+            // should we reset the gpu?
+            var applyGraphicsChanges = false;
+            
+            // Resolution change
+            if (ScreenWidth != displayMode.Width || ScreenHeight != displayMode.Height)
+            {
+                _graphics.PreferredBackBufferWidth = displayMode.Width;
+                _graphics.PreferredBackBufferHeight = displayMode.Height;
+                applyGraphicsChanges = true;
+            }
+            
+            // v-sync
+            if (_graphics.SynchronizeWithVerticalRetrace != config.ActiveConfig.VSync)
+            {
+                _graphics.SynchronizeWithVerticalRetrace = config.ActiveConfig.VSync;
+                applyGraphicsChanges = true;
+            }
+            
+            // fixed time stepping
+            if (IsFixedTimeStep != config.ActiveConfig.FixedTimeStepping)
+            {
+                IsFixedTimeStep = config.ActiveConfig.FixedTimeStepping;
+                applyGraphicsChanges = true;
+            }
+            
+            // fullscreen mode
+            if (_graphics.IsFullScreen != config.ActiveConfig.IsFullscreen)
+            {
+                _graphics.IsFullScreen = config.ActiveConfig.IsFullscreen;
+                applyGraphicsChanges = true;
+            }
+            
+            // update the GPU if we need to
+            if (applyGraphicsChanges)
+            {
+                // apply the changes in MonoGame
+                _graphics.ApplyChanges();
+                
+                // re-allocate the render target
+                this.AllocateRenderTarget();
+            }
+        }
         
         protected override void Initialize()
         {
+            // Initialize the app. This officially completes the gluing of Thundershock to MonoGame.
+            // It also gives the game a chance to do pre-graphics initialization.
+            _app.Initialize(this);
+
+            // this makes sure we get notified when config values are committed.
+            var config = _app.GetComponent<ConfigurationManager>();
+            config.ConfigurationLoaded += (sender, args) =>
+            {
+                ApplyConfig();
+            };
+                
             // HACK: I don't like that we need to do this. But whatever.
             _white = new Texture2D(GraphicsDevice, 1, 1);
             _white.SetData<uint>(new[] {0xFFFFFFFF});
@@ -98,11 +165,7 @@ namespace Thundershock
             _postProcessor = new PostProcessor(GraphicsDevice);
 
             // Allocate the game render target.
-            AllocateRenderTarget();
-
-            // Initialize the app. This officially completes the gluing of Thundershock to MonoGame.
-            // It also gives the game a chance to do pre-graphics initialization.
-            _app.Initialize(this);
+            ApplyConfig();
             
             base.Initialize();
         }

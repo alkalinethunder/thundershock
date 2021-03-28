@@ -9,7 +9,9 @@ namespace Thundershock
     {
         private static Dictionary<string, Type> _entryPoints = new Dictionary<string, Type>();
         private static App _current;
+        private static Assembly _entryAssembly;
 
+        public static Assembly EntryAssembly => _entryAssembly;
         public static App CurrentApp => _current;
         
         public static void RegisterApp(string appName, Type type)
@@ -66,6 +68,7 @@ namespace Thundershock
         {
             // Retrieve the entry-point assembly. This is important for building the docopt usage string.
             var entryPointAssembly = Assembly.GetEntryAssembly();
+            _entryAssembly = entryPointAssembly;
             
             // Get the file name.
             var entryPointFileName = Path.GetFileName(entryPointAssembly.Location);
@@ -90,6 +93,8 @@ namespace Thundershock
             
             // *a distant rumble occurs in the distance, followed by a flash of light*
             Bootstrap(app);
+
+            _entryAssembly = null;
         }
 
         private static void Bootstrap(App app)

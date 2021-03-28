@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using System.Collections.Generic;
 using System.Linq;
+using Thundershock.Config;
 using Thundershock.Input;
 
 namespace Thundershock
@@ -41,6 +42,9 @@ namespace Thundershock
             OnPreInit();
             
             _game = game ?? throw new ArgumentNullException(nameof(game));
+            
+            // REALLY IMPORTANT THAT WE DO THIS NOW
+            RegisterComponent<ConfigurationManager>();
             
             // init hook
             OnInit();
