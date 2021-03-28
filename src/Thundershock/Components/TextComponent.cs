@@ -29,7 +29,7 @@ namespace Thundershock.Components
         
         protected override void OnLoad()
         {
-            _font = Game.Content.Load<SpriteFont>("Fonts/DebugSmall");
+            _font = Game.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
             base.OnLoad();
         }
 

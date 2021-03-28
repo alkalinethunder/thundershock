@@ -43,3 +43,10 @@
 /processorParam:DebugMode=Auto
 /build:Effects/ShadowMask.fx
 
+#begin Fonts/DebugSmall.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/DebugSmall.spritefont
+

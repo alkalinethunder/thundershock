@@ -20,7 +20,8 @@ namespace Thundershock
         public TimeSpan FrameTime => _frametime;
         public GameWindow Window => _game.Window;
         public ContentManager Content => _game.Content;
-
+        public ContentManager EngineContent => _game.EngineContent;
+        
         public void LoadScene<T>() where T : Scene, new()
         {
             _game.LoadScene<T>();

@@ -31,7 +31,7 @@ namespace Thundershock.Gui
             _input = App.GetComponent<InputManager>();
             _rootElement = new RootElement(this);
 
-            _debugFont = App.Content.Load<SpriteFont>("Fonts/DebugSmall");
+            _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
             
             _input.MouseMove += HandleMouseMove;
             _input.MouseDown += HandleMouseDown;

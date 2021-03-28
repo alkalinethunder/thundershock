@@ -35,7 +35,9 @@ namespace Thundershock
         
         public int ScreenHeight
             => GraphicsDevice.PresentationParameters.BackBufferHeight;
-        
+
+        public ContentManager EngineContent
+            => _thundershockContent;
         
         internal MonoGameLoop(App app)
         {
