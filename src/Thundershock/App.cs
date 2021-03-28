@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Content;
 using System.Collections.Generic;
 using System.Linq;
 using Thundershock.Config;
+using Thundershock.Debugging;
 using Thundershock.Input;
 
 namespace Thundershock
@@ -14,7 +15,14 @@ namespace Thundershock
         private MonoGameLoop _game;
         private TimeSpan _uptime;
         private TimeSpan _frametime;
+        private Logger _logger;
 
+        public Logger Logger
+        {
+            get => _logger;
+            internal set => _logger = value;
+        }
+        
         public int ScreenWidth => _game.ScreenWidth;
         public int ScreenHeight => _game.ScreenHeight;
         public TimeSpan UpTime => _uptime;
@@ -25,12 +33,14 @@ namespace Thundershock
         
         public void LoadScene<T>() where T : Scene, new()
         {
+            _logger.Log($"Loading scene: {typeof(T).FullName}");
             _game.LoadScene<T>();
+            _logger.Log("...done.");
         }
 
         public T GetComponent<T>() where T : GlobalComponent, new()
         {
-            return _components.OfType<T>().FirstOrDefault() ?? RegisterComponent<T>();
+            return _components.OfType<T>().First() ?? RegisterComponent<T>();
         }
 
         internal void Initialize(MonoGameLoop game)
@@ -39,6 +49,7 @@ namespace Thundershock
                 throw new InvalidOperationException("App has already been initialized.");
 
             // pre-init hook
+            _logger.Log("PreInit hook reached.");
             OnPreInit();
             
             _game = game ?? throw new ArgumentNullException(nameof(game));
@@ -47,24 +58,28 @@ namespace Thundershock
             RegisterComponent<ConfigurationManager>();
             
             // init hook
+            _logger.Log("Init hook reached.");
             OnInit();
             
             // Initialize core components
             RegisterComponent<InputManager>();
             
             // post-init hook
+            _logger.Log("PostInit hook reached.");
             OnPostInit();
         }
 
         internal void Load()
         {
             // Load hook
+            _logger.Log("Load hook reached.");
             OnLoad();
         }
 
         internal void Unload()
         {
             // Pre-unload hook
+            _logger.Log("PreUnload hook reached.");
             OnPreUnload();
             
             // Unload all global components.
@@ -75,17 +90,30 @@ namespace Thundershock
             }
 
             // Unload hook
+            _logger.Log("Unload hook reached.");
             OnUnload();
             
             // unbind from the game
             _game = null;
             
             // Post-unload hook
+            _logger.Log("PostUnload hook reached.");
             OnPostUnload();
         }
 
         internal void Update(GameTime gameTime)
         {
+            // warn the user if frame time is excessively long
+            if (gameTime.ElapsedGameTime.TotalSeconds >= 0.25)
+            {
+                _logger.Log(
+                    $"It appears that the last engine update took longer than 0.25 seconds ({gameTime.ElapsedGameTime.TotalSeconds}s).",
+                    LogLevel.Warning);
+                _logger.Log(
+                    "Are any components, scenes or scene components doing heavy work on their OnUpdate methods?",
+                    LogLevel.Warning);
+            }
+            
             // up-time and frame-time update
             _uptime = gameTime.TotalGameTime;
             _frametime = gameTime.ElapsedGameTime;
@@ -101,6 +129,8 @@ namespace Thundershock
         {
             if (_components.Any(x => x is T))
                 throw new InvalidOperationException("Component is already registered.");
+
+            _logger.Log($"Registering global component: {typeof(T).FullName}");
             
             var instance = new T();
             _components.Add(instance);

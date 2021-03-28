@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using Thundershock.Debugging;
 
 namespace Thundershock
 {
@@ -76,9 +78,19 @@ namespace Thundershock
             // Get entry arguments
             var entryArgs = GetEntryArgs(entryPointFileName, args);
             
+            // create the logger and set up the default outputs
+            var logger = new Logger();
+            var console = new ConsoleOutput();
+            logger.AddOutput(console);
+            
+            // verbose logging
+            console.Verbose = entryArgs.Verbose;
+            if (console.Verbose)
+                logger.Log("--verbose flag specified, verbose console logging is on.");
+            
             // the app we're going to run
             var app = null as App;
-            
+
             // Did the entry args specify an entry point?
             if (!string.IsNullOrWhiteSpace(entryArgs.AppEntry))
             {
@@ -90,21 +102,27 @@ namespace Thundershock
                 // Create the default app.
                 app = new T();
             }
+
+            logger.Log("Created new app: " + app.GetType().FullName);
             
             // *a distant rumble occurs in the distance, followed by a flash of light*
-            Bootstrap(app);
-
+            Bootstrap(logger, app);
+            
+            // we're done.
+            logger.Log("Thundershock has been torn down.");
             _entryAssembly = null;
         }
 
-        private static void Bootstrap(App app)
+        private static void Bootstrap(Logger logger, App app)
         {
             if (_current != null)
                 throw new InvalidOperationException("Failed to bootstrap the app. Thundershock is already running.");
 
             // bind this thundershock app to this instance of thundershock.
             _current = app;
-
+            logger.Log($"Bootstrapping \"{_current.GetType().Name}\"...");
+            app.Logger = logger;
+            
             // Create a new MonoGame game for Thundershock to run inside.
             using var mg = new MonoGameLoop(app);
             
@@ -116,6 +134,7 @@ namespace Thundershock
             
             // The above method blocks until MonoGame tears itself down successfully. If we get this far, we can unbind the app.
             _current = null;
+            logger.Log("The boots were off and the straps are undone, the app is no longer being run.");
         }
 
         private class EntryArgs
