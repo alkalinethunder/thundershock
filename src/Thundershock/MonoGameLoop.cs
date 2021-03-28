@@ -13,11 +13,6 @@ namespace Thundershock
 {
     public class MonoGameLoop : Game
     {
-        private static MonoGameLoop _instance;
-        
-        public static MonoGameLoop Instance
-            => _instance;
-
         private App _app;
         private PostProcessor _postProcessor;
         private RenderTarget2D _renderTarget;
@@ -46,7 +41,6 @@ namespace Thundershock
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _app.Logger.Log("Bootstrapping MonoGame...");
-            _instance = this;
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
             Content.RootDirectory = "Content";
