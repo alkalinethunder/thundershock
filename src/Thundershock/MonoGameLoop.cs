@@ -48,8 +48,8 @@ namespace Thundershock
             _thundershockContent = new ContentManager(this.Services);
             _thundershockContent.RootDirectory = "ThundershockContent";
         }
-        
-        public void LoadScene(Scene scene)
+
+        private void LoadScene(Scene scene)
         {
             if (scene == null)
                 throw new ArgumentNullException(nameof(scene));
@@ -61,7 +61,7 @@ namespace Thundershock
             scene.Load(_app, this);
         }
         
-        public void LoadScene<T>() where T : Scene, new()
+        internal void LoadScene<T>() where T : Scene, new()
         {
             var scene = new T();
             LoadScene(scene);
