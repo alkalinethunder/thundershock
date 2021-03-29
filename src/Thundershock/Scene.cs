@@ -21,6 +21,7 @@ namespace Thundershock
                 throw new ArgumentNullException(nameof(component));
             if (component.Scene != null)
                 throw new InvalidOperationException("Scene component already belongs to a Scene.");
+            _app.Logger.Log($"Adding new component: {component}");
             _components.Add(component);
             component.Load(this);
         }
@@ -37,6 +38,7 @@ namespace Thundershock
             if (component == null)
                 throw new ArgumentNullException(nameof(component));
 
+            _app.Logger.Log($"Unloading component: {component}");
             component.Unload();
             _components.Remove(component);
         }
@@ -45,16 +47,20 @@ namespace Thundershock
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
+            _app.Logger.Log("OnLoad reached.");
             OnLoad();
         }
         
         public void Unload()
         {
+            _app.Logger.Log($"Scene is now unloading ({GetType().FullName})");
             while (_components.Any())
                 RemoveComponent(_components.First());
-            
+
+            _app.Logger.Log("OnUnload reached.");
             OnUnload();
             _gameLoop = null;
+            _app = null;
         }
 
         internal void Update(GameTime gameTime)

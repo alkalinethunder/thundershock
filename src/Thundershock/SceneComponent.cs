@@ -18,11 +18,13 @@ namespace Thundershock
         public void Load(Scene scene)
         {
             _scene = scene ?? throw new ArgumentNullException(nameof(scene));
+            App.Logger.Log("OnLoad reached.");
             OnLoad();
         }
 
         public void Unload()
         {
+            App.Logger.Log("OnUnload reached.");
             OnUnload();
             _scene = null;
         }
