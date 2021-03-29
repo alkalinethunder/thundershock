@@ -47,7 +47,7 @@ namespace Thundershock
             var builder = new UsageStringBuilder(cmd);
 
             foreach (var key in _entryPoints.Keys)
-                builder.AddAction(key);
+                builder.AddAction(key, x => entryArgs.AppEntry = x);
 
             // setting overrides
             builder.AddFlag('m', "mute-audio", "Completely mute all audio players.", x => entryArgs.MuteAudio = x);

@@ -11,7 +11,7 @@ namespace Thundershock
         private string _command;
         private string _summary;
         private List<Flag> _flags = new List<Flag>();
-        private List<string> _actions = new List<string>();
+        private List<ExecAction> _actions = new List<ExecAction>();
         
         public string Command
         {
@@ -46,9 +46,9 @@ namespace Thundershock
             });
         }
 
-        public void AddAction(string action)
+        public void AddAction(string action, Action<string> setter)
         {
-            _actions.Add(action);
+            _actions.Add(new ExecAction(action, setter));
         }
         
         public string GetString()
@@ -75,7 +75,7 @@ namespace Thundershock
 
             foreach (var action in _actions)
             {
-                sb.Append("    " + _command + " " + action);
+                sb.Append("    " + _command + " " + action.Name);
                 if (_flags.Any())
                     sb.Append(" [options]");
                 sb.AppendLine();
@@ -110,6 +110,22 @@ namespace Thundershock
 
             foreach (var flag in _flags.Where(x => results["--" + x.Name] != null))
                 flag.Setter(true);
+
+            var action = _actions.FirstOrDefault(x => results.Any(y => y.Key == x.Name && y.Value.IsTrue));
+            if (action != null)
+                action.Setter(action.Name);
+        }
+
+        private class ExecAction
+        {
+            public string Name;
+            public Action<string> Setter;
+
+            public ExecAction(string name, Action<string> setter)
+            {
+                Name = name;
+                Setter = setter;
+            }
         }
         
         private class Flag
