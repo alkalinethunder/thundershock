@@ -17,13 +17,18 @@ namespace Thundershock.IO
 
         public override void Close()
         {
-            _flush(_bytes);
+            if (_flush != null)
+            {
+                _flush(_bytes);
+                _flush = null;
+            }
+
             base.Close();
         }
 
         public override void Flush()
         {
-            _flush(_bytes);
+            // stub
         }
 
         private void ThrowIfOutOfBounds(long offset, long count, long length)

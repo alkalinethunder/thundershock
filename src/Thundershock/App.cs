@@ -63,6 +63,7 @@ namespace Thundershock
             
             // Initialize core components
             RegisterComponent<InputManager>();
+            RegisterComponent<CheatManager>();
             
             // post-init hook
             _logger.Log("PostInit hook reached.");
