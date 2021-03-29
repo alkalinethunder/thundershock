@@ -35,5 +35,11 @@ namespace Thundershock.Debugging
             
             All(x=>x.Log(formatted, logLevel));
         }
+
+        public void LogException(Exception ex, LogLevel logLevel = LogLevel.Error)
+        {
+            foreach (var line in ex.ToString().Split(Environment.NewLine))
+                Log(line, logLevel);
+        }
     }
 }
