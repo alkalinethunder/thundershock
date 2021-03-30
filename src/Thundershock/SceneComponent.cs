@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Rendering;
 
 namespace Thundershock
 {
@@ -34,11 +35,11 @@ namespace Thundershock
             OnUpdate(gameTime);
         }
 
-        public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        public void Draw(GameTime gameTime, Renderer renderer)
         {
             if (Visible)
             {
-                OnDraw(gameTime, spriteBatch);
+                OnDraw(gameTime, renderer);
             }
         }
         
@@ -46,7 +47,7 @@ namespace Thundershock
         protected virtual void OnUnload() {}
 
         protected virtual void OnUpdate(GameTime gameTime) {}
-        protected virtual void OnDraw(GameTime gameTime, SpriteBatch batch) {}
+        protected virtual void OnDraw(GameTime gameTime, Renderer renderer) {}
 
     }
 }

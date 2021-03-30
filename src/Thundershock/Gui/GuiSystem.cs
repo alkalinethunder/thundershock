@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Gui.Elements;
 using Thundershock.Input;
+using Thundershock.Rendering;
 
 namespace Thundershock.Gui
 {
@@ -97,7 +98,8 @@ namespace Thundershock.Gui
         
         private void HandleMouseUp(object sender, MouseButtonEventArgs e)
         {
-            var hovered = FindElement(e.XPosition, e.YPosition);
+            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var hovered = FindElement((int) pos.X, (int) pos.Y);
 
             Bubble(_down, x => x.FireMouseUp(e));
             
@@ -110,7 +112,8 @@ namespace Thundershock.Gui
 
         private void HandleMouseDown(object sender, MouseButtonEventArgs e)
         {
-            var hovered = FindElement(e.XPosition, e.YPosition);
+            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var hovered = FindElement((int) pos.X, (int) pos.Y);
 
             _down = hovered;
             Bubble(_down, x => x.FireMouseDown(e));
@@ -156,7 +159,7 @@ namespace Thundershock.Gui
 
         private void PerformLayout()
         {
-            var screenRectangle = new Rectangle(0, 0, Game.ScreenWidth, Game.ScreenHeight);
+            var screenRectangle = Scene.ViewportBounds;
 
             var rootLayout = _rootElement.RootLayoutManager;
 
@@ -187,7 +190,7 @@ namespace Thundershock.Gui
             return color;
         }
 
-        protected override void OnDraw(GameTime gameTime, SpriteBatch batch)
+        protected override void OnDraw(GameTime gameTime, Renderer batch)
         {
             base.OnDraw(gameTime, batch);
 
@@ -197,15 +200,13 @@ namespace Thundershock.Gui
                 var masterTint = ComputeElementTint(element);
                 var clip = Rectangle.Empty;
                 
-                var renderer = new GuiRenderer(Game.GraphicsDevice, Game.White, batch, opacity, masterTint, clip);
+                var renderer = new GuiRenderer(batch, opacity, masterTint, clip);
 
-                batch.Begin();
                 element.Paint(gameTime, renderer);
-                batch.End();
 
                 if (_debugShowBounds)
                 {
-                    var debugRenderer = new GuiRenderer(Game.GraphicsDevice, Game.White, batch, 1, Color.White,
+                    var debugRenderer = new GuiRenderer(batch, 1, Color.White,
                         Rectangle.Empty);
 
                     batch.Begin();

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Rendering;
 
 namespace Thundershock.Components
 {
@@ -11,9 +12,9 @@ namespace Thundershock.Components
         public Vector2 Pivot { get; set; } = new Vector2(0.5f, 0.5f);
         public Vector2 Size { get; set; } = new Vector2(50, 50);
 
-        protected override void OnDraw(GameTime gameTime, SpriteBatch batch)
+        protected override void OnDraw(GameTime gameTime, Renderer batch)
         {
-            var rect = new Rectangle(0, 0, Game.ScreenWidth, Game.ScreenHeight);
+            var rect = batch.ViewportBounds;
 
             var origin = rect.Location.ToVector2() + (rect.Size.ToVector2() * Origin);
 
@@ -26,9 +27,7 @@ namespace Thundershock.Components
             rect.Width = (int) Size.X;
             rect.Height = (int) Size.Y;
 
-            batch.Begin();
-            batch.Draw(Game.White, rect, Color);
-            batch.End();
+            batch.FillRectangle(rect, Color);
         }
     }
 }

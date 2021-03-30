@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Rendering;
 
 namespace Thundershock.Components
 {
@@ -33,11 +34,11 @@ namespace Thundershock.Components
             base.OnLoad();
         }
 
-        protected override void OnDraw(GameTime gameTime, SpriteBatch batch)
+        protected override void OnDraw(GameTime gameTime, Renderer batch)
         {
             if (!string.IsNullOrWhiteSpace(Text))
             {
-                var rect = new Rectangle(0, 0, Game.ScreenWidth, Game.ScreenHeight);
+                var rect = batch.ViewportBounds;
                 var size = rect.Size.ToVector2();
                 var location = rect.Location.ToVector2();
 
@@ -46,9 +47,7 @@ namespace Thundershock.Components
 
                 var pos = origin - pivot + Position;
                 
-                batch.Begin();
                 batch.DrawString(_font, Text, pos, Color);
-                batch.End();
             }
 
             base.OnDraw(gameTime, batch);

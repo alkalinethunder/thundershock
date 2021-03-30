@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Components;
+using Thundershock.Rendering;
 
 namespace Thundershock
 {
@@ -11,7 +14,13 @@ namespace Thundershock
         private App _app;
         private MonoGameLoop _gameLoop;
         private List<SceneComponent> _components = new List<SceneComponent>();
+        private SpriteFont _debugFont;
+        
+        public Camera Camera { get; protected set; }
 
+        public Rectangle ViewportBounds
+            => Camera != null ? Camera.ViewportBounds : Rectangle.Empty;
+        
         public App App => _app;
         public MonoGameLoop Game => _gameLoop;
 
@@ -48,6 +57,7 @@ namespace Thundershock
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
             _app.Logger.Log("OnLoad reached.");
+            _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
             OnLoad();
         }
         
@@ -75,9 +85,28 @@ namespace Thundershock
 
         public void Draw(GameTime gameTime)
         {
-            foreach (var component in _components)
+            if (Camera != null) 
             {
-                component.Draw(gameTime, _gameLoop.SpriteBatch);
+                var renderer = new Renderer(Game.White, Game.SpriteBatch, Camera);
+
+                renderer.Begin();
+
+                foreach (var component in _components)
+                    component.Draw(gameTime, renderer);
+                
+                renderer.End();
+            }
+            else
+            {
+                Game.SpriteBatch.Begin();
+
+                var text = "No Camera Active on Current Scene";
+                var m = _debugFont.MeasureString(text);
+                var loc = new Vector2(0.5f, 0.5f) * new Vector2(Game.ScreenWidth, Game.ScreenHeight) - (m / 2);
+
+                Game.SpriteBatch.DrawString(_debugFont, text, loc, Color.White);
+                
+                Game.SpriteBatch.End();
             }
         }
         
@@ -85,5 +114,22 @@ namespace Thundershock
         protected virtual void OnUpdate(GameTime gameTime) {}
         protected virtual void OnLoad() {}
         protected virtual void OnUnload() {}
+
+        #region  CordinateHelpers
+
+        public Vector2 ScreenToViewport(Vector2 coordinates)
+        {
+            var scale = _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2() / ViewportBounds.Size.ToVector2();
+            return coordinates * scale;
+        }
+        
+        public Vector2 ViewportToScreen(Vector2 coordinates)
+        {
+            var scale = ViewportBounds.Size.ToVector2() / _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2();
+            return coordinates * scale;
+        }
+
+
+        #endregion
     }
 }

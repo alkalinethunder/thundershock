@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Rendering;
 
 namespace Thundershock.Gui
 {
@@ -9,26 +10,20 @@ namespace Thundershock.Gui
     {
         private float _opacity;
         private Color _masterTint;
-        private GraphicsDevice _device;
-        private SpriteBatch _spriteBatch;
-        private Texture2D _white;
+        private Renderer _spriteBatch;
         private Rectangle _clip;
 
-        public GuiRenderer(GraphicsDevice device, Texture2D white, SpriteBatch batch, float opacity, Color tint,
+        public GuiRenderer(Renderer batch, float opacity, Color tint,
             Rectangle clip)
         {
-            _white = white;
             _spriteBatch = batch;
-            _device = device;
             _opacity = opacity;
             _masterTint = tint;
             _clip = clip;
         }
 
         public void FillRectangle(Rectangle rect, Color color)
-        {
-            _spriteBatch.Draw(_white, rect, color * _opacity);
-        }
+            => _spriteBatch.FillRectangle(rect, color);
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
         {
