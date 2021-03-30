@@ -117,13 +117,13 @@ namespace Thundershock
 
         #region  CordinateHelpers
 
-        public Vector2 ScreenToViewport(Vector2 coordinates)
+        public Vector2 ViewportToScreen(Vector2 coordinates)
         {
             var scale = _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2() / ViewportBounds.Size.ToVector2();
             return coordinates * scale;
         }
         
-        public Vector2 ViewportToScreen(Vector2 coordinates)
+        public Vector2 ScreenToViewport(Vector2 coordinates)
         {
             var scale = ViewportBounds.Size.ToVector2() / _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2();
             return coordinates * scale;
