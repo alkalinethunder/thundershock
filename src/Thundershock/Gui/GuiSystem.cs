@@ -121,7 +121,8 @@ namespace Thundershock.Gui
 
         private void HandleMouseMove(object sender, MouseMoveEventArgs e)
         {
-            var hovered = FindElement(e.XPosition, e.YPosition);
+            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var hovered = FindElement((int) pos.X, (int) pos.Y);
 
             // TODO: mouse enter/leave
             
