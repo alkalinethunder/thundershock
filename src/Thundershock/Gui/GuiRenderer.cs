@@ -24,6 +24,11 @@ namespace Thundershock.Gui
 
         public void FillRectangle(Rectangle rect, Color color)
             => _spriteBatch.FillRectangle(rect, color);
+
+        public void FillRectangle(Rectangle rect, Texture2D texture, Color color)
+        {
+            _spriteBatch.FillRectangle(rect, color, texture);
+        }
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
         {

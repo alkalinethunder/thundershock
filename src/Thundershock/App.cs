@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Config;
 using Thundershock.Debugging;
 using Thundershock.Input;
@@ -30,6 +31,8 @@ namespace Thundershock
         public GameWindow Window => _game.Window;
         public ContentManager Content => _game.Content;
         public ContentManager EngineContent => _game.EngineContent;
+
+        public GraphicsDevice GraphicsDevice => _game.GraphicsDevice;
         
         public void LoadScene<T>() where T : Scene, new()
         {
