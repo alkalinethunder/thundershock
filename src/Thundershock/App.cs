@@ -23,6 +23,9 @@ namespace Thundershock
             get => _logger;
             internal set => _logger = value;
         }
+
+        public void Exit()
+            => _game.Exit();
         
         public int ScreenWidth => _game.ScreenWidth;
         public int ScreenHeight => _game.ScreenHeight;
