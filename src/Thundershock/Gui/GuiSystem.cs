@@ -193,6 +193,28 @@ namespace Thundershock.Gui
             return color;
         }
 
+        private Rectangle ComputeClippingRect(Element elem)
+        {
+            var rect = elem.BoundingBox;
+            var p = elem.Parent;
+            while (p != null)
+            {
+                rect = Rectangle.Intersect(rect, p.BoundingBox);
+                p = p.Parent;
+            }
+
+            // Translate the vectors into screen space.
+            var pos = Scene.ViewportToScreen(rect.Location.ToVector2());
+            var size = Scene.ViewportToScreen(rect.Size.ToVector2() + Vector2.One);
+
+            rect.X = (int) pos.X;
+            rect.Y = (int) pos.Y;
+            rect.Width = (int) size.X;
+            rect.Height = (int) size.Y;
+            
+            return rect;
+        }
+        
         protected override void OnDraw(GameTime gameTime, Renderer batch)
         {
             base.OnDraw(gameTime, batch);
@@ -201,16 +223,26 @@ namespace Thundershock.Gui
             {
                 var opacity = ComputeElementOpacity(element);
                 var masterTint = ComputeElementTint(element);
-                var clip = Rectangle.Empty;
+                var clip = ComputeClippingRect(element);
                 
-                var renderer = new GuiRenderer(batch, opacity, masterTint, clip);
+                // Save precious render time if the clipping rectangle is empty - the element isn't visible on-screen.
+                if (clip.IsEmpty)
+                    continue;
+
+                batch.SetScissorRectangle(clip);
+                batch.Begin();
+                
+                var renderer = new GuiRenderer(batch, opacity, masterTint);
 
                 element.Paint(gameTime, renderer);
 
+                batch.End();
+
+                batch.SetScissorRectangle(ComputeClippingRect(_rootElement));
+                
                 if (_debugShowBounds)
                 {
-                    var debugRenderer = new GuiRenderer(batch, 1, Color.White,
-                        Rectangle.Empty);
+                    var debugRenderer = new GuiRenderer(batch, 1, Color.White);
 
                     batch.Begin();
 

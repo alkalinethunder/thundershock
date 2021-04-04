@@ -8,9 +8,14 @@ namespace Thundershock.Rendering
         private SpriteBatch _batch;
         private Camera _camera;
         private Texture2D _white;
-
+        private RasterizerState _rasterizerState;
+        
         public Renderer(Texture2D white, SpriteBatch batcher, Camera camera)
         {
+            _rasterizerState = new RasterizerState
+            {
+                ScissorTestEnable = true
+            };
             _batch = batcher;
             _white = white;
             _camera = camera;
@@ -18,14 +23,20 @@ namespace Thundershock.Rendering
 
         public Rectangle ViewportBounds
             => _camera.ViewportBounds;
+
+        public void SetScissorRectangle(Rectangle rect)
+        {
+            _batch.GraphicsDevice.ScissorRectangle = rect;
+        }
         
         public void Begin()
         {
             var transform = _camera.GetRenderTransform(_batch.GraphicsDevice);
             var viewWidth = _camera.ViewportWidth;
             var viewHeight = _camera.ViewportHeight;
-            
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, transformMatrix: transform);
+
+            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, rasterizerState: _rasterizerState,
+                transformMatrix: transform);
         }
 
         public void End()

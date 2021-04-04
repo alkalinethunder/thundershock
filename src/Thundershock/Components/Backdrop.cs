@@ -14,7 +14,9 @@ namespace Thundershock.Components
             {
                 var rect = batch.ViewportBounds;
 
+                batch.Begin();
                 batch.FillRectangle(rect, Color.White, Texture);
+                batch.End();
             }
         }
     }

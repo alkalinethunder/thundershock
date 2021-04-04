@@ -94,12 +94,8 @@ namespace Thundershock
             {
                 var renderer = new Renderer(Game.White, Game.SpriteBatch, Camera);
 
-                renderer.Begin();
-
                 foreach (var component in _components)
                     component.Draw(gameTime, renderer);
-                
-                renderer.End();
             }
             else
             {

@@ -46,8 +46,10 @@ namespace Thundershock.Components
                 var pivot = TextMeasure * Pivpt;
 
                 var pos = origin - pivot + Position;
-                
+
+                batch.Begin();
                 batch.DrawString(_font, Text, pos, Color);
+                batch.End();
             }
 
             base.OnDraw(gameTime, batch);

@@ -11,15 +11,12 @@ namespace Thundershock.Gui
         private float _opacity;
         private Color _masterTint;
         private Renderer _spriteBatch;
-        private Rectangle _clip;
 
-        public GuiRenderer(Renderer batch, float opacity, Color tint,
-            Rectangle clip)
+        public GuiRenderer(Renderer batch, float opacity, Color tint)
         {
             _spriteBatch = batch;
             _opacity = opacity;
             _masterTint = tint;
-            _clip = clip;
         }
 
         public void FillRectangle(Rectangle rect, Color color)
@@ -72,10 +69,9 @@ namespace Thundershock.Gui
             {
                 var lines = text.Split(Environment.NewLine);
                 var width = font.MeasureString(text).X;
-
                 foreach (var line in lines)
                 {
-                    var m = font.MeasureString(line);
+                    var m = font.MeasureString(line.Trim());
 
                     var pos = position;
 
@@ -90,7 +86,7 @@ namespace Thundershock.Gui
                     
                     _spriteBatch.DrawString(font, line, pos, tint);
                     
-                    position.Y += m.Y;
+                    position.Y += font.LineSpacing;
                 }
             }
             

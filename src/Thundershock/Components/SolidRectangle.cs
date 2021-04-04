@@ -27,7 +27,9 @@ namespace Thundershock.Components
             rect.Width = (int) Size.X;
             rect.Height = (int) Size.Y;
 
+            batch.Begin();
             batch.FillRectangle(rect, Color);
+            batch.End();
         }
     }
 }
