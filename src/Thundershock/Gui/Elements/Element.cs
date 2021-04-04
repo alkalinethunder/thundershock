@@ -112,7 +112,10 @@ namespace Thundershock.Gui.Elements
         private HorizontalAlignment _hAlign;
         private VerticalAlignment _vAlign;
         private Rectangle _bounds;
+        private Rectangle _contentRect;
 
+        public Rectangle ContentRectangle => _contentRect;
+        
         public PropertySet Properties { get; } = new PropertySet();
 
         public int WidthUnitRounding
@@ -172,6 +175,9 @@ namespace Thundershock.Gui.Elements
         public bool IsFocused => GuiSystem.FocusedElement == this;
         public bool HasAnyFocus => IsFocused || _children.Any(x => x.HasAnyFocus);
 
+        public Padding Padding { get; set; }
+        public Padding Margin { get; set; }
+        
         public int FixedWidth
         {
             get => _fixedWidth;
@@ -297,8 +303,8 @@ namespace Thundershock.Gui.Elements
             {
                 measure.Y = MathF.Ceiling(measure.Y / _heightUnitRounding) * _heightUnitRounding;
             }
-            
-            
+
+            measure += Margin.Size + Padding.Size;
             
             ActualSize = measure;
 
@@ -333,6 +339,12 @@ namespace Thundershock.Gui.Elements
             {
                 var contentSize = this.GetContentSize();
 
+                // Apply padding.
+                rectangle.X += _owner.Padding.Left;
+                rectangle.Y += _owner.Padding.Top;
+                rectangle.Width -= _owner.Padding.Width;
+                rectangle.Height -= _owner.Padding.Height;
+                
                 var bounds = Rectangle.Empty;
 
                 switch (_owner.HorizontalAlignment)
@@ -377,6 +389,14 @@ namespace Thundershock.Gui.Elements
 
                 _owner._bounds = bounds;
 
+                // Margins
+                bounds.X += _owner.Margin.Left;
+                bounds.Y += _owner.Margin.Top;
+                bounds.Width -= _owner.Margin.Width;
+                bounds.Height -= _owner.Margin.Height;
+
+                _owner._contentRect = bounds;
+                
                 _owner.ArrangeOverride(bounds);
             }
         }
