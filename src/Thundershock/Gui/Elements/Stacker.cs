@@ -18,13 +18,13 @@ namespace Thundershock.Gui.Elements
             return 0;
         }
         
-        protected override Vector2 MeasureOverride()
+        protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
             var sz = Vector2.Zero;
 
             foreach (var child in Children)
             {
-                var m = child.Measure();
+                var m = child.Measure(alottedSize);
 
                 sz = Direction switch
                 {

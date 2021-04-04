@@ -12,7 +12,7 @@ namespace Thundershock.Gui.Elements
 
         public bool Tile { get; set; }
         
-        protected override Vector2 MeasureOverride()
+        protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
             return Image?.Bounds.Size.ToVector2() ?? Vector2.Zero;
         }

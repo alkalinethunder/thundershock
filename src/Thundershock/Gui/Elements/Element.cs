@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -239,13 +240,13 @@ namespace Thundershock.Gui.Elements
             }
         }
         
-        protected virtual Vector2 MeasureOverride()
+        protected virtual Vector2 MeasureOverride(Vector2 alottedSize)
         {
             var size = Vector2.Zero;
 
             foreach (var child in Children)
             {
-                var childSize = child._layout.GetContentSize();
+                var childSize = child._layout.GetContentSize(alottedSize);
                 size.X = MathF.Max(size.X, childSize.X);
                 size.Y = MathF.Max(size.Y, childSize.Y);
             }
@@ -272,9 +273,16 @@ namespace Thundershock.Gui.Elements
             OnPaint(gameTime, renderer);
         }
 
-        public Vector2 Measure()
+        public Vector2 Measure(Vector2 alottedSize = default)
         {
-            var measure = this.MeasureOverride();
+            // This forces the alotted size to fit our maximum size.
+            if (_maxWidth > 0)
+                alottedSize.X = _maxWidth;
+
+            if (_maxHeight > 0)
+                alottedSize.Y = _maxHeight;
+            
+            var measure = this.MeasureOverride(alottedSize);
 
             if (_fixedWidth > 0)
                 measure.X = _fixedWidth;
@@ -320,9 +328,9 @@ namespace Thundershock.Gui.Elements
         {
             private Element _owner;
 
-            public Vector2 GetContentSize()
+            public Vector2 GetContentSize(Vector2 alottedSize = default)
             {
-                return _owner.Measure();
+                return _owner.Measure(alottedSize);
             }
             
             public LayoutManager(Element element)
@@ -337,7 +345,7 @@ namespace Thundershock.Gui.Elements
             
             public void SetBounds(Rectangle rectangle)
             {
-                var contentSize = this.GetContentSize();
+                var contentSize = this.GetContentSize(rectangle.Size.ToVector2());
 
                 // Apply padding.
                 rectangle.X += _owner.Padding.Left;
