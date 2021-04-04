@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Flumberboozles;
 using Thundershock.Input;
 
 namespace Thundershock.Gui.Elements
@@ -51,7 +52,14 @@ namespace Thundershock.Gui.Elements
                     throw new InvalidOperationException("GUI element already has a parent.");
 
                 item.Parent = _owner;
+                
+                // fixes a stupid fucking bug
                 item._guiSystem = _owner.GuiSystem;
+                foreach (var offspring in item.Children.Collapse())
+                {
+                    offspring._guiSystem = _owner.GuiSystem;
+                }
+                
                 _children.Add(item);
             }
 
@@ -95,6 +103,8 @@ namespace Thundershock.Gui.Elements
         private int _maxHeight;
         private int _fixedWidth;
         private int _fixedHeight;
+        private int _widthUnitRounding;
+        private int _heightUnitRounding;
         private string _name;
         private LayoutManager _layout;
         private Element _parent;
@@ -103,6 +113,20 @@ namespace Thundershock.Gui.Elements
         private VerticalAlignment _vAlign;
         private Rectangle _bounds;
 
+        public PropertySet Properties { get; } = new PropertySet();
+
+        public int WidthUnitRounding
+        {
+            get => _widthUnitRounding;
+            set => _widthUnitRounding = value;
+        }
+
+        public int HeightUnitRounding
+        {
+            get => _heightUnitRounding;
+            set => _heightUnitRounding = value;
+        }
+        
         public GuiSystem GuiSystem
             => _guiSystem;
         
@@ -184,6 +208,8 @@ namespace Thundershock.Gui.Elements
             set => _maxHeight = value;
         }
         
+        public Vector2 ActualSize { get; private set; }
+        
         public Element()
         {
             _children = new ElementCollection(this);
@@ -191,7 +217,7 @@ namespace Thundershock.Gui.Elements
             _name = DefaultName;
         }
 
-        protected internal void SetGuiSystem(GuiSystem gui)
+        protected void SetGuiSystem(GuiSystem gui)
         {
             if (_guiSystem != null)
                 throw new InvalidOperationException("You can only set the GuiSystem of the Root Element.");
@@ -239,6 +265,46 @@ namespace Thundershock.Gui.Elements
         {
             OnPaint(gameTime, renderer);
         }
+
+        public Vector2 Measure()
+        {
+            var measure = this.MeasureOverride();
+
+            if (_fixedWidth > 0)
+                measure.X = _fixedWidth;
+
+            if (_fixedHeight > 0)
+                measure.Y = _fixedHeight;
+                
+            if (_minWidth > 0)
+                measure.X = MathF.Max(_minWidth, measure.X);
+
+            if (_minHeight > 0)
+                measure.Y = MathF.Max(_minHeight, measure.Y);
+
+            if (_maxWidth > 0)
+                measure.X = MathF.Min(_maxWidth, measure.X);
+
+            if (_maxHeight > 0)
+                measure.Y = MathF.Min(_maxHeight, measure.Y);
+
+            // Apply width and height clamping.
+            if (_widthUnitRounding > 0)
+            {
+                measure.X = MathF.Ceiling(measure.X / _widthUnitRounding) * _widthUnitRounding;
+            }
+            if (_heightUnitRounding > 0)
+            {
+                measure.Y = MathF.Ceiling(measure.Y / _heightUnitRounding) * _heightUnitRounding;
+            }
+            
+            
+            
+            ActualSize = measure;
+
+            return measure;
+
+        }
         
         protected virtual void OnPaint(GameTime gameTime, GuiRenderer renderer) {}
         protected virtual void OnUpdate(GameTime gameTime) {}
@@ -250,30 +316,7 @@ namespace Thundershock.Gui.Elements
 
             public Vector2 GetContentSize()
             {
-                var measure = _owner.MeasureOverride();
-
-                if (_owner._fixedWidth > 0)
-                    measure.X = _owner._fixedWidth;
-
-                if (_owner._fixedHeight > 0)
-                    measure.Y = _owner._fixedHeight;
-                
-                if (_owner._minWidth > 0)
-                    measure.X = MathF.Max(_owner._minWidth, measure.X);
-
-                if (_owner._minHeight > 0)
-                    measure.Y = MathF.Max(_owner._minHeight, measure.Y);
-
-                if (_owner._maxWidth > 0)
-                    measure.X = MathF.Min(_owner._maxWidth, measure.X);
-
-                if (_owner._maxHeight > 0)
-                    measure.Y = MathF.Min(_owner._maxHeight, measure.Y);
-
-
-
-
-                return measure;
+                return _owner.Measure();
             }
             
             public LayoutManager(Element element)
@@ -281,6 +324,11 @@ namespace Thundershock.Gui.Elements
                 _owner = element;
             }
 
+            public void SetChildBounds(Element elem, Rectangle rect)
+            {
+                elem.GetLayoutManager().SetBounds(rect);
+            }
+            
             public void SetBounds(Rectangle rectangle)
             {
                 var contentSize = this.GetContentSize();
@@ -291,7 +339,7 @@ namespace Thundershock.Gui.Elements
                 {
                     case HorizontalAlignment.Center:
                         bounds.Width = (int) contentSize.X;
-                        bounds.X = rectangle.Right - ((rectangle.Width - bounds.Width) / 2);
+                        bounds.X = rectangle.Left + ((rectangle.Width - bounds.Width) / 2);
                         break;
                     case HorizontalAlignment.Left:
                         bounds.Width = (int) contentSize.X;
@@ -311,7 +359,7 @@ namespace Thundershock.Gui.Elements
                 {
                     case VerticalAlignment.Center:
                         bounds.Height = (int) contentSize.Y;
-                        bounds.Y = rectangle.Bottom - ((rectangle.Height - bounds.Height) / 2);
+                        bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
                         break;
                     case Gui.VerticalAlignment.Top:
                         bounds.Height = (int) contentSize.Y;

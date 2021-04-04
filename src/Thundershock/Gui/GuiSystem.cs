@@ -18,6 +18,8 @@ namespace Thundershock.Gui
         private Element _down;
         private InputManager _input;
 
+        public SpriteFont FallbackFont => _debugFont;
+        
         public Element FocusedElement => _focused;
 
         public bool ShowBoundingRects

@@ -42,9 +42,10 @@ namespace Thundershock.Rendering
         public void FillRectangle(Vector2 position, Vector2 size, Color color)
             => FillRectangle(position, size, color, _white);
 
-        public void FillRectangle(Vector2 position, Vector2 size, Color color, Texture2D texture)
+        public void FillRectangle(Vector2 position, Vector2 size, Color color, Texture2D texture, SpriteEffects effects = SpriteEffects.None)
         {
-            _batch.Draw(texture, new Rectangle((int) position.X, (int) position.Y, (int) size.X, (int) size.Y), color);
+            _batch.Draw(texture, new Rectangle((int) position.X, (int) position.Y, (int) size.X, (int) size.Y), null,
+                color, 0, Vector2.Zero, effects, 0);
         }
 
         public void DrawString(SpriteFont font, string text, Vector2 location, Color color)

@@ -34,6 +34,11 @@ namespace Thundershock
             _components.Add(component);
             component.Load(this);
         }
+
+        public T GetComponent<T>() where T : SceneComponent
+        {
+            return _components.OfType<T>().First();
+        }
         
         public T AddComponent<T>() where T : SceneComponent, new()
         {
