@@ -19,7 +19,10 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
-            if (Tile && Image != null)
+            if (Image == null)
+                return;
+            
+            if (Tile)
             {
                 for (var x = BoundingBox.Left; x < BoundingBox.Right; x += Image.Width)
                 {
