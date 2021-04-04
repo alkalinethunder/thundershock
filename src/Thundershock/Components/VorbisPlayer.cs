@@ -38,6 +38,8 @@ namespace Thundershock.Components
         public bool IsPlaying => _isPlaying;
         private float _sensitivity = 6;
 
+        public double Duration => _reader.TotalTime.TotalSeconds;
+        
         public float Power => (Math.Abs(_lowest) - Math.Abs(_power)) * _sensitivity;
         
         private void Cleanup()
@@ -90,10 +92,10 @@ namespace Thundershock.Components
             // Allocate the sample buffer.
             _channels = _reader.Channels;
             _sampleRate = _reader.SampleRate;
-            _buffer = new float[(_channels * _sampleRate) / 60];
+            _buffer = new float[(_channels * _sampleRate) / 20];
 
             // Allocate the output sound.
-            _output = new DynamicSoundEffectInstance(_sampleRate, AudioChannels.Stereo);
+            _output = new DynamicSoundEffectInstance(_sampleRate, _reader.Channels == 2 ? AudioChannels.Stereo : AudioChannels.Mono);
 
             // play.
             _isPlaying = true;
