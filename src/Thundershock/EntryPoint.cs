@@ -16,26 +16,15 @@ namespace Thundershock
         public static Assembly EntryAssembly => _entryAssembly;
         public static App CurrentApp => _current;
         
-        public static void RegisterApp(string appName, Type type)
+        public static void RegisterApp<T>(string appName) where T : App, new()
         {
             if (string.IsNullOrWhiteSpace(appName))
                 throw new FormatException(nameof(appName));
-
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (!typeof(App).IsAssignableFrom(type))
-                throw new InvalidOperationException(
-                    "The specified type is not a Thundershock.App class and cannot be used as a Thundershock entry-point.");
-
-            if (type.GetConstructor(Type.EmptyTypes) == null)
-                throw new InvalidOperationException(
-                    "The given Thundershock app class is not constructable (it doesn't have a parameterless instance constructor) and cannot be used as an entry-point.");
-
+            
             if (_entryPoints.ContainsKey(appName))
                 throw new InvalidOperationException("The given application name is already registered.");
             
-            _entryPoints.Add(appName, type);
+            _entryPoints.Add(appName, typeof(T));
         }
 
         private static EntryArgs GetEntryArgs(string cmd, string[] args)
