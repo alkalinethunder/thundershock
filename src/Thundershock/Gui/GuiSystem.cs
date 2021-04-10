@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Gui.Elements;
+using Thundershock.Gui.Styling;
 using Thundershock.Input;
 using Thundershock.Rendering;
 
@@ -10,6 +11,7 @@ namespace Thundershock.Gui
 {
     public sealed class GuiSystem : SceneComponent
     {
+        private GuiStyle _activeStyle;
         private RootElement _rootElement;
         private bool _debugShowBounds;
         private SpriteFont _debugFont;
@@ -22,6 +24,8 @@ namespace Thundershock.Gui
         
         public Element FocusedElement => _focused;
 
+        public GuiStyle Style => _activeStyle;
+        
         public bool ShowBoundingRects
         {
             get => _debugShowBounds;
@@ -43,6 +47,18 @@ namespace Thundershock.Gui
             _input.MouseScroll += HandleMouseScroll;
             _input.KeyDown += HandleKeyDown;
             _input.KeyUp += HandleKeyUp;
+
+            LoadStyle<BasicStyle>();
+        }
+
+        public void LoadStyle<T>() where T : GuiStyle, new()
+        {
+            if (_activeStyle != null)
+                _activeStyle.Unload();
+
+            _activeStyle = new T();
+
+            _activeStyle.Load(this);
         }
         
         private void HandleKeyUp(object sender, KeyEventArgs e)

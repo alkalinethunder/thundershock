@@ -21,7 +21,7 @@ namespace Thundershock.Gui.Elements
         
         private SpriteFont GetFont()
         {
-            return Font ?? GuiSystem.FallbackFont;
+            return Font ?? GuiSystem.Style.DefaultFont;
         }
 
         private string LetterWrap(SpriteFont font, string text, float wrapWidth)

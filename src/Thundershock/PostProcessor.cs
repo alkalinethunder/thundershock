@@ -236,7 +236,7 @@ namespace Thundershock
         {
             var rect = renderTarget.Bounds;
 
-            if (EnableBloom)
+            if (EnableBloom && Settings.EnableBloom)
             {
                 PerformBloom(renderTarget, rect);
             }
@@ -267,7 +267,7 @@ namespace Thundershock
                 _batch.End();
             }
 
-            if (EnableShadowMask)
+            if (EnableShadowMask && Settings.EnableShadowMask)
             {
                 SetShadowMaskParams();
                 
@@ -297,6 +297,8 @@ namespace Thundershock
         {
             private PostProcessor _processor;
 
+            public bool EnableBloom { get; set; } = true;
+            public bool EnableShadowMask { get; set; } = true;
             public bool EnableGlitch { get; set; }
             
             public float GlitchIntensity
