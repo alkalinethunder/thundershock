@@ -13,6 +13,7 @@ namespace Thundershock.Gui.Styling
         
         public abstract SpriteFont DefaultFont { get; }
         public abstract int CheckSize { get; }
+        public abstract int TextCursorWidth { get; }
         
         public void Load(GuiSystem guiSystem)
         {
@@ -40,5 +41,7 @@ namespace Thundershock.Gui.Styling
 
         public abstract void DrawCheckBox(GuiRenderer renderer, Rectangle bounds, CheckState checkState,
             bool isHovered);
+
+        public abstract void DrawTextCursor(GuiRenderer renderer, Color color, Vector2 position, int height);
     }
 }

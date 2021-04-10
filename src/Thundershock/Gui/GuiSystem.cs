@@ -13,7 +13,7 @@ namespace Thundershock.Gui
     {
         private GuiStyle _activeStyle;
         private RootElement _rootElement;
-        private bool _debugShowBounds;
+        private bool _debugShowBounds = false;
         private SpriteFont _debugFont;
         private Element _focused;
         private Element _hovered;
@@ -106,10 +106,8 @@ namespace Thundershock.Gui
 
                 if (element != null)
                 {
-                    if (element.FireFocused(evt))
-                    {
-                        _focused = element;
-                    }
+                    element.FireFocused(evt);
+                    _focused = element;
                 }
             }
         }

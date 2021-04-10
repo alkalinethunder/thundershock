@@ -10,6 +10,7 @@ namespace Thundershock.Gui.Styling
         
         public override SpriteFont DefaultFont => Gui.FallbackFont;
         public override int CheckSize => 18;
+        public override int TextCursorWidth => 1;
         
         public override void DrawSelectionBox(GuiRenderer renderer, Rectangle bounds, SelectionStyle selectionStyle)
         {
@@ -37,6 +38,13 @@ namespace Thundershock.Gui.Styling
                 bounds.Height -= 8;
                 renderer.FillRectangle(bounds, color);
             }
+        }
+
+        public override void DrawTextCursor(GuiRenderer renderer, Color color, Vector2 position, int height)
+        {
+            var rect = new Rectangle((int) position.X, (int) position.Y, TextCursorWidth, height);
+
+            renderer.FillRectangle(rect, color);
         }
     }
 }
