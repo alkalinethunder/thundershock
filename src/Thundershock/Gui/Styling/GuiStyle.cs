@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Gui.Elements;
 
 namespace Thundershock.Gui.Styling
 {
@@ -11,6 +12,7 @@ namespace Thundershock.Gui.Styling
         protected GuiSystem Gui => _guiSystem;
         
         public abstract SpriteFont DefaultFont { get; }
+        public abstract int CheckSize { get; }
         
         public void Load(GuiSystem guiSystem)
         {
@@ -35,5 +37,8 @@ namespace Thundershock.Gui.Styling
         protected virtual void OnUnload() {}
 
         public abstract void DrawSelectionBox(GuiRenderer renderer, Rectangle bounds, SelectionStyle selectionStyle);
+
+        public abstract void DrawCheckBox(GuiRenderer renderer, Rectangle bounds, CheckState checkState,
+            bool isHovered);
     }
 }
