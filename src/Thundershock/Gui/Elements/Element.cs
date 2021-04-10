@@ -409,6 +409,21 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        public bool HasParent(Element element)
+        {
+            var p = Parent;
+
+            while (p != null)
+            {
+                if (p == element)
+                    return true;
+
+                p = p.Parent;
+            }
+            
+            return false;
+        }
+
         public event EventHandler<FocusChangedEventArgs> Blurred;
         public event EventHandler<FocusChangedEventArgs> Focused;
         public event EventHandler<KeyCharEventArgs> KeyChar;
@@ -418,7 +433,31 @@ namespace Thundershock.Gui.Elements
         public event EventHandler<MouseMoveEventArgs> MouseMove;
         public event EventHandler<MouseButtonEventArgs> MouseDown;
         public event EventHandler<MouseButtonEventArgs> MouseUp;
+        public event EventHandler<MouseMoveEventArgs> MouseEnter;
+        public event EventHandler<MouseMoveEventArgs> MouseLeave;
 
+        protected virtual bool OnMouseEnter(MouseMoveEventArgs e)
+        {
+            if (MouseEnter != null)
+            {
+                MouseEnter(this, e);
+                return true;
+            }
+
+            return false;
+        }
+        
+        protected virtual bool OnMouseLeave(MouseMoveEventArgs e)
+        {
+            if (MouseLeave != null)
+            {
+                MouseLeave(this, e);
+                return true;
+            }
+
+            return false;
+        }
+        
         protected virtual bool OnMouseDown(MouseButtonEventArgs e)
         {
             if (MouseDown != null)
@@ -518,6 +557,16 @@ namespace Thundershock.Gui.Elements
             return false;
         }
 
+        internal bool FireMouseEnter(MouseMoveEventArgs e)
+        {
+            return OnMouseEnter(e);
+        }
+
+        internal bool FireMouseLeave(MouseMoveEventArgs e)
+        {
+            return OnMouseLeave(e);
+        }
+        
         internal bool FireMouseDown(MouseButtonEventArgs e)
         {
             return OnMouseDown(e);

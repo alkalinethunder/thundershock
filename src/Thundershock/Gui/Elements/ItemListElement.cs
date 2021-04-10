@@ -99,6 +99,16 @@ namespace Thundershock.Gui.Elements
             return base.OnMouseMove(e);
         }
 
+        protected override bool OnMouseLeave(MouseMoveEventArgs e)
+        {
+            if (HotTracking)
+            {
+                _hotItem = -1;
+            }
+            
+            return base.OnMouseLeave(e);
+        }
+
         protected override bool OnMouseUp(MouseButtonEventArgs e)
         {
             if (e.Button == MouseButton.Primary)

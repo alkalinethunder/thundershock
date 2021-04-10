@@ -142,10 +142,20 @@ namespace Thundershock.Gui
             var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 
-            // TODO: mouse enter/leave
-            
-            _hovered = hovered;
-            
+            // MouseEnter and MouseLeave.
+            if (_hovered != hovered)
+            {
+                if (_hovered != null && (hovered == null || !hovered.HasParent(_hovered)))
+                {
+                    _hovered.FireMouseLeave(e);
+                }
+
+                _hovered = hovered;
+
+                if (_hovered != null)
+                    _hovered.FireMouseEnter(e);
+            }
+
             Bubble(_hovered, x => x.FireMouseMove(e));
         }
 
