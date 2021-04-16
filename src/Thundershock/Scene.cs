@@ -24,6 +24,11 @@ namespace Thundershock
         public App App => _app;
         public MonoGameLoop Game => _gameLoop;
 
+        public bool HasComponent<T>() where T : SceneComponent
+        {
+            return _components.Any(x => x is T);
+        }
+        
         public void AddComponent(SceneComponent component)
         {
             if (component == null)
