@@ -17,7 +17,8 @@ namespace Thundershock.Gui.Elements
         
         public IEnumerable<Element> CollapseElements()
         {
-            yield return this;
+            if (this.Visibility == Visibility.Visible)
+                yield return this;
 
             foreach (var element in Children.Collapse())
                 yield return element;

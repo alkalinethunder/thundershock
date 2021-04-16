@@ -121,7 +121,8 @@ namespace Thundershock.Gui
             
             if (_down == hovered)
             {
-                SetFocus(hovered);
+                if (hovered == null || hovered.CanFocus)
+                    SetFocus(hovered);
                 _down = null;
             }
         }
@@ -130,7 +131,7 @@ namespace Thundershock.Gui
         {
             var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
-
+            
             _down = hovered;
             Bubble(_down, x => x.FireMouseDown(e));
         }
@@ -301,7 +302,7 @@ namespace Thundershock.Gui
 
             var b = elem.BoundingBox;
 
-            if (x >= b.Left && x <= b.Right && y >= b.Top && y <= b.Bottom)
+            if (elem.IsInteractable && x >= b.Left && x <= b.Right && y >= b.Top && y <= b.Bottom)
             {
                 return elem;
             }

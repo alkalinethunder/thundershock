@@ -8,7 +8,13 @@ namespace Thundershock.Gui.Elements
     {
         private CheckState _checkState = CheckState.Unchecked;
         private bool _isHovered;
-        
+
+        public CheckBox()
+        {
+            CanFocus = true;
+            IsInteractable = true;
+        }    
+            
         public CheckState CheckState
         {
             get => _checkState;

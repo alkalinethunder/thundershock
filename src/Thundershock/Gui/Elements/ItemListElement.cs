@@ -16,6 +16,12 @@ namespace Thundershock.Gui.Elements
         protected int HotIndex => HotTracking ? _hotItem : -1;
         
         public bool HotTracking { get; set; } = true;
+
+        public ItemListElement()
+        {
+            CanFocus = true;
+            IsInteractable = true;
+        }
         
         public int SelectedIndex
         {

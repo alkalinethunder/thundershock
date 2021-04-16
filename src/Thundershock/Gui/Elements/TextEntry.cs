@@ -12,6 +12,34 @@ namespace Thundershock.Gui.Elements
         private string _text = string.Empty;
         private string _hint = "Enter text...";
 
+        public TextEntry()
+        {
+            CanFocus = true;
+            IsInteractable = true;
+        }
+        
+        public string HintText
+        {
+            get => _hint;
+            set => _hint = value ?? string.Empty;
+        }
+
+        public string Text
+        {
+            get => _text;
+            set
+            {
+                value ??= string.Empty;
+
+                if (_text != value)
+                {
+                    if (_inputPos > value.Length)
+                        _inputPos = value.Length;
+                    _text = value;
+                }
+            }
+        }
+        
         public Color TextColor { get; set; } = Color.Black;
         public Color HintColor { get; set; } = Color.Gray;
         

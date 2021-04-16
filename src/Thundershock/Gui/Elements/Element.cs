@@ -115,7 +115,11 @@ namespace Thundershock.Gui.Elements
         private Rectangle _bounds;
         private Rectangle _contentRect;
 
+        public bool CanFocus { get; set; }
+        
         public Rectangle ContentRectangle => _contentRect;
+        
+        public bool IsInteractable { get; set; }
         
         public PropertySet Properties { get; } = new PropertySet();
 
@@ -203,6 +207,8 @@ namespace Thundershock.Gui.Elements
             set => _minHeight = value;
         }
 
+        public Visibility Visibility { get; set; }
+        
         public int MaximumWidth
         {
             get => _maxWidth;
@@ -275,6 +281,10 @@ namespace Thundershock.Gui.Elements
 
         public Vector2 Measure(Vector2 alottedSize = default)
         {
+            // If the UI element is collapsed, report a measurement of zero.
+            if (Visibility == Visibility.Collapsed)
+                return Vector2.Zero;
+            
             // This forces the alotted size to fit our maximum size.
             if (_maxWidth > 0)
                 alottedSize.X = _maxWidth;
