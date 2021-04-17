@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace Thundershock.Gui
 {
-    public class FileOpener
+    public class FileChooser
     {
         private string _title = "Open File";
         private List<string> _acceptedTypes = new();
@@ -34,7 +34,7 @@ namespace Thundershock.Gui
             set => _title = value ?? "Open File";
         }
 
-        public FileOpener(App app)
+        public FileChooser(App app)
         {
             _app = app;
 
