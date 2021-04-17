@@ -220,11 +220,11 @@ namespace Thundershock.Gui
 
         private Rectangle ComputeClippingRect(Element elem)
         {
-            var rect = elem.BoundingBox;
+            var rect = elem.Visibility == Visibility.Visible ? elem.BoundingBox : Rectangle.Empty;
             var p = elem.Parent;
             while (p != null)
             {
-                rect = Rectangle.Intersect(rect, p.BoundingBox);
+                rect = Rectangle.Intersect(rect, p.Visibility == Visibility.Visible ? p.BoundingBox : Rectangle.Empty);
                 p = p.Parent;
             }
 
@@ -239,6 +239,18 @@ namespace Thundershock.Gui
             
             return rect;
         }
+
+        private bool IsVisible(Element elem)
+        {
+            while (elem != null)
+            {
+                if (elem.Visibility != Visibility.Visible)
+                    return false;
+                elem = elem.Parent;
+            }
+
+            return true;
+        }
         
         protected override void OnDraw(GameTime gameTime, Renderer batch)
         {
@@ -251,7 +263,7 @@ namespace Thundershock.Gui
                 var clip = ComputeClippingRect(element);
                 
                 // Save precious render time if the clipping rectangle is empty - the element isn't visible on-screen.
-                if (clip.IsEmpty)
+                if (clip.IsEmpty || !IsVisible(element))
                     continue;
 
                 batch.SetScissorRectangle(clip);

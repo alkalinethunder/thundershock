@@ -166,5 +166,10 @@ namespace Thundershock.Gui.Elements
             index = -1;
             return false;
         }
+
+        public int IndexOf(T value)
+        {
+            return _items.IndexOf(value);
+        }
     }
 }
