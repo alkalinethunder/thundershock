@@ -53,6 +53,17 @@ namespace Thundershock.Gui
             LoadStyle<BasicStyle>();
         }
 
+        protected override void OnUnload()
+        {
+            _input.MouseMove -= HandleMouseMove;
+            _input.MouseDown -= HandleMouseDown;
+            _input.MouseUp -= HandleMouseUp;
+            _input.KeyChar -= HandleKeyChar;
+            _input.MouseScroll -= HandleMouseScroll;
+            _input.KeyDown -= HandleKeyDown;
+            _input.KeyUp -= HandleKeyUp;
+        }
+
         public void LoadStyle<T>() where T : GuiStyle, new()
         {
             if (_activeStyle != null)

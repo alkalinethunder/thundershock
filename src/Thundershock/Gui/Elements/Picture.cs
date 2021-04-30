@@ -24,9 +24,9 @@ namespace Thundershock.Gui.Elements
             
             if (Tile)
             {
-                for (var x = BoundingBox.Left; x < BoundingBox.Right; x += Image.Width)
+                for (var x = ContentRectangle.Left; x < ContentRectangle.Right; x += Image.Width)
                 {
-                    for (var y = BoundingBox.Top; y < BoundingBox.Bottom; y += Image.Height)
+                    for (var y = ContentRectangle.Top; y < ContentRectangle.Bottom; y += Image.Height)
                     {
                         var rect = new Rectangle(x, y, Image.Width, Image.Height);
                         renderer.FillRectangle(rect, Image, Tint, SpriteEffects);
@@ -35,7 +35,7 @@ namespace Thundershock.Gui.Elements
             }
             else
             {
-                renderer.FillRectangle(BoundingBox, Image, Tint, SpriteEffects);
+                renderer.FillRectangle(ContentRectangle, Image, Tint, SpriteEffects);
             }
         }
     }

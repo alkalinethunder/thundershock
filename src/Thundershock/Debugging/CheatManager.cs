@@ -22,7 +22,7 @@ namespace Thundershock.Debugging
         public void AddCheat(string name, Action<string[]> action)
         {
             if (_cheats.Any(x => x.Name == name))
-                throw new InvalidOperationException("Cheat code already registered.");
+                return;
 
             _cheats.Add(new CheatCode(name, action));
         }
