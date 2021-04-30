@@ -14,6 +14,10 @@ namespace Thundershock.Gui.Elements
         public static readonly string AutoSizeProperty = "AutoSize";
         public static readonly string SizeProperty = "Size";
 
+        public CanvasAnchor DefaultAnchor { get; set; }
+        public bool DefaultAutoSize { get; set; }
+        public Vector2 DefaultAlignment { get; set; }
+        
         public struct CanvasAnchor
         {
             public float Left;
@@ -44,21 +48,21 @@ namespace Thundershock.Gui.Elements
         {
             if (elem.Properties.ContainsKey(AutoSizeProperty))
                 return elem.Properties.GetValue<bool>(AutoSizeProperty);
-            return true;
+            return DefaultAutoSize;
         }
         
         private CanvasAnchor GetAnchor(Element elem)
         {
             if (elem.Properties.ContainsKey(AnchorProperty))
                 return elem.Properties.GetValue<CanvasAnchor>(AnchorProperty);
-            return CanvasAnchor.TopLeft;
+            return DefaultAnchor;
         }
 
         private Vector2 GetAlignment(Element elem)
         {
             if (elem.Properties.ContainsKey(AlignmentProperty))
                 return elem.Properties.GetValue<Vector2>(AlignmentProperty);
-            return Vector2.Zero;
+            return DefaultAlignment;
         }
 
         public Vector2 GetSize(Element elem)

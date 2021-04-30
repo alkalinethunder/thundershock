@@ -7,7 +7,7 @@ namespace Thundershock.Gui.Elements
 {
     public abstract class ItemListElement<T> : Element
     {
-        private List<T> _items = new();
+        private readonly List<T> _items = new();
         private int _selectedItem = -1;
         private int _hotItem = -1;
         
@@ -60,12 +60,15 @@ namespace Thundershock.Gui.Elements
         public void Clear()
         {
             _items.Clear();
-            SelectedIndex = -1;
+            _selectedItem = -1;
         }
 
         public void AddItem(T value)
         {
-            _items.Add(value);
+            if (!_items.Contains(value))
+            {
+                _items.Add(value);
+            }
         }
 
         public bool RemoveItem(T value)

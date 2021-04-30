@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
 namespace Thundershock.Gui.Elements
 {
-    public sealed class RootElement : Element
+    public sealed class RootElement : FreePanel
     {
         protected override bool SupportsChildren => true;
 
         public LayoutManager RootLayoutManager
             => GetLayoutManager();
-
+        
         internal RootElement(GuiSystem gui)
         {
             SetGuiSystem(gui ?? throw new ArgumentNullException(nameof(gui)));
+            DefaultAnchor = CanvasAnchor.Fill;
+            DefaultAutoSize = true;
+            DefaultAlignment = Vector2.Zero;
         }
         
         public IEnumerable<Element> CollapseElements()

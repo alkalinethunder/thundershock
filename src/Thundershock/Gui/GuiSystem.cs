@@ -25,6 +25,8 @@ namespace Thundershock.Gui
         public Element FocusedElement => _focused;
 
         public GuiStyle Style => _activeStyle;
+
+        public Rectangle BoundingBox => _rootElement.BoundingBox;
         
         public bool ShowBoundingRects
         {
