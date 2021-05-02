@@ -12,6 +12,23 @@ namespace Thundershock.Gui
         private Color _masterTint;
         private Renderer _spriteBatch;
 
+        private Color GetProperTint(Color tint)
+        {
+            var r = (float) tint.R;
+            var g = (float) tint.G;
+            var b = (float) tint.B;
+
+            var mr = (float) _masterTint.R / 255f;
+            var mg = (float) _masterTint.G / 255f;
+            var mb = (float) _masterTint.B / 255f;
+
+            r *= mr;
+            g *= mg;
+            b *= mb;
+
+            return new Color((byte) r, (byte) g, (byte) b, tint.A) * _opacity;
+        }
+        
         public GuiRenderer(Renderer batch, float opacity, Color tint)
         {
             _spriteBatch = batch;
@@ -20,11 +37,11 @@ namespace Thundershock.Gui
         }
 
         public void FillRectangle(Rectangle rect, Color color)
-            => _spriteBatch.FillRectangle(rect, color);
+            => _spriteBatch.FillRectangle(rect, GetProperTint(color));
 
         public void FillRectangle(Rectangle rect, Texture2D texture, Color color, SpriteEffects effects = SpriteEffects.None)
         {
-            _spriteBatch.FillRectangle(rect.Location.ToVector2(), rect.Size.ToVector2(), color, texture, effects);
+            _spriteBatch.FillRectangle(rect.Location.ToVector2(), rect.Size.ToVector2(), GetProperTint(color), texture, effects);
         }
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
@@ -53,9 +70,11 @@ namespace Thundershock.Gui
         {
             if (string.IsNullOrWhiteSpace(text))
                 return;
-            
-            var tint = color * _opacity;
 
+            var tint = GetProperTint(color);
+            if (tint.A <= 0)
+                return;
+            
             if (dropShadow != 0)
             {
                 DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black, textAlign);

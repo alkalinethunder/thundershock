@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Thundershock.Gui.Elements
 {
@@ -120,6 +122,9 @@ namespace Thundershock.Gui.Elements
         
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
+            if (string.IsNullOrWhiteSpace(Text))
+                return Vector2.Zero;
+            
             var f = GetFont();
 
             switch (WrapMode)
