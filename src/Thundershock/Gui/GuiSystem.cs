@@ -181,7 +181,7 @@ namespace Thundershock.Gui
                 if (!string.IsNullOrWhiteSpace(tooltip))
                 {
                     _tooltip = tooltip;
-                    _tooltipPosition = new Vector2(e.XPosition, e.YPosition);
+                    _tooltipPosition = Scene.ScreenToViewport( new Vector2(e.XPosition, e.YPosition));
                 }
             }
         }
