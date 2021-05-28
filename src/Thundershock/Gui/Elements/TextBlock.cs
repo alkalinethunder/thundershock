@@ -26,7 +26,7 @@ namespace Thundershock.Gui.Elements
             return Font ?? GuiSystem.Style.DefaultFont;
         }
 
-        private string LetterWrap(SpriteFont font, string text, float wrapWidth)
+        public static string LetterWrap(SpriteFont font, string text, float wrapWidth)
         {
             if (wrapWidth <= 0)
                 return text;
@@ -50,7 +50,7 @@ namespace Thundershock.Gui.Elements
             return sb.ToString();
         }
 
-        private string WordWrap(SpriteFont font, string text, float wrapWidth)
+        public static string WordWrap(SpriteFont font, string text, float wrapWidth)
         {
             if (wrapWidth <= 0)
                 return text;

@@ -121,6 +121,8 @@ namespace Thundershock.Gui.Elements
         
         public bool IsInteractable { get; set; }
         
+        public string ToolTip { get; set; }
+
         public PropertySet Properties { get; } = new PropertySet();
 
         public int WidthUnitRounding

@@ -19,6 +19,8 @@ namespace Thundershock.Gui
         private Element _hovered;
         private Element _down;
         private InputManager _input;
+        private string _tooltip;
+        private Vector2 _tooltipPosition;
 
         public SpriteFont FallbackFont => _debugFont;
         
@@ -169,6 +171,19 @@ namespace Thundershock.Gui
             }
 
             Bubble(_hovered, x => x.FireMouseMove(e));
+
+            _tooltip = null;
+
+            // Tool-tips.
+            if (hovered != null)
+            {
+                var tooltip = GetToolTip(hovered);
+                if (!string.IsNullOrWhiteSpace(tooltip))
+                {
+                    _tooltip = tooltip;
+                    _tooltipPosition = new Vector2(e.XPosition, e.YPosition);
+                }
+            }
         }
 
         public void AddToViewport(Element element)
@@ -309,6 +324,34 @@ namespace Thundershock.Gui
                     batch.End();
                 }
             }
+
+            if (!string.IsNullOrWhiteSpace(_tooltip))
+            {
+                var font = _activeStyle.DefaultFont;
+
+                var wrapped = TextBlock.WordWrap(font, _tooltip, 450);
+
+                var measure = font.MeasureString(wrapped) + new Vector2(10, 10);
+
+                var bottomLeft = _tooltipPosition + measure;
+                if (bottomLeft.X >= BoundingBox.Right)
+                {
+                    _tooltipPosition.X -= (bottomLeft.X - BoundingBox.Right);
+                }
+
+                if (bottomLeft.Y >= BoundingBox.Bottom)
+                {
+                    _tooltipPosition.Y -= bottomLeft.Y - BoundingBox.Bottom;
+                }
+
+                batch.Begin();
+
+                batch.FillRectangle(new Rectangle((int)_tooltipPosition.X, (int)_tooltipPosition.Y, (int)measure.X, (int)measure.Y), Color.Black);
+
+                batch.DrawString(font, wrapped, _tooltipPosition + new Vector2(5, 5), Color.White);
+
+                batch.End();
+            }
         }
 
         private Element FindElement(int x, int y)
@@ -332,6 +375,22 @@ namespace Thundershock.Gui
                 return elem;
             }
             
+            return null;
+        }
+
+        private string GetToolTip(Element element)
+        {
+            var e = element;
+            while (e != null)
+            {
+                if (!string.IsNullOrWhiteSpace(e.ToolTip))
+                {
+                    return e.ToolTip;
+                }
+
+                e = e.Parent;
+            }
+
             return null;
         }
     }

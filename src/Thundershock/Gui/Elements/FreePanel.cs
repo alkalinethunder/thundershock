@@ -65,6 +65,14 @@ namespace Thundershock.Gui.Elements
             return DefaultAlignment;
         }
 
+        public Vector2 GetPosition(Element element)
+        {
+            if (element.Properties.ContainsKey(PositionProperty))
+                return element.Properties.GetValue<Vector2>(PositionProperty);
+
+            return Vector2.Zero;
+        }
+
         public Vector2 GetSize(Element elem)
         {
             if (elem.Properties.ContainsKey(SizeProperty))
@@ -116,6 +124,8 @@ namespace Thundershock.Gui.Elements
                     contentRectangle.Top + (contentRectangle.Height * anchor.Top));
 
                 position -= (size * align);
+
+                position += GetPosition(elem);
 
                 var rect = new Rectangle((int) position.X, (int) position.Y, 0, 0);
 
