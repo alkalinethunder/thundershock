@@ -55,7 +55,7 @@ namespace Thundershock.Rendering
 
         public void FillRectangle(Vector2 position, Vector2 size, Color color, Texture2D texture, SpriteEffects effects = SpriteEffects.None)
         {
-            _batch.Draw(texture, new Rectangle((int) position.X, (int) position.Y, (int) size.X, (int) size.Y), null,
+            _batch.Draw(texture ?? _white, new Rectangle((int) position.X, (int) position.Y, (int) size.X, (int) size.Y), null,
                 color, 0, Vector2.Zero, effects, 0);
         }
 
