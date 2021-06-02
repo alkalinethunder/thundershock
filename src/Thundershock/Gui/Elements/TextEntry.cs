@@ -46,6 +46,7 @@ namespace Thundershock.Gui.Elements
         public SpriteFont Font { get; set; }
 
         public event EventHandler TextCommitted;
+        public event EventHandler TextChanged;
         
         private SpriteFont GetFont()
         {
@@ -91,6 +92,7 @@ namespace Thundershock.Gui.Elements
                     if (_inputPos < _text.Length)
                     {
                         _text = _text.Remove(_inputPos, 1);
+                        TextChanged?.Invoke(this, EventArgs.Empty);
                     }
                     break;
                 case Keys.Back:
@@ -98,6 +100,7 @@ namespace Thundershock.Gui.Elements
                     {
                         _inputPos--;
                         _text = _text.Remove(_inputPos, 1);
+                        TextChanged?.Invoke(this, EventArgs.Empty);
                     }
                     break;
                 case Keys.Enter:
@@ -115,7 +118,7 @@ namespace Thundershock.Gui.Elements
             if (f.Characters.Contains(e.Character))
             {
                 _text = _text.Insert(_inputPos, e.Character.ToString());
-
+                TextChanged?.Invoke(this, EventArgs.Empty);
                 _inputPos++;
 
                 return true;
