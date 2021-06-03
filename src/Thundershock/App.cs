@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using System.Collections.Generic;
@@ -17,7 +18,16 @@ namespace Thundershock
         private TimeSpan _uptime;
         private TimeSpan _frametime;
         private Logger _logger;
+        private ConcurrentQueue<Action> _actionQueue = new();
 
+        /// <summary>
+        /// Submit a method to run on the next Thundershock engine tick. Useful for performing thread-unsafe operations from outside the game thread.
+        /// </summary>
+        /// <param name="action">The method to run.</param>
+        public void EnqueueAction(Action action)
+        {
+            _actionQueue.Enqueue(action);
+        }
         public Logger Logger
         {
             get => _logger;
@@ -110,6 +120,12 @@ namespace Thundershock
 
         internal void Update(GameTime gameTime)
         {
+            // Action queue.
+            while (_actionQueue.TryDequeue(out var action))
+            {
+                action?.Invoke();
+            }
+            
             // warn the user if frame time is excessively long
             if (gameTime.ElapsedGameTime.TotalSeconds >= 0.25)
             {
