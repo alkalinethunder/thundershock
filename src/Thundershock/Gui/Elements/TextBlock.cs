@@ -147,9 +147,31 @@ namespace Thundershock.Gui.Elements
         {
             if (!string.IsNullOrWhiteSpace(_wrappedText))
             {
+                var lines = _wrappedText.Split(Environment.NewLine);
+                var pos = ContentRectangle.Location.ToVector2();
+                
                 var f = GetFont();
 
-                renderer.DrawString(f, _wrappedText, BoundingBox.Location.ToVector2(), Color, TextAlign);
+                foreach (var line in lines)
+                {
+                    var m = f.MeasureString(line);
+                    
+                    switch (this.TextAlign)
+                    {
+                        case Gui.TextAlign.Left:
+                            pos.X = ContentRectangle.Left;
+                            break;
+                        case Gui.TextAlign.Right:
+                            pos.X = ContentRectangle.Right - m.X;
+                            break;
+                        case Gui.TextAlign.Center:
+                            pos.X = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
+                            break;
+                    }
+                    
+                    renderer.DrawString(f, line, pos, Color, TextAlign);
+                    pos.Y += f.LineSpacing;
+                }
             }
         }
     }

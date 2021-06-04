@@ -88,7 +88,9 @@ namespace Thundershock.Gui
 
         private void HandleMouseScroll(object sender, MouseScrollEventArgs e)
         {
-            Bubble(_hovered, x => x.FireMouseScroll(e));
+            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var hovered = FindElement((int) pos.X, (int) pos.Y);
+            Bubble(hovered, x => x.FireMouseScroll(e));
         }
 
         private void HandleKeyChar(object sender, KeyCharEventArgs e)
