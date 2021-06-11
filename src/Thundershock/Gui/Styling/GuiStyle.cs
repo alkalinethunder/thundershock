@@ -43,5 +43,7 @@ namespace Thundershock.Gui.Styling
             bool isHovered);
 
         public abstract void DrawTextCursor(GuiRenderer renderer, Color color, Vector2 position, int height);
+
+        public abstract void DrawButton(GuiRenderer renderer, IButtonElement button);
     }
 }

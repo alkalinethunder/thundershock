@@ -4,31 +4,17 @@ using Thundershock.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Button : Element, IButtonElement
+    public class AdvancedButton : Element, IButtonElement
     {
-        private string _text = "Button Text";
-        private bool _isPressed;
         private bool _isHovered;
+        private bool _isPressed;
         
-        public string Text
-        {
-            get => _text;
-            set
-            {
-                if (_text != value)
-                {
-                    _text = value ?? string.Empty;
-                }
-            }
-        }
-
-        public Button()
+        public AdvancedButton()
         {
             CanFocus = true;
             IsInteractable = true;
-            Margin = new Padding(7, 4);
         }
-
+        
         public bool IsPressed => _isPressed;
         public bool IsHovered => _isHovered;
         public bool IsActive { get; set; } = false;
@@ -71,5 +57,6 @@ namespace Thundershock.Gui.Elements
         {
             this.GuiSystem.Style.DrawButton(renderer, this);
         }
+
     }
 }

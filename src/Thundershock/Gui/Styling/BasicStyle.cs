@@ -7,6 +7,8 @@ namespace Thundershock.Gui.Styling
     public class BasicStyle : GuiStyle
     {
         private Color _selectionColor = Color.Blue;
+        private Color _buttonColor = ThundershockPlatform.HtmlColor("#343434");
+        private Color _activeButtonColor = ThundershockPlatform.HtmlColor("#1baaf7");
         
         public override SpriteFont DefaultFont => Gui.FallbackFont;
         public override int CheckSize => 18;
@@ -45,6 +47,22 @@ namespace Thundershock.Gui.Styling
             var rect = new Rectangle((int) position.X, (int) position.Y, TextCursorWidth, height);
 
             renderer.FillRectangle(rect, color);
+        }
+
+        public override void DrawButton(GuiRenderer renderer, IButtonElement button)
+        {
+            var styleColor = button.ButtonColor ?? StyleColor.Default;
+            var color = styleColor.GetColor(button.IsActive ? _activeButtonColor : _buttonColor);
+
+            if (button.IsPressed)
+                color = color.Darken(0.3f);
+            else if (button.IsHovered)
+                color = color.Lighten(0.2f);
+
+            var borderColor = color.Lighten(0.15f);
+
+            renderer.FillRectangle(button.BoundingBox, color);
+            renderer.DrawRectangle(button.BoundingBox, borderColor, 2);
         }
     }
 }

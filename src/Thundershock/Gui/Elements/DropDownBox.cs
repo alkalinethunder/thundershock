@@ -8,7 +8,7 @@ namespace Thundershock.Gui.Elements
     public class DropDownBox : Element
     {
         private int _lastIndex;
-        private Button _activator = new();
+        private AdvancedButton _activator = new();
         private TextBlock _text = new();
         private Stacker _activatorContent = new();
         private Picture _arrow = new();
