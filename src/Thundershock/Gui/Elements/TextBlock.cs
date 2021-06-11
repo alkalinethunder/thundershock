@@ -15,7 +15,6 @@ namespace Thundershock.Gui.Elements
         
         public Color Color { get; set; } = Color.Black;
         public string Text { get; set; } = "Text Block";
-        public SpriteFont Font { get; set; }
 
         public TextAlign TextAlign { get; set; }
         
@@ -23,7 +22,7 @@ namespace Thundershock.Gui.Elements
         
         private SpriteFont GetFont()
         {
-            return Font ?? GuiSystem.Style.DefaultFont;
+            return Font.GetFont(GuiSystem.Style.DefaultFont);
         }
 
         public static string LetterWrap(SpriteFont font, string text, float wrapWidth)
@@ -140,7 +139,16 @@ namespace Thundershock.Gui.Elements
                     break;
             }
 
-            return f.MeasureString(_wrappedText);
+            var size = Vector2.Zero;
+            foreach (var line in _wrappedText.Split('\n'))
+            {
+                var m = f.MeasureString(line);
+
+                size.X = Math.Max(size.X, m.X);
+                size.Y += f.LineSpacing;
+            }
+
+            return size;
         }
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)

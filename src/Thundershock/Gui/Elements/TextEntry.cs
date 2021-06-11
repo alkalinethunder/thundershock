@@ -43,14 +43,12 @@ namespace Thundershock.Gui.Elements
         public Color TextColor { get; set; } = Color.Black;
         public Color HintColor { get; set; } = Color.Gray;
         
-        public SpriteFont Font { get; set; }
-
         public event EventHandler TextCommitted;
         public event EventHandler TextChanged;
         
         private SpriteFont GetFont()
         {
-            return Font ?? GuiSystem.Style.DefaultFont;
+            return Font.GetFont(GuiSystem.Style.DefaultFont);
         }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
