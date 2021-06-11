@@ -9,6 +9,8 @@ namespace Thundershock.Gui.Styling
     {
         private GuiSystem _guiSystem;
 
+        public virtual SpriteFont ButtonFont => _guiSystem.FallbackFont;
+        
         protected GuiSystem Gui => _guiSystem;
         
         public abstract SpriteFont DefaultFont { get; }
@@ -45,5 +47,10 @@ namespace Thundershock.Gui.Styling
         public abstract void DrawTextCursor(GuiRenderer renderer, Color color, Vector2 position, int height);
 
         public abstract void DrawButton(GuiRenderer renderer, IButtonElement button);
+
+        public virtual Color GetButtonTextColor(IButtonElement button)
+        {
+            return Color.Black;
+        }
     }
 }

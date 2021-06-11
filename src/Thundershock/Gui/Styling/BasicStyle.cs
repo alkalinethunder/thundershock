@@ -64,5 +64,23 @@ namespace Thundershock.Gui.Styling
             renderer.FillRectangle(button.BoundingBox, color);
             renderer.DrawRectangle(button.BoundingBox, borderColor, 2);
         }
+
+        public override Color GetButtonTextColor(IButtonElement button)
+        {
+            var styleColor = button.ButtonColor ?? StyleColor.Default;
+            var color = styleColor.GetColor(button.IsActive ? _activeButtonColor : _buttonColor);
+
+            if (button.IsPressed)
+                color = color.Darken(0.3f);
+            else if (button.IsHovered)
+                color = color.Lighten(0.2f);
+
+            var brightness = color.ToHsl().Luminance;
+
+            if (brightness > 0.5f)
+                return Color.Black;
+            else
+                return Color.White;
+        }
     }
 }

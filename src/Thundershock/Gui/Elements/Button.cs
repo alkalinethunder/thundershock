@@ -6,6 +6,7 @@ namespace Thundershock.Gui.Elements
 {
     public class Button : Element, IButtonElement
     {
+        private string _wrapped = string.Empty;
         private string _text = "Button Text";
         private bool _isPressed;
         private bool _isHovered;
@@ -67,9 +68,43 @@ namespace Thundershock.Gui.Elements
             return base.OnMouseLeave(e);
         }
 
+        protected override Vector2 MeasureOverride(Vector2 alottedSize)
+        {
+            var font = Font.GetFont(GuiSystem.Style.ButtonFont);
+            return font.MeasureString(Text);
+        }
+
+        protected override void ArrangeOverride(Rectangle contentRectangle)
+        {
+            var font = Font.GetFont(GuiSystem.Style.ButtonFont);
+
+            var text = Text;
+            var wrapped = TextBlock.WordWrap(font, text, contentRectangle.Width);
+
+            _wrapped = wrapped;
+        }
+
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
+            var font = Font.GetFont(GuiSystem.Style.ButtonFont);
+
+            var textColor = GuiSystem.Style.GetButtonTextColor(this);
+            
             this.GuiSystem.Style.DrawButton(renderer, this);
+
+            var lines = _wrapped.Split('\n');
+
+            var y = ContentRectangle.Y;
+
+            foreach (var line in lines)
+            {
+                var m = font.MeasureString(line);
+                var x = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
+
+                renderer.DrawString(font, line, new Vector2(x, y), textColor);
+                
+                y += font.LineSpacing;
+            }
         }
     }
 }

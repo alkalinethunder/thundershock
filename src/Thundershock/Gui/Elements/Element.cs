@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Flumberboozles;
+using Thundershock.Gui.Styling;
 using Thundershock.Input;
 
 namespace Thundershock.Gui.Elements
@@ -123,6 +124,8 @@ namespace Thundershock.Gui.Elements
         
         public string ToolTip { get; set; }
 
+        public StyleFont Font { get; set; } = StyleFont.Default;
+        
         public PropertySet Properties { get; } = new PropertySet();
 
         public int WidthUnitRounding

@@ -13,6 +13,7 @@ namespace Thundershock.Gui.Elements
         {
             CanFocus = true;
             IsInteractable = true;
+            Margin = new Padding(7, 4);
         }
         
         public bool IsPressed => _isPressed;
