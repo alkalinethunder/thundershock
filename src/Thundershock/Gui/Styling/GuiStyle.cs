@@ -9,6 +9,8 @@ namespace Thundershock.Gui.Styling
     {
         private GuiSystem _guiSystem;
 
+        public virtual Padding CheckPadding => 4;
+        
         public virtual SpriteFont ButtonFont => _guiSystem.FallbackFont;
         
         protected GuiSystem Gui => _guiSystem;
@@ -41,8 +43,7 @@ namespace Thundershock.Gui.Styling
 
         public abstract void DrawSelectionBox(GuiRenderer renderer, Rectangle bounds, SelectionStyle selectionStyle);
 
-        public abstract void DrawCheckBox(GuiRenderer renderer, Rectangle bounds, CheckState checkState,
-            bool isHovered);
+        public abstract void DrawCheckBox(GuiRenderer renderer, CheckBox checkBox, Rectangle bounds);
 
         public abstract void DrawTextCursor(GuiRenderer renderer, Color color, Vector2 position, int height);
 

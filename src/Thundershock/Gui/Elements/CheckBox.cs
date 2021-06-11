@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Thundershock.Gui.Styling;
 using Thundershock.Input;
 
 namespace Thundershock.Gui.Elements
@@ -9,6 +10,10 @@ namespace Thundershock.Gui.Elements
         private CheckState _checkState = CheckState.Unchecked;
         private bool _isHovered;
 
+        public bool IsHovered => _isHovered;
+        
+        public StyleColor CheckColor { get; set; } = StyleColor.Default;
+        
         public CheckBox()
         {
             CanFocus = true;
@@ -40,16 +45,19 @@ namespace Thundershock.Gui.Elements
         {
             var m = base.MeasureOverride(alottedSize);
 
-            m.X += GuiSystem.Style.CheckSize;
+            m.X += GuiSystem.Style.CheckSize + GuiSystem.Style.CheckPadding.Width;
             m.Y = Math.Max(m.Y, GuiSystem.Style.CheckSize);
+            m.Y += GuiSystem.Style.CheckPadding.Height;
             
             return m;
         }
 
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
-            contentRectangle.X += GuiSystem.Style.CheckSize;
-            contentRectangle.Width -= GuiSystem.Style.CheckSize;
+            contentRectangle.X += GuiSystem.Style.CheckSize + GuiSystem.Style.CheckPadding.Width;
+            contentRectangle.Width -= GuiSystem.Style.CheckSize + GuiSystem.Style.CheckPadding.Width;
+            contentRectangle.Y += GuiSystem.Style.CheckPadding.Top;
+            contentRectangle.Height -= GuiSystem.Style.CheckPadding.Bottom;
             
             base.ArrangeOverride(contentRectangle);
         }
@@ -71,8 +79,9 @@ namespace Thundershock.Gui.Elements
             bounds.Width = GuiSystem.Style.CheckSize;
             bounds.Height = bounds.Width;
             bounds.Y = ContentRectangle.Top + ((ContentRectangle.Height - bounds.Height) / 2);
-
-            GuiSystem.Style.DrawCheckBox(renderer, bounds, _checkState, _isHovered);
+            bounds.X += GuiSystem.Style.CheckPadding.Left;
+            
+            GuiSystem.Style.DrawCheckBox(renderer, this, bounds);
         }
 
         protected override bool OnMouseEnter(MouseMoveEventArgs e)

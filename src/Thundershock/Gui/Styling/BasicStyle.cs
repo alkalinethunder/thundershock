@@ -23,16 +23,16 @@ namespace Thundershock.Gui.Styling
             renderer.FillRectangle(bounds, color);
         }
 
-        public override void DrawCheckBox(GuiRenderer renderer, Rectangle bounds, CheckState checkState, bool isHovered)
+        public override void DrawCheckBox(GuiRenderer renderer, CheckBox checkBox, Rectangle bounds)
         {
-            var color = Color.Black;
+            var color = (checkBox.CheckColor ?? StyleColor.Default).GetColor(Color.Gray);
 
-            if (isHovered)
+            if (checkBox.IsHovered)
                 renderer.FillRectangle(bounds, color * 0.5f);
             
             renderer.DrawRectangle(bounds, color, 2);
 
-            if (checkState == CheckState.Checked)
+            if (checkBox.IsChecked)
             {
                 bounds.X += 4;
                 bounds.Y += 4;
