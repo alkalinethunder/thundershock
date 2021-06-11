@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Thundershock.Debugging
 {
@@ -23,6 +24,12 @@ namespace Thundershock.Debugging
 
             Console.ForegroundColor = color;
             Console.WriteLine("LOG: {0}", message);
+
+            // Workaround for Rider 2021.1 being dumb and not fucking displaying
+            // the console.
+#if DEBUG
+            Debug.WriteLine(message);
+#endif
         }
     }
 }
