@@ -54,71 +54,102 @@ namespace Thundershock.Gui.Elements
             if (wrapWidth <= 0)
                 return text;
             
-            // first step: break words.
-            var words = new List<string>();
-            var w = "";
-            for (var i = 0; i <= text.Length; i++)
-            {
-                if (i < text.Length)
-                {
-                    var ch = text[i];
-                    w += ch;
-                    if (char.IsWhiteSpace(ch))
-                    {
-                        words.Add(w);
-                        w = "";
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(w))
-                    {
-                        words.Add(w);
-                    }
-                }
-            }
-            
-            // step 2: Line-wrap.
+            // Resulting wrapped text.
             var sb = new StringBuilder();
-            var lineWidth = 0f;
-            for (var i = 0; i < words.Count; i++)
-            {
-                var word = words[i];
-                var m = font.MeasureString(word).X;
-                var m2 = font.MeasureString(word.Trim()).X;
-                
-                if (lineWidth + m2 > wrapWidth && lineWidth > 0) // this makes the whole thing a lot less greedy
-                {
-                    sb.AppendLine();
-                    lineWidth = 0;
-                }
-
-                if (m > lineWidth)
-                {
-                    var letterWrapped = LetterWrap(font, word, wrapWidth);
-                    var lines = letterWrapped.Split(Environment.NewLine);
-                    var last = lines.Last();
-
-                    m = font.MeasureString(last).X;
-                    word = last;
-
-                    sb.Append(letterWrapped);
-                }
-                else
-                {
-                    sb.Append(word);
-                }
-
-                if (word.EndsWith('\n'))
-                    lineWidth = 0;
-                else
-                    lineWidth += m;
-            }
             
+            // Break lines.
+            var lines = text.Split(Environment.NewLine);
+            var isFirstLine = true;
+            // go through each line.
+            foreach (var line in lines)
+            {
+                if (!isFirstLine)
+                    sb.AppendLine();
+
+                // first step: break words.
+                var words = new List<string>();
+                var w = "";
+                for (var i = 0; i <= line.Length; i++)
+                {
+                    if (i < line.Length)
+                    {
+                        var ch = text[i];
+                        w += ch;
+                        if (char.IsWhiteSpace(ch))
+                        {
+                            words.Add(w);
+                            w = "";
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(w))
+                        {
+                            words.Add(w);
+                        }
+                    }
+                }
+
+                // step 2: Line-wrap.
+                var lineWidth = 0f;
+                for (var i = 0; i < words.Count; i++)
+                {
+                    var word = words[i];
+                    var m = font.MeasureString(word).X;
+                    var m2 = font.MeasureString(word.Trim()).X;
+                
+                    if (lineWidth + m > wrapWidth && lineWidth > 0) // this makes the whole thing a lot less greedy
+                    {
+                        sb.AppendLine();
+                        lineWidth = 0;
+                    }
+
+                    if (m2 > lineWidth)
+                    {
+                        var letterWrapped = LetterWrap(font, word, wrapWidth);
+                        var letterLines = letterWrapped.Split(Environment.NewLine);
+                        var last = letterLines.Last();
+
+                        m = font.MeasureString(last).X;
+                        word = last;
+
+                        sb.Append(letterWrapped);
+                    }
+                    else
+                    {
+                        sb.Append(word);
+                    }
+
+                    lineWidth += m;
+                }
+
+                isFirstLine = false;
+            }
             
             return sb.ToString();
         }
-        
+
+        protected override void ArrangeOverride(Rectangle contentRectangle)
+        {
+            var f = GetFont();
+
+            switch (WrapMode)
+            {
+                case TextWrapMode.None:
+                    _wrappedText = Text;
+                    break;
+                case TextWrapMode.LetterWrap:
+                    _wrappedText = LetterWrap(f, Text, contentRectangle.Width);
+                    break;
+                case TextWrapMode.WordWrap:
+                    _wrappedText = WordWrap(f, Text, contentRectangle.Width);
+                    break;
+            }
+
+            
+            base.ArrangeOverride(contentRectangle);
+        }
+
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
             if (string.IsNullOrWhiteSpace(Text))
@@ -145,7 +176,7 @@ namespace Thundershock.Gui.Elements
                 var m = f.MeasureString(line);
 
                 size.X = Math.Max(size.X, m.X);
-                size.Y += f.LineSpacing;
+                size.Y += m.Y;
             }
 
             return size;
@@ -178,7 +209,7 @@ namespace Thundershock.Gui.Elements
                     }
                     
                     renderer.DrawString(f, line, pos, Color, TextAlign);
-                    pos.Y += f.LineSpacing;
+                    pos.Y += m.Y;
                 }
             }
         }

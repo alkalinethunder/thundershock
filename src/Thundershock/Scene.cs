@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Components;
+using Thundershock.Debugging;
 using Thundershock.Rendering;
 
 namespace Thundershock
@@ -15,6 +16,7 @@ namespace Thundershock
         private MonoGameLoop _gameLoop;
         private List<SceneComponent> _components = new List<SceneComponent>();
         private SpriteFont _debugFont;
+        private WarningPrinter _warningPrinter;
         
         public Camera Camera { get; protected set; }
 
@@ -69,6 +71,9 @@ namespace Thundershock
             _app.Logger.Log("OnLoad reached.");
             _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
             OnLoad();
+            
+            // Warning printer goes on top of everything else.
+            _warningPrinter = AddComponent<WarningPrinter>();
         }
         
         public void Unload()

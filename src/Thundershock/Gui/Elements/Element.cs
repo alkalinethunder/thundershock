@@ -289,6 +289,11 @@ namespace Thundershock.Gui.Elements
             // If the UI element is collapsed, report a measurement of zero.
             if (Visibility == Visibility.Collapsed)
                 return Vector2.Zero;
+
+            alottedSize.X -= Margin.Width;
+            alottedSize.Y -= Margin.Height;
+            alottedSize.X -= Padding.Width;
+            alottedSize.Y -= Padding.Height;
             
             // This forces the alotted size to fit our maximum size.
             if (_maxWidth > 0)
@@ -373,15 +378,15 @@ namespace Thundershock.Gui.Elements
                 switch (_owner.HorizontalAlignment)
                 {
                     case HorizontalAlignment.Center:
-                        bounds.Width = (int) contentSize.X;
+                        bounds.Width = (int) Math.Round(contentSize.X);
                         bounds.X = rectangle.Left + ((rectangle.Width - bounds.Width) / 2);
                         break;
                     case HorizontalAlignment.Left:
-                        bounds.Width = (int) contentSize.X;
+                        bounds.Width = (int) Math.Round(contentSize.X);
                         bounds.X = rectangle.Left;
                         break;
                     case HorizontalAlignment.Right:
-                        bounds.Width = (int) contentSize.X;
+                        bounds.Width = (int) Math.Round(contentSize.X);
                         bounds.X = rectangle.Right - bounds.Width;
                         break;
                     case HorizontalAlignment.Stretch:
@@ -393,15 +398,15 @@ namespace Thundershock.Gui.Elements
                 switch (_owner.VerticalAlignment)
                 {
                     case VerticalAlignment.Center:
-                        bounds.Height = (int) contentSize.Y;
+                        bounds.Height = (int) Math.Round(contentSize.Y);
                         bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
                         break;
                     case Gui.VerticalAlignment.Top:
-                        bounds.Height = (int) contentSize.Y;
+                        bounds.Height = (int) Math.Round(contentSize.Y);
                         bounds.Y = rectangle.Top;
                         break;
                     case VerticalAlignment.Bottom:
-                        bounds.Height = (int) contentSize.Y;
+                        bounds.Height = (int) Math.Round(contentSize.Y);
                         bounds.Y = rectangle.Bottom - bounds.Height;
                         break;
                     case VerticalAlignment.Stretch:

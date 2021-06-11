@@ -9,11 +9,21 @@ namespace Thundershock.Debugging
     public class Logger
     {
         private List<ILogOutput> _outputs = new List<ILogOutput>();
+
+        public Logger()
+        {
+            AddOutput(WarningPrinter.GetWarningPrinterLogOutput());
+        }
         
         private void All(Action<ILogOutput> action)
         {
             foreach (var output in _outputs)
                 action(output);
+        }
+
+        public void RemoveOutput(ILogOutput output)
+        {
+            _outputs.Remove(output);
         }
 
         public void AddOutput(ILogOutput output)

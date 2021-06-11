@@ -32,6 +32,28 @@ namespace Thundershock.Gui.Elements
                     StackDirection.Horizontal => new Vector2(sz.X + m.X, MathF.Max(sz.Y, m.Y)),
                     _ => throw new ArgumentOutOfRangeException()
                 };
+
+                // These two checks will increase the alotted size and allow the stacker to grow
+                // in order to accomodate all children.
+                //
+                // This fixes a somewhat frustrating layout bug.
+                if (Direction == StackDirection.Horizontal)
+                {
+                    if (alottedSize.Y > 0 && m.Y > alottedSize.Y)
+                        alottedSize.Y = m.Y;
+
+                    if (alottedSize.X > 0)
+                        alottedSize.X -= m.X;
+                }
+
+                if (Direction == StackDirection.Vertical)
+                {
+                    if (alottedSize.X > 0 && m.X > alottedSize.X)
+                        alottedSize.X = m.X;
+
+                    if (alottedSize.Y > 0)
+                        alottedSize.Y -= m.Y;
+                }
             }
             
             return sz;
@@ -101,12 +123,12 @@ namespace Thundershock.Gui.Elements
                 if (Direction == StackDirection.Horizontal)
                 {
                     m.X = elem.Size;
-                    rect.Width = (int) m.X;
+                    rect.Width = (int) Math.Round(m.X);
                 }
                 else
                 {
                     m.Y = elem.Size;
-                    rect.Height = (int) m.Y;
+                    rect.Height = (int) Math.Round(m.Y);
                 }
                 
                 // position, my child!
