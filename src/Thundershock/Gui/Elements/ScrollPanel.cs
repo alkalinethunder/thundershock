@@ -37,7 +37,7 @@ namespace Thundershock.Gui.Elements
                 var measure = Children.First().ActualSize;
                 
                 // Store the scroll height.
-                _scrollHeight = (int) measure.Y - _pageHeight;
+                _scrollHeight = (int) measure.Y;
                 
                 // Clamp the scroll offset.
                 if (_scrollOffset >= _scrollHeight)
@@ -57,12 +57,14 @@ namespace Thundershock.Gui.Elements
 
         protected override bool OnMouseScroll(MouseScrollEventArgs e)
         {
-            var nextOffset = _scrollOffset + e.WheelDelta;
+            var nextOffset = _scrollOffset - (e.WheelDelta / 4);
             
             // Clamp the offset
+            if (nextOffset > _scrollHeight - _pageHeight) nextOffset = _scrollHeight - _pageHeight;
             if (nextOffset < 0) nextOffset = 0;
-            if (nextOffset > _scrollHeight) nextOffset = _scrollHeight;
 
+            _scrollOffset = nextOffset;
+            
             return base.OnMouseScroll(e);
         }
     }
