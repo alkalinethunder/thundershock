@@ -17,6 +17,7 @@ namespace Thundershock
         private List<SceneComponent> _components = new List<SceneComponent>();
         private SpriteFont _debugFont;
         private WarningPrinter _warningPrinter;
+        private DeveloperConsole _devConsole;
         
         public Camera Camera { get; protected set; }
 
@@ -74,6 +75,7 @@ namespace Thundershock
             
             // Warning printer goes on top of everything else.
             _warningPrinter = AddComponent<WarningPrinter>();
+            _devConsole = AddComponent<DeveloperConsole>();
         }
         
         public void Unload()

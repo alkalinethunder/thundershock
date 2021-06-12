@@ -131,6 +131,9 @@ namespace Thundershock.Gui
         
         private void HandleMouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (Scene == null)
+                return;
+            
             var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 
@@ -146,6 +149,9 @@ namespace Thundershock.Gui
 
         private void HandleMouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (Scene == null)
+                return;
+
             var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
             
@@ -155,6 +161,9 @@ namespace Thundershock.Gui
 
         private void HandleMouseMove(object sender, MouseMoveEventArgs e)
         {
+            if (Scene == null)
+                return;
+
             var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 
