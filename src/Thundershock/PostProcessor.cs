@@ -8,33 +8,40 @@ namespace Thundershock
 {
     public class PostProcessor
     {
+        #region Scene Settings
+
         public PostProcessSettings Settings { get; }
+
+        #endregion
         
+        #region State
+
         private GraphicsDevice _gfx;
         private SpriteBatch _batch;
         private RenderTarget2D _effectBuffer1;
         private RenderTarget2D _effectBuffer2;
         private RenderTarget2D _intermediate;
+
+        #endregion
+
+        #region Resources
+
         private Effect _brightnessThreshold;
         private Effect _gaussian;
-        private const int KERNEL_SIZE = 15;
         private Effect _bloom;
-        private float _baseIntensity = 1;
-        private float _baseSaturation = 1;
-        private float _bloomIntensity = 0.4f;
-        private float _bloomSaturation = 1;
-        private float _bloomThreshold = 0.26f;
-        private float _blurAmount = 1.1f;
         private Effect _shadowmask;
-        private float _hardPix = -6;
-        private float _hardScan = -10;
         private Effect _glitch;
-        private float _glitchIntensity;
-        private float _glitchSkew;
         
-        public bool EnableShadowMask { get; set; } = true;
-        public bool EnableBloom { get; set; } = true;
-        
+        #endregion
+
+        #region Shader Constants
+
+        private const int KERNEL_SIZE = 15;
+
+        #endregion
+
+        #region Shader Parameters - Gaussian Blur
+
         private float[] _gaussianKernel = new float[KERNEL_SIZE]
         {
             0,
@@ -53,8 +60,44 @@ namespace Thundershock
             0,
             0
         };
-
         private Vector2[] _offsets = new Vector2[KERNEL_SIZE];
+
+        #endregion
+        
+        #region Shader Parameters - Bloom
+
+        private float _baseIntensity = 1;
+        private float _baseSaturation = 1;
+        private float _bloomIntensity = 0.56f;
+        private float _bloomSaturation = 1;
+        private float _bloomThreshold = 0.59f;
+        private float _blurAmount = 1.16f;
+
+        #endregion
+
+        #region Shader Parameters - CRT Shadow-mask
+
+        private float _hardPix = -6;
+        private float _hardScan = -10;
+        private float _shadowmaskBrightness = 1f;
+        private float _maskDark = 0.78f;
+        private float _maskLight = 1.3f;
+            
+        #endregion
+
+        #region Shader Parameters - Glitch Effects
+
+        private float _glitchIntensity;
+        private float _glitchSkew;
+
+        #endregion
+
+        #region Global Settings
+
+        public bool EnableShadowMask { get; set; } = true;
+        public bool EnableBloom { get; set; } = true;
+
+        #endregion
         
         public PostProcessor(GraphicsDevice gfx)
         {
@@ -227,9 +270,9 @@ namespace Thundershock
             _shadowmask.Parameters["OutputSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
             _shadowmask.Parameters["HardPix"].SetValue(_hardPix);
             _shadowmask.Parameters["HardScan"].SetValue(_hardScan);
-            _shadowmask.Parameters["BrightnessBoost"].SetValue(2f);
-            _shadowmask.Parameters["MaskDark"].SetValue(0.8f);
-            _shadowmask.Parameters["MaskLight"].SetValue(1.5f);
+            _shadowmask.Parameters["BrightnessBoost"].SetValue(_shadowmaskBrightness);
+            _shadowmask.Parameters["MaskDark"].SetValue(_maskDark);
+            _shadowmask.Parameters["MaskLight"].SetValue(_maskLight);
         }
         
         public void Process(RenderTarget2D renderTarget)
