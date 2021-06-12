@@ -21,4 +21,10 @@
     <Folder Include="ThundershockContent" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System.IO.FileSystem, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\..\..\..\..\..\..\..\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.6\System.IO.FileSystem.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
