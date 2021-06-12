@@ -35,7 +35,7 @@ namespace Thundershock.Rendering
             var viewWidth = _camera.ViewportWidth;
             var viewHeight = _camera.ViewportHeight;
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, rasterizerState: _rasterizerState,
+            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, rasterizerState: _rasterizerState, samplerState: SamplerState.PointClamp,
                 transformMatrix: transform);
         }
 

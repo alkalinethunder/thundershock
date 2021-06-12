@@ -121,6 +121,8 @@ namespace Thundershock.Gui
                     _focused.FireBlurred(evt);
                 }
 
+                _focused = element;
+                
                 if (element != null)
                 {
                     element.FireFocused(evt);

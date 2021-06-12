@@ -75,7 +75,7 @@ namespace Thundershock.Debugging
             {
                 if (_backdrop.Visibility == Visibility.Visible)
                 {
-                    _backdrop.Visibility = Visibility.Collapsed;
+                    _devGui.SetFocus(null);
                 }
                 else
                 {
