@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic.FileIO;
 
 namespace Thundershock.Gui.Elements
 {
@@ -15,6 +17,23 @@ namespace Thundershock.Gui.Elements
         {
             var size = Vector2.Zero;
 
+            var max = float.PositiveInfinity;
+
+            switch (Orientation)
+            {
+                case StackDirection.Horizontal:
+                    if (alottedSize.X > 0)
+                        max = alottedSize.X;
+                    break;
+                case StackDirection.Vertical:
+                    if (alottedSize.Y > 0)
+                        max = alottedSize.Y;
+                    break;
+            }
+
+            var line = 0f;
+            var lineSize = 0f;
+            
             foreach (var elem in Children)
             {
                 var elemSize = elem.Measure(alottedSize);
@@ -22,16 +41,60 @@ namespace Thundershock.Gui.Elements
                 switch (Orientation)
                 {
                     case StackDirection.Horizontal:
-                        size.X += elemSize.X;
-                        size.Y = Math.Max(size.Y, elemSize.Y);
+                        if (lineSize + elemSize.X > max)
+                        {
+                            size.X = Math.Max(size.X, lineSize);
+                            size.Y += line;
+                            line = 0;
+                            lineSize = 0;
+                        }
+
+                        lineSize += elemSize.X;
+                        line = Math.Max(line, elemSize.Y);
                         break;
                     case StackDirection.Vertical:
-                        size.X = Math.Max(size.X, elemSize.X);
-                        size.Y += elemSize.Y;
+                        if (lineSize + elemSize.Y > max)
+                        {
+                            size.X += line;
+                            size.Y = Math.Max(lineSize, size.Y);
+                            line = 0;
+                            lineSize = 0;
+                        }
+
+                        line = Math.Max(line, elemSize.X);
+                        
+                        lineSize += elemSize.Y;
+                        
                         break;
                 }
             }
 
+            if (line > 0)
+            {
+                switch (Orientation)
+                {
+                    case StackDirection.Horizontal:
+                        size.Y += line;
+                        break;
+                    case StackDirection.Vertical:
+                        size.X += line;
+                        break;
+                }
+            }
+
+            if (lineSize > 0)
+            {
+                switch (Orientation)
+                {
+                    case StackDirection.Horizontal:
+                        size.X = Math.Max(lineSize, size.X);
+                        break;
+                    case StackDirection.Vertical:
+                        size.Y = Math.Max(lineSize, size.Y);
+                        break;
+                }
+            }
+            
             return size;
         }
 
@@ -42,7 +105,7 @@ namespace Thundershock.Gui.Elements
             var line = 0f;
             foreach (var elem in Children)
             {
-                var size = elem.Measure(ContentRectangle.Size.ToVector2());
+                var size = elem.ActualSize;
 
                 var rect = Rectangle.Empty;
                 rect.Width = (int) size.X;
@@ -51,7 +114,7 @@ namespace Thundershock.Gui.Elements
                 switch (Orientation)
                 {
                     case StackDirection.Horizontal:
-                        if (x + size.X >= contentRectangle.Right)
+                        if (x + size.X > contentRectangle.Right)
                         {
                             x = contentRectangle.Left;
                             y += line;
@@ -63,7 +126,7 @@ namespace Thundershock.Gui.Elements
                         x += size.X;
                         break;
                     case StackDirection.Vertical:
-                        if (y + size.Y >= contentRectangle.Bottom)
+                        if (y + size.Y > contentRectangle.Bottom)
                         {
                             y = contentRectangle.Top;
                             x += line;
