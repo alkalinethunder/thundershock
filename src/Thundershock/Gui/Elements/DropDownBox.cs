@@ -46,6 +46,7 @@ namespace Thundershock.Gui.Elements
         {
             _activator.CanFocus = false;
             _scrollPanel.Children.Add(_itemList);
+            _scrollPanel.IsInteractable = true;
             
             _activatorContent.Children.Add(_text);
             _activatorContent.Children.Add(_arrow);
@@ -108,8 +109,17 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        protected override void ArrangeOverride(Rectangle contentRectangle)
+        {
+            _itemList.MinimumWidth = contentRectangle.Width;
+            
+            base.ArrangeOverride(contentRectangle);
+        }
+
         protected override void OnUpdate(GameTime gameTime)
         {
+            _text.Color = GuiSystem.Style.GetButtonTextColor(_activator);
+            
             if (_itemList.SelectedIndex > -1)
             {
                 _text.Text = _itemList.SelectedItem;

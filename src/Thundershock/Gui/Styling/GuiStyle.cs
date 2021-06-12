@@ -11,6 +11,7 @@ namespace Thundershock.Gui.Styling
 
         public virtual Padding CheckPadding => 4;
         
+        public virtual SpriteFont StringListFont => DefaultFont;
         public virtual SpriteFont ButtonFont => _guiSystem.FallbackFont;
         
         protected GuiSystem Gui => _guiSystem;
@@ -49,6 +50,11 @@ namespace Thundershock.Gui.Styling
 
         public abstract void DrawButton(GuiRenderer renderer, IButtonElement button);
 
+        public abstract void DrawStringListBackground(GuiRenderer renderer, StringList stringList);
+
+        public abstract void DrawListItem(GuiRenderer renderer, StringList stringList, Rectangle bounds, bool isActive,
+            bool isHovered, string text);
+        
         public virtual Color GetButtonTextColor(IButtonElement button)
         {
             return Color.Black;

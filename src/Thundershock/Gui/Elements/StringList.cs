@@ -8,11 +8,15 @@ namespace Thundershock.Gui.Elements
 {
     public class StringList : ItemListElement<string>
     {
-        public SpriteFont ItemsFont { get; set; }
+        public StyleFont ItemsFont { get; set; } = StyleFont.Default;
+
+        public StyleColor BackColor { get; set; } = StyleColor.Default;
+        public StyleColor ItemsColor { get; set; } = StyleColor.Default;
+        public StyleColor ItemsActiveColor { get; set; } = StyleColor.Default;
 
         private SpriteFont GetFont()
         {
-            return ItemsFont ?? GuiSystem.Style.DefaultFont;
+            return ItemsFont.GetFont(GuiSystem.Style.StringListFont);
         }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
@@ -44,6 +48,8 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
+            GuiSystem.Style.DrawStringListBackground(renderer, this);
+            
             var pos = ContentRectangle.Location.ToVector2();
             var font = GetFont();
             
@@ -53,17 +59,8 @@ namespace Thundershock.Gui.Elements
 
                 var bounds = GetItemBounds(i, item);
 
-                if (i == SelectedIndex)
-                {
-                    GuiSystem.Style.DrawSelectionBox(renderer, bounds, SelectionStyle.ItemActive);
-                }
-                else if (i == HotIndex)
-                {
-                    GuiSystem.Style.DrawSelectionBox(renderer, bounds, SelectionStyle.ItemHover);
-                }
+                GuiSystem.Style.DrawListItem(renderer, this, bounds, i == SelectedIndex, i == HotIndex, item);
                 
-                renderer.DrawString(font, item, pos, Color.Black);
-
                 pos.Y += font.LineSpacing;
             }
         }

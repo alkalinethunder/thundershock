@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Gtk;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Gui.Elements;
 
@@ -81,6 +82,27 @@ namespace Thundershock.Gui.Styling
                 return Color.Black;
             else
                 return Color.White;
+        }
+
+        public override void DrawStringListBackground(GuiRenderer renderer, StringList stringList)
+        {
+            renderer.FillRectangle(stringList.BoundingBox,
+                (stringList.BackColor ?? StyleColor.Default).GetColor(Color.White));
+        }
+
+        public override void DrawListItem(GuiRenderer renderer, StringList stringList, Rectangle bounds, bool isActive, bool isHovered,
+            string text)
+        {
+            if (isActive)
+                DrawSelectionBox(renderer, bounds, SelectionStyle.ItemActive);
+            else if (isHovered)
+                DrawSelectionBox(renderer, bounds, SelectionStyle.ItemHover);
+
+            var color = ((isActive ? stringList.ItemsActiveColor : stringList.ItemsColor) ?? StyleColor.Default)
+                .GetColor(isActive ? Color.White : Color.Black);
+            var font = stringList.Font.GetFont(this.StringListFont);
+            
+            renderer.DrawString(font, text, bounds.Location.ToVector2(), color);
         }
     }
 }
