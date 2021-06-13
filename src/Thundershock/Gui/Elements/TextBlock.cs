@@ -17,8 +17,8 @@ namespace Thundershock.Gui.Elements
         public string Text { get; set; } = "Text Block";
 
         public TextAlign TextAlign { get; set; }
-        
-        public TextWrapMode WrapMode { get; set; }
+
+        public TextWrapMode WrapMode { get; set; } = TextWrapMode.WordWrap;
         
         private SpriteFont GetFont()
         {

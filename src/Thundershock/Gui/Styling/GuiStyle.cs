@@ -9,6 +9,7 @@ namespace Thundershock.Gui.Styling
     {
         private GuiSystem _guiSystem;
 
+        public virtual int ProgressBarHeight => 4;
         public virtual Padding CheckPadding => 4;
         
         public virtual SpriteFont StringListFont => DefaultFont;
@@ -54,6 +55,16 @@ namespace Thundershock.Gui.Styling
 
         public abstract void DrawListItem(GuiRenderer renderer, StringList stringList, Rectangle bounds, bool isActive,
             bool isHovered, string text);
+
+        public virtual void DrawProgressBar(GuiRenderer renderer, ProgressBar progressBar)
+        {
+            renderer.FillRectangle(progressBar.BoundingBox, Color.Gray);
+
+            var contentBounds = progressBar.ContentRectangle;
+            contentBounds.Width = (int) (contentBounds.Width * progressBar.Value);
+            
+            DrawSelectionBox(renderer, contentBounds, SelectionStyle.ItemActive);
+        }
         
         public virtual Color GetButtonTextColor(IButtonElement button)
         {

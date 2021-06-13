@@ -288,7 +288,11 @@ namespace Thundershock.Gui.Elements
         {
             // If the UI element is collapsed, report a measurement of zero.
             if (Visibility == Visibility.Collapsed)
+            {
+                // this fixes a layout bug!
+                ActualSize = Vector2.Zero;
                 return Vector2.Zero;
+            }
 
             alottedSize.X -= Margin.Width;
             alottedSize.Y -= Margin.Height;
