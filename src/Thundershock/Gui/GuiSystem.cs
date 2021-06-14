@@ -124,7 +124,7 @@ namespace Thundershock.Gui
             var e = element;
             while (e != null)
             {
-                if (predicate(e))
+                if (e.IsInteractable && predicate(e))
                     break;
                 e = e.Parent;
             }

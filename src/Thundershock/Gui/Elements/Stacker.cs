@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using Microsoft.Xna.Framework;
 
@@ -22,8 +23,16 @@ namespace Thundershock.Gui.Elements
         {
             var sz = Vector2.Zero;
 
+            var fills = new List<Element>();
+            
             foreach (var child in Children)
             {
+                if (GetFillPercentage(child) > 0)
+                {
+                    fills.Add(child);
+                    continue;
+                }
+                
                 var m = child.Measure(alottedSize);
 
                 sz = Direction switch
@@ -53,6 +62,36 @@ namespace Thundershock.Gui.Elements
 
                     if (alottedSize.Y > 0)
                         alottedSize.Y -= m.Y;
+                }
+            }
+            
+            // Second pass: go through all filled UI elements and measure them
+            foreach (var fill in fills)
+            {
+                var percent = GetFillPercentage(fill);
+
+                var a = Direction switch
+                {
+                    StackDirection.Horizontal => new Vector2(alottedSize.X * percent, alottedSize.Y),
+                    StackDirection.Vertical => new Vector2(alottedSize.X, alottedSize.Y * percent),
+                    _ => alottedSize
+                };
+
+                var measure = fill.Measure(a);
+
+                if (Direction == StackDirection.Horizontal)
+                {
+                    sz.X += measure.X;
+                    sz.Y = Math.Max(sz.Y, measure.Y);
+                    if (alottedSize.Y > 0)
+                        alottedSize.Y = Math.Max(alottedSize.Y, sz.Y);
+                }
+                else
+                {
+                    sz.Y += measure.Y;
+                    sz.X = Math.Max(measure.X, sz.X);
+                    if (alottedSize.X > 0)
+                        alottedSize.X = Math.Max(alottedSize.X, sz.X);
                 }
             }
             

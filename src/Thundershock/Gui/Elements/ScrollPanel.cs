@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Thundershock.Input;
 
@@ -10,15 +11,25 @@ namespace Thundershock.Gui.Elements
         private int _pageHeight;
         private int _scrollHeight;
 
+        public ScrollPanel()
+        {
+            IsInteractable = true;
+        }
+        
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
             if (Children.Any())
             {
-                // Measure the child with our alotted width but no limit on the height because we'll end up scrolling it.
-                var childSize = Children.First().Measure(alottedSize);
-
-                // We'll return that as our measurement - arrangement is when we deal with height limits.
-                return childSize;
+                // Measure the child's size using our alotted width and an infinite height.
+                var childSize = Children.First().Measure(new Vector2(alottedSize.X, 0));
+                
+                // If we don't have an alotted height then return what we just measured.
+                if (alottedSize.Y <= 0)
+                    return childSize;
+                
+                // otherwise return the child width and whichever height is smaller.
+                // This fixes a layout bug with scroll panels that don't have a MaximumHeight.
+                return new Vector2(childSize.X, Math.Min(alottedSize.Y, childSize.Y));
             }
 
             return Vector2.Zero;
@@ -34,7 +45,7 @@ namespace Thundershock.Gui.Elements
             // And now we deal with our child.
             if (Children.Any())
             {
-                var measure = Children.First().ActualSize;
+                var measure = Children.First().Measure(contentRectangle.Size.ToVector2());
                 
                 // Store the scroll height.
                 _scrollHeight = (int) measure.Y;
