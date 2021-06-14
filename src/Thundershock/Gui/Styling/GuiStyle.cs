@@ -9,6 +9,8 @@ namespace Thundershock.Gui.Styling
     {
         private GuiSystem _guiSystem;
 
+        public virtual Color DefaultForeground { get; } = Color.Black;
+
         public virtual int ProgressBarHeight => 4;
         public virtual Padding CheckPadding => 4;
         
