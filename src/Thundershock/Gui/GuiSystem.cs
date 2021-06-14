@@ -11,6 +11,8 @@ namespace Thundershock.Gui
 {
     public sealed class GuiSystem : SceneComponent
     {
+        private static Type _defaultStyleType;
+        
         private GuiStyle _activeStyle;
         private RootElement _rootElement;
         private bool _debugShowBounds = false;
@@ -52,7 +54,14 @@ namespace Thundershock.Gui
             _input.KeyDown += HandleKeyDown;
             _input.KeyUp += HandleKeyUp;
 
-            LoadStyle<BasicStyle>();
+            if (_defaultStyleType != null)
+            {
+                LoadStyle(_defaultStyleType);
+            }
+            else
+            {
+                LoadStyle<BasicStyle>();
+            }
         }
 
         protected override void OnUnload()
@@ -66,6 +75,18 @@ namespace Thundershock.Gui
             _input.KeyUp -= HandleKeyUp;
         }
 
+        private void LoadStyle(Type styleType)
+        {
+            var style = (GuiStyle) Activator.CreateInstance(styleType, null);
+
+            if (_activeStyle != null)
+                _activeStyle.Unload();
+
+            _activeStyle = style;
+
+            _activeStyle.Load(this);
+        }
+        
         public void LoadStyle<T>() where T : GuiStyle, new()
         {
             if (_activeStyle != null)
@@ -405,6 +426,11 @@ namespace Thundershock.Gui
             }
 
             return null;
+        }
+
+        public static void SetDefaultStyle<T>() where T : GuiStyle, new()
+        {
+            _defaultStyleType = typeof(T);
         }
     }
 }
