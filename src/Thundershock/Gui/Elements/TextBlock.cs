@@ -66,7 +66,7 @@ namespace Thundershock.Gui.Elements
             {
                 if (!isFirstLine)
                     sb.AppendLine();
-
+                
                 // first step: break words.
                 var words = new List<string>();
                 var w = "";
@@ -74,7 +74,7 @@ namespace Thundershock.Gui.Elements
                 {
                     if (i < line.Length)
                     {
-                        var ch = text[i];
+                        var ch = line[i];
                         w += ch;
                         if (char.IsWhiteSpace(ch))
                         {
@@ -174,6 +174,12 @@ namespace Thundershock.Gui.Elements
             var size = Vector2.Zero;
             foreach (var line in _wrappedText.Split('\n'))
             {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    size.Y += f.LineSpacing;
+                    continue;
+                }
+                
                 var m = f.MeasureString(line);
 
                 size.X = Math.Max(size.X, m.X);
@@ -194,6 +200,12 @@ namespace Thundershock.Gui.Elements
 
                 foreach (var line in lines)
                 {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        pos.Y += f.LineSpacing;
+                        continue;
+                    }
+                    
                     var m = f.MeasureString(line);
                     
                     switch (this.TextAlign)
