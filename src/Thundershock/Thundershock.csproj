@@ -10,6 +10,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <PackageReference Include="BinaryPack" Version="1.0.1" />
     <PackageReference Include="docopt.net" Version="0.6.1.11" />
     <PackageReference Include="GtkSharp" Version="3.24.24.34" />
     <PackageReference Include="MimeTypeMap.Core" Version="1.0.0" />

@@ -12,7 +12,7 @@ namespace Thundershock
 {
     public abstract class Scene
     {
-        private App _app;
+        private GameApp _app;
         private MonoGameLoop _gameLoop;
         private List<SceneComponent> _components = new List<SceneComponent>();
         private SpriteFont _debugFont;
@@ -24,7 +24,7 @@ namespace Thundershock
         public Rectangle ViewportBounds
             => Camera != null ? Camera.ViewportBounds : Rectangle.Empty;
         
-        public App App => _app;
+        public GameApp App => _app;
         public MonoGameLoop Game => _gameLoop;
 
         public bool HasComponent<T>() where T : SceneComponent
@@ -65,7 +65,7 @@ namespace Thundershock
             _components.Remove(component);
         }
         
-        internal void Load(App app, MonoGameLoop gameLoop)
+        internal void Load(GameApp app, MonoGameLoop gameLoop)
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Thundershock.Input
 {
-    public class InputManager : GlobalComponent
+    public class InputManager : GameAppComponent
     {
         private MouseEventArgs _lastMouseEvent;
 

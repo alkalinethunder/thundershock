@@ -5,7 +5,7 @@ using Thundershock.Config;
 
 namespace Thundershock.Audio
 {
-    public class BgmManager : GlobalComponent
+    public class BgmManager : GameAppComponent
     {
         private ConfigurationManager _config;
         

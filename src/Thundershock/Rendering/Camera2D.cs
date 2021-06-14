@@ -12,7 +12,7 @@ namespace Thundershock.Rendering
             get
             {
                 // TODO: make this not require the use of the fucking EntryPoint class.
-                var screenSize = new Vector2(EntryPoint.CurrentApp.ScreenWidth, EntryPoint.CurrentApp.ScreenHeight);
+                var screenSize = new Vector2((EntryPoint.CurrentApp as GameApp).ScreenWidth, (EntryPoint.CurrentApp as GameApp).ScreenHeight);
 
                 var aspectRatio = screenSize.X / screenSize.Y;
 

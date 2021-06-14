@@ -90,10 +90,10 @@ namespace Thundershock.Gui.Elements.Console
 
         public ConsoleControl()
         {
-            _regularFont = EntryPoint.CurrentApp.EngineContent.Load<SpriteFont>("Fonts/Console/Regular");
-            _boldFont = EntryPoint.CurrentApp.EngineContent.Load<SpriteFont>("Fonts/Console/Bold");
-            _boldItalicFont = EntryPoint.CurrentApp.EngineContent.Load<SpriteFont>("Fonts/Console/BoldItalic");
-            _italicFont = EntryPoint.CurrentApp.EngineContent.Load<SpriteFont>("Fonts/Console/Italic");
+            _regularFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Regular");
+            _boldFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Bold");
+            _boldItalicFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/BoldItalic");
+            _italicFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Italic");
             CanFocus = true;
             IsInteractable = true;
         }

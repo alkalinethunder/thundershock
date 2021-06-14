@@ -9,7 +9,7 @@ namespace Thundershock
     {
         private Scene _scene;
 
-        public App App => _scene.App;
+        public GameApp App => _scene.App;
         public Scene Scene => _scene;
 
         public bool Visible { get; set; } = true;

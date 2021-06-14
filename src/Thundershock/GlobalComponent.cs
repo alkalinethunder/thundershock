@@ -3,11 +3,11 @@ using Microsoft.Xna.Framework;
 
 namespace Thundershock
 {
-    public abstract class GlobalComponent
+    public abstract class GlobalComponent : IGlobalComponent
     {
-        protected App App { get; private set; }
+        public AppBase App { get; private set; }
         
-        public void Initialize(App app)
+        public void Initialize(AppBase app)
         {
             App = app ?? throw new ArgumentNullException(nameof(app));
 

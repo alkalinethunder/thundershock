@@ -15,7 +15,7 @@ namespace Thundershock.Gui
     {
         private string _title = "Open File";
         private List<string> _acceptedTypes = new();
-        private App _app;
+        private AppBase _app;
         private string _path;
 
         public string SelectedFilePath => _path;
@@ -34,7 +34,7 @@ namespace Thundershock.Gui
             set => _title = value ?? "Open File";
         }
 
-        public FileChooser(App app)
+        public FileChooser(AppBase app)
         {
             _app = app;
 
@@ -42,9 +42,9 @@ namespace Thundershock.Gui
         }
 
 #if WINDOWS
-        private DialogResult ShowWindowsDialog()
+        private System.Windows.Forms.DialogResult ShowWindowsDialog()
         {
-            var dialogResult = DialogResult.OK;
+            var dialogResult = System.Windows.Forms.DialogResult.OK;
             
             switch (FileOpenerType)
             {
@@ -98,11 +98,11 @@ namespace Thundershock.Gui
             return sb.ToString();
         }
 
-        private FileOpenerResult MapDialogResult(DialogResult result)
+        private FileOpenerResult MapDialogResult(System.Windows.Forms.DialogResult result)
         {
             return result switch
             {
-                DialogResult.OK => FileOpenerResult.OK,
+                System.Windows.Forms.DialogResult.OK => FileOpenerResult.OK,
                 _ => FileOpenerResult.Cancelled
             };
         }

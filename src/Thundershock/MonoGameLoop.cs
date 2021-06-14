@@ -13,7 +13,7 @@ namespace Thundershock
 {
     public class MonoGameLoop : Game
     {
-        private App _app;
+        private GameApp _app;
         private PostProcessor _postProcessor;
         private RenderTarget2D _renderTarget;
         private GraphicsDeviceManager _graphics;
@@ -37,7 +37,7 @@ namespace Thundershock
         public ContentManager EngineContent
             => _thundershockContent;
         
-        internal MonoGameLoop(App app)
+        internal MonoGameLoop(GameApp app)
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _app.Logger.Log("Bootstrapping MonoGame...");
@@ -159,7 +159,7 @@ namespace Thundershock
             
             // Initialize the app. This officially completes the gluing of Thundershock to MonoGame.
             // It also gives the game a chance to do pre-graphics initialization.
-            _app.Initialize(this);
+            _app.Initialize();
 
             // this makes sure we get notified when config values are committed.
             var config = _app.GetComponent<ConfigurationManager>();
