@@ -171,6 +171,8 @@ namespace Thundershock.Gui.Elements
         
         public float Opacity { get; set; } = 1;
         public bool Enabled { get; set; } = true;
+
+        public StyleColor ForeColor { get; set; } = StyleColor.Default;
         
         public Element Parent
         {
