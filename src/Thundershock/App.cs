@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Debugging;
 using Thundershock.Input;
@@ -72,6 +73,9 @@ namespace Thundershock
             
             // REALLY IMPORTANT THAT WE DO THIS NOW
             RegisterComponent<ConfigurationManager>();
+            
+            // Not so important but most games will likely need the audio stuff.
+            RegisterComponent<BgmManager>();
             
             // init hook
             _logger.Log("Init hook reached.");

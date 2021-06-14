@@ -6,6 +6,8 @@
         public bool VSync = true;
         public bool FixedTimeStepping = true;
         public bool SwapMouseButtons = false;
+
+        public float BgmVolume = 1;
         
         public EffectsConfiguration Effects = new EffectsConfiguration();
 
