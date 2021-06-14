@@ -20,7 +20,8 @@ namespace Thundershock.Gui.Elements
         public bool IsHovered => _isHovered;
         public bool IsActive { get; set; } = false;
         public StyleColor ButtonColor { get; set; } = StyleColor.Default;
-
+        public StyleColor ButtonActiveColor { get; set; } = StyleColor.Default;
+        
         protected override bool OnMouseDown(MouseButtonEventArgs e)
         {
             if (e.Button == MouseButton.Primary)
