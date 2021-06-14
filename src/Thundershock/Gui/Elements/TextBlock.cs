@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Gui.Styling;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Thundershock.Gui.Elements
@@ -12,8 +13,8 @@ namespace Thundershock.Gui.Elements
     public class TextBlock : Element
     {
         private string _wrappedText;
-        
-        public Color Color { get; set; } = Color.Black;
+
+        public StyleColor Color { get; set; } = StyleColor.Default;
         public string Text { get; set; } = "Text Block";
 
         public TextAlign TextAlign { get; set; }
@@ -208,7 +209,7 @@ namespace Thundershock.Gui.Elements
                             break;
                     }
                     
-                    renderer.DrawString(f, line, pos, Color, TextAlign);
+                    renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground), TextAlign);
                     pos.Y += m.Y;
                 }
             }

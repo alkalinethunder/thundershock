@@ -40,9 +40,6 @@ namespace Thundershock.Gui.Elements
             }
         }
         
-        public Color TextColor { get; set; } = Color.Black;
-        public Color HintColor { get; set; } = Color.Gray;
-        
         public event EventHandler TextCommitted;
         public event EventHandler TextChanged;
         
@@ -131,13 +128,15 @@ namespace Thundershock.Gui.Elements
 
             var pos = new Vector2(ContentRectangle.Left,
                 ContentRectangle.Top + ((ContentRectangle.Height - font.LineSpacing) / 2));
+
+            var textColor = ForeColor.GetColor(GuiSystem.Style.DefaultForeground);
             
             if (string.IsNullOrEmpty(_text))
             {
-                renderer.DrawString(font, _hint, pos, HintColor);
+                renderer.DrawString(font, _hint, pos, textColor * 0.5f);
             }
 
-            renderer.DrawString(font, _text, pos, TextColor);
+            renderer.DrawString(font, _text, pos, textColor);
 
             if (HasAnyFocus)
             {
@@ -146,7 +145,7 @@ namespace Thundershock.Gui.Elements
                 var measure = font.MeasureString(m);
                 cursorPos.X += measure.X;
 
-                GuiSystem.Style.DrawTextCursor(renderer, TextColor, cursorPos, font.LineSpacing);
+                GuiSystem.Style.DrawTextCursor(renderer, textColor, cursorPos, font.LineSpacing);
             }
         }
     }
