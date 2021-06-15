@@ -30,7 +30,19 @@ namespace Thundershock
             internal set => _logger = value;
         }
 
-        public abstract void Exit();
+        public bool Exit()
+        {
+            Logger.Log("Exit requested.");
+
+            Logger.Log("Allowing the app to do stuff before exiting...");
+            var exitEvent = new AppExitEventArgs();
+            BeforeExit(exitEvent);
+
+            if (exitEvent.CancelExit)
+                Logger.Log("App has cancelled the exit event.");
+
+            return !exitEvent.CancelExit;
+        }
 
         public T GetComponent<T>() where T : IGlobalComponent, new()
         {
@@ -44,27 +56,32 @@ namespace Thundershock
             Bootstrap();
         }
 
+        protected void RegisterComponent(IGlobalComponent component)
+        {
+            _components.Add(component);
+            component.Initialize(this);
+        }
+
         protected T RegisterComponent<T>() where T : IGlobalComponent, new()
         {
             if (_components.Any(x => x is T))
                 throw new InvalidOperationException("Component is already registered.");
 
             Logger.Log($"Registering global component: {typeof(T).FullName}");
-            
+
             var instance = new T();
-            _components.Add(instance);
-            instance.Initialize(this);
+            RegisterComponent(instance);
             return instance;
         }
 
         protected void UpdateComponents(GameTime gameTime)
         {
             foreach (var component in _components.ToArray())
-            {   
+            {
                 component.Update(gameTime);
             }
         }
-        
+
         protected void RunQueuedActions()
         {
             while (_actionQueue.TryDequeue(out var action))
@@ -72,7 +89,7 @@ namespace Thundershock
                 action?.Invoke();
             }
         }
-        
+
         protected void UnloadAllComponents()
         {
             // Unload all global components.
@@ -82,8 +99,9 @@ namespace Thundershock
                 _components.RemoveAt(0);
             }
         }
-        
-        
+
+
         protected abstract void Bootstrap();
+        protected virtual void BeforeExit(AppExitEventArgs args) {}
     }
 }

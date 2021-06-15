@@ -236,5 +236,16 @@ namespace Thundershock
 
             base.Draw(gameTime);
         }
+
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+            _app.Logger.Log("MonoGame is requesting us to exit, we're going to run that by the app first.");
+
+            if (_app.Exit())
+            {
+                _app.Logger.Log("App had no objections, tearing ourselves down...");
+                base.OnExiting(sender, args);
+            }
+        }
     }
 }

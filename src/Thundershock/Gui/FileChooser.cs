@@ -4,7 +4,6 @@ using System.Threading;
 using Gtk;
 using System.Text;
 using MimeTypes.Core;
-
 #if WINDOWS
 using System.Windows.Forms;
 #endif
@@ -14,20 +13,20 @@ namespace Thundershock.Gui
     public class FileChooser
     {
         private string _title = "Open File";
-        private List<string> _acceptedTypes = new();
+        private List<AcceptedFileType> _acceptedTypes = new();
         private AppBase _app;
         private string _path;
 
         public string SelectedFilePath => _path;
-        
+
         public FileOpenerType FileOpenerType { get; set; }
 
         public bool AllowAnyFileType { get; set; } = true;
-        
+
         public string InitialDirectory { get; set; }
 
-        public ICollection<string> AcceptedFileTypes => _acceptedTypes;
-        
+        public ICollection<AcceptedFileType> AcceptedFileTypes => _acceptedTypes;
+
         public string Title
         {
             get => _title;
@@ -41,11 +40,22 @@ namespace Thundershock.Gui
             InitialDirectory = Environment.CurrentDirectory;
         }
 
+        public void AcceptFileType(string extension, string name)
+        {
+            var ftype = new AcceptedFileType
+            {
+                Name = name,
+                Extension = extension
+            };
+
+            _acceptedTypes.Add(ftype);
+        }
+
 #if WINDOWS
         private System.Windows.Forms.DialogResult ShowWindowsDialog()
         {
             var dialogResult = System.Windows.Forms.DialogResult.OK;
-            
+
             switch (FileOpenerType)
             {
                 case FileOpenerType.Open:
@@ -54,7 +64,7 @@ namespace Thundershock.Gui
                     openFileDialog.Filter = BuildWindowsFileFilter();
                     openFileDialog.Title = Title;
                     openFileDialog.InitialDirectory = InitialDirectory;
-                    
+
                     dialogResult = openFileDialog.ShowDialog();
 
                     _path = openFileDialog.FileName;
@@ -80,10 +90,10 @@ namespace Thundershock.Gui
                 if (sb.Length > 0)
                     sb.Append("|");
 
-                var extension = MimeTypeMap.GetExtension(acceptedType);
+                var extension = acceptedType.Extension;
 
-                sb.Append(extension.ToUpper());
-                sb.Append(" Files|*");
+                sb.Append(acceptedType.Name);
+                sb.Append("|*.");
                 sb.Append(extension);
             }
 
@@ -94,7 +104,7 @@ namespace Thundershock.Gui
 
                 sb.Append("All files|*.*"); // OwO
             }
-            
+
             return sb.ToString();
         }
 
@@ -109,7 +119,7 @@ namespace Thundershock.Gui
 #endif
 
         private ManualResetEvent _gtkReset = new ManualResetEvent(false);
-        
+
         private ResponseType GtkShowDialog()
         {
             Gtk.Application.Init();
@@ -119,24 +129,24 @@ namespace Thundershock.Gui
 
             chooser.SetCurrentFolder(InitialDirectory);
 
-            foreach (var mime in _acceptedTypes)
+            foreach (var ftype in _acceptedTypes)
             {
                 var filter = new FileFilter();
-                filter.Name = mime;
-                filter.AddMimeType(mime);
+                filter.Name = ftype.Name;
+                filter.AddPattern($"*.{ftype.Extension}");
                 chooser.AddFilter(filter);
             }
-            
+
             chooser.Response += (o, args) =>
             {
                 _path = chooser.Filename;
                 result = args.ResponseId;
 
                 chooser.Hide();
-                
+
                 Gtk.Application.Quit();
             };
-            
+
             chooser.Show();
 
             Gtk.Application.Run();
@@ -166,12 +176,12 @@ namespace Thundershock.Gui
                     {"Cancel", Gtk.ResponseType.Cancel, "Choose Folder", Gtk.ResponseType.Ok},
             };
         }
-        
+
         public FileOpenerResult Activate()
         {
 #if WINDOWS
             var result = ShowWindowsDialog();
-            
+
             return MapDialogResult(result);
 #else
             var result = GtkShowDialog();
@@ -183,5 +193,11 @@ namespace Thundershock.Gui
             };
 #endif
         }
+    }
+
+    public class AcceptedFileType
+    {
+        public string Extension { get; set; }
+        public string Name { get; set; }
     }
 }

@@ -44,9 +44,6 @@ namespace Thundershock
             _game = null;
         }
 
-        public override void Exit()
-            => _game.Exit();
-
         internal void Initialize()
         {
             // pre-init hook
@@ -127,5 +124,11 @@ namespace Thundershock
         protected virtual void OnUnload() {}
         protected virtual void OnPostUnload() {}
         #endregion
+
+        protected override void BeforeExit(AppExitEventArgs args)
+        {
+            args.Cancel();
+            base.BeforeExit(args);
+        }
     }
 }

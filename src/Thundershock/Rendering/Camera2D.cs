@@ -34,20 +34,13 @@ namespace Thundershock.Rendering
         public override Matrix GetRenderTransform(GraphicsDevice gfx)
         {
             var scale2D = gfx.Viewport.Bounds.Size.ToVector2() / ViewportBounds.Size.ToVector2();
-            
+
             var scale = new Vector3(scale2D.X, scale2D.Y, 1);
-            
+
             var identity = Matrix.Identity;
             Matrix.CreateScale(ref scale, out identity);
 
             return identity;
         }
-    }
-
-    public enum AspectRatioMode
-    {
-        Ignore,
-        ScaleHorizontally,
-        ScaleVertically
     }
 }

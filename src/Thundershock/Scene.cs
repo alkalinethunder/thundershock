@@ -73,9 +73,14 @@ namespace Thundershock
             _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
             OnLoad();
 
-            // Warning printer goes on top of everything else.
-            _warningPrinter = AddComponent<WarningPrinter>();
-            _devConsole = AddComponent<DeveloperConsole>();
+            // Selective load: Only load dev tools on full game apps.
+            // GameAppBase doesn't need this.
+            if (App is GameApp)
+            {
+                // Warning printer goes on top of everything else.
+                _warningPrinter = AddComponent<WarningPrinter>();
+                _devConsole = AddComponent<DeveloperConsole>();
+            }
         }
 
         public void Unload()
