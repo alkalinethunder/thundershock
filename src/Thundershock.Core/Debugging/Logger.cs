@@ -3,22 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Thundershock.Debugging;
 
-namespace Thundershock.Debugging
+namespace Thundershock.Core.Debugging
 {
     public class Logger
     {
         private List<ILogOutput> _outputs = new List<ILogOutput>();
-
-        public Logger()
-        {
-            // Some IDEs have weird issues dealing with Windows runtime applications and Console.
-            // This is a workaround.
-            ThundershockPlatform.AttachConsole(-1);
-
-            AddOutput(WarningPrinter.GetWarningPrinterLogOutput());
-        }
-
+        
         private void All(Action<ILogOutput> action)
         {
             foreach (var output in _outputs)

@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Thundershock.Core;
 
 namespace Thundershock
 {

@@ -1,5 +1,5 @@
 using System;
-using Microsoft.Xna.Framework;
+using Thundershock.Core;
 
 namespace Thundershock
 {

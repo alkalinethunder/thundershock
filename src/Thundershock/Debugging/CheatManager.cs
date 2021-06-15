@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Thundershock.Core;
 
 namespace Thundershock.Debugging
 {
@@ -60,7 +61,7 @@ namespace Thundershock.Debugging
             }
         }
         
-        protected override void OnUpdate(GameTime gameTime)
+        protected override void OnUpdate(Thundershock.Core.GameTime gameTime)
         {
             while (_pendingCommands.TryDequeue(out string cmd))
             {

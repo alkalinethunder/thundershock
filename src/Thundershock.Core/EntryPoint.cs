@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using Thundershock.Debugging;
+using Thundershock.Core.Debugging;
 
-namespace Thundershock
+namespace Thundershock.Core
 {
-    public class EntryPoint
+    public static class EntryPoint
     {
         private static Dictionary<string, Type> _entryPoints = new Dictionary<string, Type>();
         private static AppBase _current;
@@ -72,6 +71,9 @@ namespace Thundershock
             var console = new ConsoleOutput();
             logger.AddOutput(console);
             
+            // platform init
+            PlatformUtils.Initialize(logger);
+
             // verbose logging
             console.Verbose = entryArgs.Verbose;
             if (console.Verbose)

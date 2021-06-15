@@ -2,12 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Core.Debugging;
 using Thundershock.Debugging;
 
-namespace Thundershock
+namespace Thundershock.Core
 {
     public abstract class AppBase
     {

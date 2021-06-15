@@ -217,7 +217,7 @@ namespace Thundershock
             base.Update(gameTime);
 
             // Allow the app to update
-            _app.Update(gameTime);
+            _app.Update(new Thundershock.Core.GameTime(gameTime.ElapsedGameTime, gameTime.TotalGameTime));
 
             _activeScene?.Update(gameTime);
         }

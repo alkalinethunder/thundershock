@@ -5,10 +5,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Thundershock;
+using Thundershock.Core;
 using Thundershock.Gui;
 using Thundershock.Gui.Elements;
 using Thundershock.Gui.Styling;
 using Thundershock.Input;
+using GameTime = Microsoft.Xna.Framework.GameTime;
 
 namespace Thundershock.Gui.Elements.Console
 {

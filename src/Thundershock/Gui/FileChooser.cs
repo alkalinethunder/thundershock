@@ -4,6 +4,8 @@ using System.Threading;
 using Gtk;
 using System.Text;
 using MimeTypes.Core;
+using Thundershock.Core;
+
 #if WINDOWS
 using System.Windows.Forms;
 #endif

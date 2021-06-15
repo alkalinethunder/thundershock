@@ -1,4 +1,5 @@
 using System;
+using Thundershock.Core;
 
 namespace Thundershock
 {

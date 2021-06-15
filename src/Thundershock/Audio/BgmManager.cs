@@ -35,7 +35,7 @@ namespace Thundershock.Audio
             base.OnUnload();
         }
 
-        protected override void OnUpdate(GameTime gameTime)
+        protected override void OnUpdate(Thundershock.Core.GameTime gameTime)
         {
             if (_isFading)
             {

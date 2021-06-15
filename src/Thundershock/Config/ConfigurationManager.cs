@@ -6,6 +6,7 @@ using System.Text;
 using Thundershock.IO;
 using System.Text.Json;
 using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Core;
 
 namespace Thundershock.Config
 {

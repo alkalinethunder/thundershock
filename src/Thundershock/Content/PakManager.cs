@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using BinaryPack;
 using Cairo;
+using Thundershock.Core;
 using Thundershock.Debugging;
 using Thundershock.Gui;
 using Thundershock.IO;

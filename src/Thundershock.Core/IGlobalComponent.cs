@@ -1,6 +1,4 @@
-using Microsoft.Xna.Framework;
-
-namespace Thundershock
+namespace Thundershock.Core
 {
     public interface IGlobalComponent
     {

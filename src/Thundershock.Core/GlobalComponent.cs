@@ -1,7 +1,6 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
 
-namespace Thundershock
+namespace Thundershock.Core
 {
     public abstract class GlobalComponent : IGlobalComponent
     {
@@ -20,7 +19,7 @@ namespace Thundershock
             App = null;
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(Thundershock.Core.GameTime gameTime)
         {
             OnUpdate(gameTime);
         }
@@ -28,7 +27,7 @@ namespace Thundershock
         protected virtual void OnLoad() {}
         protected virtual void OnUnload() {}
         
-        protected virtual void OnUpdate(GameTime gameTime) {}
+        protected virtual void OnUpdate(Thundershock.Core.GameTime gameTime) {}
         
     }
 }

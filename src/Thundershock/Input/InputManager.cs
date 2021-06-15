@@ -64,7 +64,7 @@ namespace Thundershock.Input
             }
         }
 
-        protected override void OnUpdate(GameTime gameTime)
+        protected override void OnUpdate(Thundershock.Core.GameTime gameTime)
         {
             base.OnUpdate(gameTime);
 

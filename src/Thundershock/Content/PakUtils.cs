@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using BinaryPack;
+using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Debugging;
 
 namespace Thundershock.Content

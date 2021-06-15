@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Thundershock.Core\Thundershock.Core.csproj" />
+    <ProjectReference Include="..\..\src\Thundershock.Platform\Thundershock.Platform.csproj" />
+    <ProjectReference Include="..\..\src\Thundershock\Thundershock.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using Thundershock.Debugging;
 
-namespace Thundershock.Debugging
+namespace Thundershock.Core.Debugging
 {
     public class ConsoleOutput : ILogOutput
     {

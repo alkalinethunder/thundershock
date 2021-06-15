@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Thundershock\Thundershock.csproj" />
+    <ProjectReference Include="..\Thundershock.Build.PakBuilder\Thundershock.Build.PakBuilder.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using DocoptNet;
 
-namespace Thundershock
+namespace Thundershock.Core
 {
     public class UsageStringBuilder
     {

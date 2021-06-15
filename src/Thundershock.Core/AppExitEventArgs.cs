@@ -1,6 +1,6 @@
 using System;
 
-namespace Thundershock
+namespace Thundershock.Core
 {
     public sealed class AppExitEventArgs : EventArgs
     {

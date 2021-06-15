@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Audio;
 using Thundershock.Config;
+using Thundershock.Core;
 using Thundershock.Debugging;
 using Thundershock.Input;
 
@@ -91,7 +92,7 @@ namespace Thundershock
             OnPostUnload();
         }
 
-        internal void Update(GameTime gameTime)
+        internal void Update(Thundershock.Core.GameTime gameTime)
         {
             // Action queue.
             this.RunQueuedActions();

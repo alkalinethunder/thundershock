@@ -22,4 +22,9 @@
     <Folder Include="ThundershockContent" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Thundershock.Core\Thundershock.Core.csproj" />
+    <ProjectReference Include="..\Thundershock.Platform\Thundershock.Platform.csproj" />
+  </ItemGroup>
+
 </Project>
