@@ -6,14 +6,24 @@ namespace Thundershock.Core
     public abstract class GameWindow
     {
         private AppBase _app;
-
-        public AppBase App => _app;
+        private string _windowTitle = "Thundershock Engine";
+        private bool _borderless;
+        private bool _fullscreen;
+        private bool _resizeable;
         
-        public string Title { get; set; }
-        public bool IsBorderless { get; set; }
-        public bool IsFullScreen { get; set; }
-        public bool IsUserResizeable { get; set; }
+        public AppBase App => _app;
 
+        public string Title
+        {
+            get => _windowTitle;
+            set
+            {
+                _windowTitle = value;
+                if (_app != null)
+                    OnWindowTitleChanged();
+            }
+        }
+        
         public abstract Renderer Renderer { get; }
         
         public void Show(AppBase app)
@@ -45,5 +55,7 @@ namespace Thundershock.Core
         protected abstract void OnClosed();
         protected abstract void OnUpdate();
         protected abstract void Initialize();
+        
+        protected virtual void OnWindowTitleChanged() {}
     }
 }

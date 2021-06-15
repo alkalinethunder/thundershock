@@ -95,5 +95,11 @@ namespace Thundershock.OpenGL
                 }
             }
         }
+
+        protected override void OnWindowTitleChanged()
+        {
+            SDL.SDL_SetWindowTitle(_sdlWindow, Title);
+            base.OnWindowTitleChanged();
+        }
     }
 }
