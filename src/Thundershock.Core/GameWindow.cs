@@ -1,4 +1,5 @@
 using System;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Core
 {
@@ -13,6 +14,8 @@ namespace Thundershock.Core
         public bool IsFullScreen { get; set; }
         public bool IsUserResizeable { get; set; }
 
+        public abstract Renderer Renderer { get; }
+        
         public void Show(AppBase app)
         {
             if (_app != null)

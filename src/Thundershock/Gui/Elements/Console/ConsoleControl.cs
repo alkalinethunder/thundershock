@@ -11,6 +11,7 @@ using Thundershock.Gui.Elements;
 using Thundershock.Gui.Styling;
 using Thundershock.Input;
 using GameTime = Microsoft.Xna.Framework.GameTime;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Thundershock.Gui.Elements.Console
 {
@@ -100,7 +101,7 @@ namespace Thundershock.Gui.Elements.Console
             IsInteractable = true;
         }
 
-        private Color GetColor(ConsoleColor color)
+        private Microsoft.Xna.Framework.Color GetColor(ConsoleColor color)
         {
             return ColorPalette.GetColor(color);
         }
