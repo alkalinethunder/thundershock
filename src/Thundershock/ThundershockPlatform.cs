@@ -14,6 +14,9 @@ namespace Thundershock
 {
     public static class ThundershockPlatform
     {
+        [DllImport("kernel32.dll")]
+        internal static extern bool AttachConsole(int dwProcessId);
+
         public static string OSName
             => Environment.OSVersion.VersionString;
 
@@ -36,7 +39,7 @@ namespace Thundershock
             var gdiColor = System.Drawing.ColorTranslator.FromHtml(html);
             return new Color(gdiColor.R, gdiColor.G, gdiColor.B, gdiColor.A);
         }
-        
+
         public static Platform GetCurrentPlatform()
         {
             switch (Environment.OSVersion.Platform)
@@ -71,12 +74,12 @@ namespace Thundershock
                 return false;
             }
         }
-        
+
         public static bool IsPlatform(Platform platform)
         {
             return GetCurrentPlatform() == platform;
         }
-        
+
         public static IEnumerable<Type> GetAllTypes<T>()
         {
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
@@ -111,9 +114,9 @@ namespace Thundershock
                 Span<int> text = stackalloc int[3 * 4];
                 for (var i = 0; i < 3; i++)
                 {
-                    (text[i * 4 + 0], 
-                        text[i * 4 + 1], 
-                        text[i * 4 + 2], 
+                    (text[i * 4 + 0],
+                        text[i * 4 + 1],
+                        text[i * 4 + 2],
                         text[i * 4 + 3]) = X86Base.CpuId((int) (i + 0x80000002), 0);
                 }
 
@@ -132,7 +135,7 @@ namespace Thundershock
             info.FileName = path;
             Process.Start(info);
         }
-        
+
         /// <summary>
         /// Retrieves the amount of total system memory in megabytes.
         /// </summary>
@@ -143,7 +146,7 @@ namespace Thundershock
             {
                 using var proc = ExecProcess("wmic", new[] {"OS", "get", "TotalVisibleMemorySize", "/Value"});
                 var output = proc.StandardOutput.ReadToEnd();
-                
+
                 var trim = output.Trim();
                 var split = trim.Split('=').Last();
                 var kbytes = long.Parse(split);

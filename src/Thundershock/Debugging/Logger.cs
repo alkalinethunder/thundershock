@@ -12,9 +12,13 @@ namespace Thundershock.Debugging
 
         public Logger()
         {
+            // Some IDEs have weird issues dealing with Windows runtime applications and Console.
+            // This is a workaround.
+            ThundershockPlatform.AttachConsole(-1);
+
             AddOutput(WarningPrinter.GetWarningPrinterLogOutput());
         }
-        
+
         private void All(Action<ILogOutput> action)
         {
             foreach (var output in _outputs)
@@ -42,7 +46,7 @@ namespace Thundershock.Debugging
 
             var formatted = string.Format("[{0}] <{1}:{2}/{3}> {4}::{5}(): {6}", DateTime.Now.ToLongTimeString(), fname,
                 ln, logLevel.ToString().ToLower(), typeName, member, message);
-            
+
             All(x=>x.Log(formatted, logLevel));
         }
 

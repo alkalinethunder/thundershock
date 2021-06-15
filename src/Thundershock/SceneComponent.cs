@@ -9,13 +9,13 @@ namespace Thundershock
     {
         private Scene _scene;
 
-        public GameApp App => _scene.App;
+        public GameAppBase App => _scene.App;
         public Scene Scene => _scene;
 
         public bool Visible { get; set; } = true;
-        
+
         public MonoGameLoop Game => _scene.Game;
-        
+
         public void Load(Scene scene)
         {
             _scene = scene ?? throw new ArgumentNullException(nameof(scene));
@@ -42,7 +42,7 @@ namespace Thundershock
                 OnDraw(gameTime, renderer);
             }
         }
-        
+
         protected virtual void OnLoad() {}
         protected virtual void OnUnload() {}
 

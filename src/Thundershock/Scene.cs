@@ -12,26 +12,26 @@ namespace Thundershock
 {
     public abstract class Scene
     {
-        private GameApp _app;
+        private GameAppBase _app;
         private MonoGameLoop _gameLoop;
         private List<SceneComponent> _components = new List<SceneComponent>();
         private SpriteFont _debugFont;
         private WarningPrinter _warningPrinter;
         private DeveloperConsole _devConsole;
-        
+
         public Camera Camera { get; protected set; }
 
         public Rectangle ViewportBounds
             => Camera != null ? Camera.ViewportBounds : Rectangle.Empty;
-        
-        public GameApp App => _app;
+
+        public GameAppBase App => _app;
         public MonoGameLoop Game => _gameLoop;
 
         public bool HasComponent<T>() where T : SceneComponent
         {
             return _components.Any(x => x is T);
         }
-        
+
         public void AddComponent(SceneComponent component)
         {
             if (component == null)
@@ -47,7 +47,7 @@ namespace Thundershock
         {
             return _components.OfType<T>().First();
         }
-        
+
         public T AddComponent<T>() where T : SceneComponent, new()
         {
             var component = new T();
@@ -64,20 +64,20 @@ namespace Thundershock
             component.Unload();
             _components.Remove(component);
         }
-        
-        internal void Load(GameApp app, MonoGameLoop gameLoop)
+
+        internal void Load(GameAppBase app, MonoGameLoop gameLoop)
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
             _app.Logger.Log("OnLoad reached.");
             _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
             OnLoad();
-            
+
             // Warning printer goes on top of everything else.
             _warningPrinter = AddComponent<WarningPrinter>();
             _devConsole = AddComponent<DeveloperConsole>();
         }
-        
+
         public void Unload()
         {
             _app.Logger.Log($"Scene is now unloading ({GetType().FullName})");
@@ -93,7 +93,7 @@ namespace Thundershock
         internal void Update(GameTime gameTime)
         {
             OnUpdate(gameTime);
-            
+
             foreach (var component in _components.ToArray())
             {
                 component.Update(gameTime);
@@ -102,7 +102,7 @@ namespace Thundershock
 
         public void Draw(GameTime gameTime)
         {
-            if (Camera != null) 
+            if (Camera != null)
             {
                 var renderer = new Renderer(Game.White, Game.SpriteBatch, Camera);
 
@@ -118,12 +118,12 @@ namespace Thundershock
                 var loc = new Vector2(0.5f, 0.5f) * new Vector2(Game.ScreenWidth, Game.ScreenHeight) - (m / 2);
 
                 Game.SpriteBatch.DrawString(_debugFont, text, loc, Color.White);
-                
+
                 Game.SpriteBatch.End();
             }
         }
-        
-        
+
+
         protected virtual void OnUpdate(GameTime gameTime) {}
         protected virtual void OnLoad() {}
         protected virtual void OnUnload() {}
@@ -135,7 +135,7 @@ namespace Thundershock
             var scale = _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2() / ViewportBounds.Size.ToVector2();
             return coordinates * scale;
         }
-        
+
         public Vector2 ScreenToViewport(Vector2 coordinates)
         {
             var scale = ViewportBounds.Size.ToVector2() / _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2();
