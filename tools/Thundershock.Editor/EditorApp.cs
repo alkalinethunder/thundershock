@@ -1,6 +1,6 @@
 namespace Thundershock.Editor
 {
-    public class EditorApp : GameAppBase
+    public class EditorApp : NewGameAppBase
     {
         
     }

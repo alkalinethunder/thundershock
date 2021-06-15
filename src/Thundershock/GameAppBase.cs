@@ -23,7 +23,7 @@ namespace Thundershock
         public int ScreenHeight => _game.ScreenHeight;
         public TimeSpan UpTime => _uptime;
         public TimeSpan FrameTime => _frametime;
-        public GameWindow Window => _game.Window;
+        public Microsoft.Xna.Framework.GameWindow Window => _game.Window;
         public ContentManager Content => _game.Content;
         public ContentManager EngineContent => _game.EngineContent;
         public GraphicsDevice GraphicsDevice => _game.GraphicsDevice;

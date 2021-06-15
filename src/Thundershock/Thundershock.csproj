@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Thundershock.Core\Thundershock.Core.csproj" />
     <ProjectReference Include="..\Thundershock.Platform\Thundershock.Platform.csproj" />
+    <ProjectReference Include="..\Thundershock.OpenGL\Thundershock.OpenGL.csproj" />
   </ItemGroup>
 
 </Project>
