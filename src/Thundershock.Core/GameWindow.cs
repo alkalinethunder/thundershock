@@ -10,6 +10,8 @@ namespace Thundershock.Core
         private bool _borderless;
         private bool _fullscreen;
         private bool _resizeable;
+        private int _width = 640;
+        private int _height = 480;
         
         public AppBase App => _app;
 
@@ -54,6 +56,47 @@ namespace Thundershock.Core
                 }
             }
         }
+
+        public int Width
+        {
+            get => _width;
+            set
+            {
+                if (_width != value)
+                {
+                    if (value <= 0)
+                        throw new InvalidOperationException("Window size must be greater than zero.");
+
+                    _width = value;
+
+                    if (_app != null)
+                    {
+                        OnClientSizeChanged();
+                    }
+                }
+            }
+        }
+        
+        public int Height
+        {
+            get => _height;
+            set
+            {
+                if (_height != value)
+                {
+                    if (value <= 0)
+                        throw new InvalidOperationException("Window size must be greater than zero.");
+
+                    _height = value;
+
+                    if (_app != null)
+                    {
+                        OnClientSizeChanged();
+                    }
+                }
+            }
+        }
+
         
         public abstract Renderer Renderer { get; }
         
@@ -87,6 +130,7 @@ namespace Thundershock.Core
         protected abstract void OnUpdate();
         protected abstract void Initialize();
         
+        protected virtual void OnClientSizeChanged() {}
         protected virtual void OnWindowTitleChanged() {}
         protected virtual void OnWindowModeChanged() {}
     }

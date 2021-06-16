@@ -122,6 +122,13 @@ namespace Thundershock.OpenGL
             base.OnWindowModeChanged();
         }
 
+        protected override void OnClientSizeChanged()
+        {
+            // Resize the SDL window.
+            SDL.SDL_SetWindowSize(_sdlWindow, Width, Height);
+            base.OnClientSizeChanged();
+        }
+
         private void CreateSdlWindow()
         {
             var flags = GetWindowModeFlags();
@@ -129,7 +136,7 @@ namespace Thundershock.OpenGL
             flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN;
             
             App.Logger.Log("Creating an SDL Window...");
-            _sdlWindow = SDL.SDL_CreateWindow(this.Title, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED, 640, 480,
+            _sdlWindow = SDL.SDL_CreateWindow(this.Title, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED, Width, Height,
                 (SDL.SDL_WindowFlags) flags);
             App.Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
 
