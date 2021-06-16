@@ -3,6 +3,7 @@ using OpenGL;
 using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
+using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 
@@ -87,6 +88,16 @@ namespace Thundershock.OpenGL
                 {
                     App.Logger.Log("Thundershock app cancelled the exit request.");
                 }
+            }
+
+            if (_event.type == SDL.SDL_EventType.SDL_KEYDOWN || _event.type == SDL.SDL_EventType.SDL_KEYUP)
+            {
+                var key = (Keys) _event.key.keysym.sym;
+                var repeat = _event.key.repeat != 0;
+                var isPressed = _event.key.state == SDL.SDL_PRESSED;
+
+                // Dispatch the event to thundershock.
+                DispatchKeyEvent(key, '\0', isPressed, repeat, false);
             }
         }
 

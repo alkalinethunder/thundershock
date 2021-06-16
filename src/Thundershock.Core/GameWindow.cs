@@ -1,4 +1,5 @@
 using System;
+using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 
 namespace Thundershock.Core
@@ -133,5 +134,34 @@ namespace Thundershock.Core
         protected virtual void OnClientSizeChanged() {}
         protected virtual void OnWindowTitleChanged() {}
         protected virtual void OnWindowModeChanged() {}
+
+        protected void DispatchKeyEvent(Keys key, char character, bool isPressed, bool isRepeated, bool isText)
+        {
+            var evt = null as KeyEventArgs;
+
+            if (isText)
+            {
+                evt = new KeyCharEventArgs(key, character);
+                KeyChar?.Invoke(this, evt as KeyCharEventArgs);
+            }
+            else
+            {
+                evt = new KeyEventArgs(key);
+
+                if (isPressed)
+                {
+                    KeyDown?.Invoke(this, evt);
+                }
+                else
+                {
+                    KeyUp?.Invoke(this, evt);
+                }
+            }
+        }
+        
+        public event EventHandler<KeyEventArgs> KeyDown;
+        public event EventHandler<KeyEventArgs> KeyUp;
+        public event EventHandler<KeyCharEventArgs> KeyChar;
+
     }
 }
