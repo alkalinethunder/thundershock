@@ -101,6 +101,8 @@ namespace Thundershock.OpenGL
                 DispatchKeyEvent(key, '\0', isPressed, repeat, false);
             }
 
+            
+            
             if (_event.type == SDL.SDL_EventType.SDL_TEXTINPUT)
             {
                 var text = string.Empty;
@@ -124,6 +126,11 @@ namespace Thundershock.OpenGL
                     var key = (Keys) character;
                     DispatchKeyEvent(key, character, false, false, true);
                 }
+            }
+
+            if (_event.type == SDL.SDL_EventType.SDL_MOUSEMOTION)
+            {
+                ReportMousePosition(_event.motion.x, _event.motion.y);
             }
         }
 

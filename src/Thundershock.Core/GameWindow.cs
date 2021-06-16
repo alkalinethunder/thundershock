@@ -6,6 +6,8 @@ namespace Thundershock.Core
 {
     public abstract class GameWindow
     {
+        private int _mouseX;
+        private int _mouseY;
         private AppBase _app;
         private string _windowTitle = "Thundershock Engine";
         private bool _borderless;
@@ -135,6 +137,21 @@ namespace Thundershock.Core
         protected virtual void OnWindowTitleChanged() {}
         protected virtual void OnWindowModeChanged() {}
 
+        protected void ReportMousePosition(int x, int y)
+        {
+            var deltaX = x - _mouseX;
+            var deltaY = y - _mouseY;
+
+            if (deltaX != 0 || deltaY != 0)
+            {
+                var evt = new MouseMoveEventArgs(x, y, deltaX, deltaY);
+                MouseMove?.Invoke(this, evt);
+            }
+
+            _mouseX = x;
+            _mouseY = y;
+        }
+        
         protected void DispatchKeyEvent(Keys key, char character, bool isPressed, bool isRepeated, bool isText)
         {
             var evt = null as KeyEventArgs;
@@ -158,7 +175,8 @@ namespace Thundershock.Core
                 }
             }
         }
-        
+
+        public event EventHandler<MouseMoveEventArgs> MouseMove; 
         public event EventHandler<KeyEventArgs> KeyDown;
         public event EventHandler<KeyEventArgs> KeyUp;
         public event EventHandler<KeyCharEventArgs> KeyChar;
