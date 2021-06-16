@@ -8,7 +8,8 @@ namespace Thundershock
     {
         private bool _borderless = false;
         private bool _fullscreen = false;
-        
+        private int _width;
+        private int _height;
         private Renderer _renderer;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
@@ -24,6 +25,9 @@ namespace Thundershock
             get => _fullscreen;
             protected set => _fullscreen = value;
         }
+
+        public int ScreenWidth => _width;
+        public int ScreenHeight => _height;
         
         protected sealed override void Bootstrap()
         {
@@ -79,9 +83,19 @@ namespace Thundershock
             _gameWindow.IsBorderless = _borderless;
             _gameWindow.IsFullScreen = _fullscreen;
             
-            // TODO: V-Sync, Resolution, Fixed Time Stepping
+            // TODO: V-Sync, Fixed Time Stepping, Monitor Positioning
+            _gameWindow.Width = _width;
+            _gameWindow.Height = _height;
         }
 
+        protected void SetScreenSize(int width, int height, bool apply = false)
+        {
+            _width = width;
+            _height = height;
+            
+            if (apply) ApplyGraphicsChanges();
+        }
+        
         protected virtual void OnPreInit() {}
         
         protected abstract GameWindow CreateGameWindow();

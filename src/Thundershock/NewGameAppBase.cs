@@ -14,6 +14,9 @@ namespace Thundershock
 
         protected override void OnPreInit()
         {
+            // Set up the game platform.
+            PlatformUtils.InitializeGame(new SDLGamePlatform());
+            
             GetComponent<ConfigurationManager>().ConfigurationLoaded += OnConfigurationLoaded;
             ApplyConfig();
             base.OnPreInit();
@@ -30,8 +33,8 @@ namespace Thundershock
             var config = GetComponent<ConfigurationManager>();
 
             // the configured screen resolution
-            // var displayMode = config.GetDisplayMode();
-            // Logger.Log($"Display mode: {displayMode.Width}x{displayMode.Height}");
+            var displayMode = config.GetNewDisplayMode();
+            Logger.Log($"Display mode: {displayMode.Width}x{displayMode.Height} on monitor {displayMode.Monitor}");
             Logger.Log($"Full-screen: {config.ActiveConfig.IsFullscreen}");
             Logger.Log($"V-sync: {config.ActiveConfig.VSync}");
             Logger.Log($"Fixed time step: {config.ActiveConfig.FixedTimeStepping}");
@@ -46,11 +49,11 @@ namespace Thundershock
             var applyGraphicsChanges = false;
 
             // Resolution change
-            // if (Game.ScreenWidth != displayMode.Width || Game.ScreenHeight != displayMode.Height)
-            // {
-                // Game.SetScreenSize(displayMode.Width, displayMode.Height);
-                // applyGraphicsChanges = true;
-            // }
+            if (ScreenWidth != displayMode.Width || ScreenHeight != displayMode.Height)
+            {
+                SetScreenSize(displayMode.Width, displayMode.Height);
+                applyGraphicsChanges = true;
+            }
 
             // v-sync
             // if (Game.VSync != config.ActiveConfig.VSync)

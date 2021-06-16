@@ -18,8 +18,13 @@ namespace Thundershock.Config
         public event EventHandler ConfigurationLoaded;
         
         public GameConfiguration ActiveConfig => _gameConfig;
+
+        public Thundershock.Core.DisplayMode GetNewDisplayMode()
+        {
+            return PlatformUtils.GetDisplayMode(this.ActiveConfig.Resolution, ActiveConfig.Monitor);
+        }
         
-        public DisplayMode GetDisplayMode()
+        public Microsoft.Xna.Framework.Graphics.DisplayMode GetDisplayMode()
         {
             if (ParseDisplayMode(_gameConfig.Resolution, out int w, out int h))
             {

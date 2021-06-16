@@ -24,5 +24,20 @@ namespace Thundershock.Core
             
             _logger.Log("Initializing Win32 Platform...");
         }
+
+        public int GetMonitorCount()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public DisplayMode GetDefaultDisplayMode(int monitor)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public DisplayMode GetDisplayMode(int width, int height, int monitor)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
