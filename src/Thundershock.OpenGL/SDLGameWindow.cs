@@ -13,6 +13,8 @@ namespace Thundershock.OpenGL
 {
     public sealed class SDLGameWindow : GameWindow
     {
+        private int _wheelX;
+        private int _wheelY;
         private IntPtr _sdlWindow;
         private IntPtr _glContext;
         private SDL.SDL_Event _event;
@@ -109,6 +111,30 @@ namespace Thundershock.OpenGL
                 var state = _event.button.state == SDL.SDL_PRESSED ? ButtonState.Pressed : ButtonState.Released;
 
                 DispatchMouseButton(button, state);
+            }
+
+            if (_event.type == SDL.SDL_EventType.SDL_MOUSEWHEEL)
+            {
+                var xDelta = _event.wheel.x;
+                var yDelta = _event.wheel.y;
+                
+                if (_event.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                {
+                    xDelta = xDelta * -1;
+                    yDelta = yDelta * -1;
+                }
+
+                if (yDelta != 0)
+                {
+                    _wheelY += yDelta;
+                    ReportMouseScroll(_wheelY, yDelta, ScrollDirection.Vertical);
+                }
+
+                if (xDelta != 0)
+                {
+                    _wheelX += xDelta;
+                    ReportMouseScroll(_wheelX, xDelta, ScrollDirection.Horizontal);
+                }
             }
             
             if (_event.type == SDL.SDL_EventType.SDL_TEXTINPUT)

@@ -195,6 +195,13 @@ namespace Thundershock.Core
             _mouseX = x;
             _mouseY = y;
         }
+
+        protected void ReportMouseScroll(int wheel, int delta, ScrollDirection direction)
+        {
+            var evt = new MouseScrollEventArgs(_mouseX, _mouseY, wheel, delta, direction);
+
+            MouseScroll?.Invoke(this, evt);
+        }
         
         protected void DispatchKeyEvent(Keys key, char character, bool isPressed, bool isRepeated, bool isText)
         {
@@ -220,6 +227,7 @@ namespace Thundershock.Core
             }
         }
 
+        public event EventHandler<MouseScrollEventArgs> MouseScroll;
         public event EventHandler<MouseMoveEventArgs> MouseMove; 
         public event EventHandler<KeyEventArgs> KeyDown;
         public event EventHandler<KeyEventArgs> KeyUp;
