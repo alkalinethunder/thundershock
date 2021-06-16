@@ -67,7 +67,7 @@ namespace Thundershock.Core
             var entryArgs = GetEntryArgs(entryPointFileName, args);
             
             // create the logger and set up the default outputs
-            var logger = new Logger();
+            var logger = Logger.GetLogger();
             var console = new ConsoleOutput();
             logger.AddOutput(console);
             

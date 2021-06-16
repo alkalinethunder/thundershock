@@ -16,4 +16,11 @@
     <ProjectReference Include="..\Thundershock.Core\Thundershock.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Resources\Shaders\BasicShader.frag" />
+    <EmbeddedResource Include="Resources\Shaders\BasicShader.frag" />
+    <None Remove="Resources\Shaders\BasicShader.vert" />
+    <EmbeddedResource Include="Resources\Shaders\BasicShader.vert" />
+  </ItemGroup>
+
 </Project>

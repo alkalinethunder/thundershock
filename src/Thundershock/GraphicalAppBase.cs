@@ -10,7 +10,7 @@ namespace Thundershock
         private bool _fullscreen = false;
         private int _width;
         private int _height;
-        private Renderer _renderer;
+        private GraphicsProcessor _graphicsProcessor;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
 
@@ -44,7 +44,7 @@ namespace Thundershock
 
             PreInit();
             
-            _renderer = _gameWindow.Renderer;
+            _graphicsProcessor = _gameWindow.GraphicsProcessor;
             
             RunLoop();
 
@@ -58,7 +58,7 @@ namespace Thundershock
         {
             while (!_aboutToExit)
             {
-                _renderer.Clear(Color.Black);
+                _graphicsProcessor.Clear(new Color(0x1b, 0xaa, 0xf7));
                 
                 _gameWindow.Update();
             }

@@ -124,7 +124,7 @@ namespace Thundershock.Core
         }
 
         
-        public abstract Renderer Renderer { get; }
+        public abstract GraphicsProcessor GraphicsProcessor { get; }
         
         public void Show(AppBase app)
         {

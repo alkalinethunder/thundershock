@@ -9,7 +9,18 @@ namespace Thundershock.Core.Debugging
 {
     public class Logger
     {
+        private static Logger _instance;
+        
         private List<ILogOutput> _outputs = new List<ILogOutput>();
+
+        private Logger() {}
+
+        public static Logger GetLogger()
+        {
+            if (_instance == null)
+                _instance = new Logger();
+            return _instance;
+        }
         
         private void All(Action<ILogOutput> action)
         {

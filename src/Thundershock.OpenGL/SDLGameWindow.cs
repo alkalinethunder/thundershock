@@ -18,9 +18,9 @@ namespace Thundershock.OpenGL
         private IntPtr _sdlWindow;
         private IntPtr _glContext;
         private SDL.SDL_Event _event;
-        private GLRenderer _renderer;
+        private GlGraphicsProcessor _graphicsProcessor;
 
-        public override Renderer Renderer => _renderer;
+        public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
         
         protected override void OnUpdate()
         {
@@ -66,7 +66,7 @@ namespace Thundershock.OpenGL
             // Glue OpenGL and SDL2 together.
             GL.Import(SDL.SDL_GL_GetProcAddress);
             
-            _renderer = new GLRenderer();
+            _graphicsProcessor = new GlGraphicsProcessor();
         }
         
         private void PollEvents()
@@ -239,7 +239,7 @@ namespace Thundershock.OpenGL
             App.Logger.Log("Destroying current GL renderer...");
             SDL.SDL_GL_DeleteContext(_glContext);
             _glContext = IntPtr.Zero;
-            _renderer = null;
+            _graphicsProcessor = null;
             
             App.Logger.Log("Destroying the SDL window...");
             SDL.SDL_DestroyWindow(_sdlWindow);
