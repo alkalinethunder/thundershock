@@ -18,9 +18,40 @@ namespace Thundershock.Core
             get => _windowTitle;
             set
             {
-                _windowTitle = value;
-                if (_app != null)
-                    OnWindowTitleChanged();
+                if (_windowTitle != value)
+                {
+                    _windowTitle = value;
+                    if (_app != null)
+                        OnWindowTitleChanged();
+                }
+            }
+        }
+
+        public bool IsBorderless
+        {
+            get => _borderless;
+            set
+            {
+                if (_borderless != value)
+                {
+                    _borderless = value;
+                    if (_app != null)
+                        OnWindowModeChanged();
+                }
+            }
+        }
+        
+        public bool IsFullScreen
+        {
+            get => _fullscreen;
+            set
+            {
+                if (_fullscreen != value)
+                {
+                    _fullscreen = value;
+                    if (_app != null)
+                        OnWindowModeChanged();
+                }
             }
         }
         
@@ -57,5 +88,6 @@ namespace Thundershock.Core
         protected abstract void Initialize();
         
         protected virtual void OnWindowTitleChanged() {}
+        protected virtual void OnWindowModeChanged() {}
     }
 }

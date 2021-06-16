@@ -38,12 +38,7 @@ namespace Thundershock.OpenGL
                 throw new Exception(errText);
             }
             
-            App.Logger.Log("Creating an SDL Window...");
-            _sdlWindow = SDL.SDL_CreateWindow(this.Title, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED, 640, 480,
-                SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
-            App.Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
-
-            SetupGLRenderer();
+            CreateSdlWindow();
         }
 
         private void SetupGLRenderer()
@@ -79,8 +74,7 @@ namespace Thundershock.OpenGL
 
         protected override void OnClosed()
         {
-            App.Logger.Log("Destroying the SDL window...");
-            SDL.SDL_DestroyWindow(_sdlWindow);
+            DestroySdlWindow();
             App.Logger.Log("...done.");
         }
 
@@ -99,7 +93,58 @@ namespace Thundershock.OpenGL
         protected override void OnWindowTitleChanged()
         {
             SDL.SDL_SetWindowTitle(_sdlWindow, Title);
-            base.OnWindowTitleChanged();
+        }
+
+        private uint GetWindowModeFlags()
+        {
+            var flags = 0x00u;
+
+            if (IsBorderless)
+            {
+                flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS;
+            }
+
+            if (IsFullScreen)
+            {
+                if (IsBorderless)
+                    flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+                else
+                    flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+            }
+
+            return flags;
+        }
+
+        protected override void OnWindowModeChanged()
+        {
+            DestroySdlWindow();
+            CreateSdlWindow();
+            base.OnWindowModeChanged();
+        }
+
+        private void CreateSdlWindow()
+        {
+            var flags = GetWindowModeFlags();
+            flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+            flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN;
+            
+            App.Logger.Log("Creating an SDL Window...");
+            _sdlWindow = SDL.SDL_CreateWindow(this.Title, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED, 640, 480,
+                (SDL.SDL_WindowFlags) flags);
+            App.Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
+
+            SetupGLRenderer();
+        }
+
+        private void DestroySdlWindow()
+        {
+            App.Logger.Log("Destroying current GL renderer...");
+            SDL.SDL_GL_DeleteContext(_glContext);
+            _glContext = IntPtr.Zero;
+            _renderer = null;
+            
+            App.Logger.Log("Destroying the SDL window...");
+            SDL.SDL_DestroyWindow(_sdlWindow);
         }
     }
 }

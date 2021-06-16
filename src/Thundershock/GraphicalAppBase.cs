@@ -1,3 +1,4 @@
+using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Rendering;
 
@@ -5,9 +6,24 @@ namespace Thundershock
 {
     public abstract class GraphicalAppBase : AppBase
     {
+        private bool _borderless = false;
+        private bool _fullscreen = false;
+        
         private Renderer _renderer;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
+
+        public bool IsBorderless
+        {
+            get => _borderless;
+            protected set => _borderless = value;
+        }
+
+        public bool IsFullScreen
+        {
+            get => _fullscreen;
+            protected set => _fullscreen = value;
+        }
         
         protected sealed override void Bootstrap()
         {
@@ -16,6 +32,8 @@ namespace Thundershock
             _gameWindow.Show(this);
             Logger.Log("Game window created.");
 
+            PreInit();
+            
             _renderer = _gameWindow.Renderer;
             
             RunLoop();
@@ -48,6 +66,24 @@ namespace Thundershock
             }
         }
 
+        private void PreInit()
+        {
+            Logger.Log("PreInit reached. Setting up core components.");
+            RegisterComponent<ConfigurationManager>();
+
+            OnPreInit();
+        }
+
+        protected void ApplyGraphicsChanges()
+        {
+            _gameWindow.IsBorderless = _borderless;
+            _gameWindow.IsFullScreen = _fullscreen;
+            
+            // TODO: V-Sync, Resolution, Fixed Time Stepping
+        }
+
+        protected virtual void OnPreInit() {}
+        
         protected abstract GameWindow CreateGameWindow();
     }
 }
