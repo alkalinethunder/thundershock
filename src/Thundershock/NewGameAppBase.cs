@@ -41,6 +41,9 @@ namespace Thundershock
             Logger.Log($"Post-process Bloom: {config.ActiveConfig.Effects.Bloom}");
             Logger.Log($"Post-process CRT Shadowmask: {config.ActiveConfig.Effects.ShadowMask}");
 
+            // input system
+            SwapMouseButtons = config.ActiveConfig.SwapMouseButtons;
+
             // post-processor settings.
             // Game.EnableBloom = config.ActiveConfig.Effects.Bloom;
             // Game.EnableShadowmask = config.ActiveConfig.Effects.ShadowMask;

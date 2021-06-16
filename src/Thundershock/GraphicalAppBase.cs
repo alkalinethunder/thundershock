@@ -14,6 +14,12 @@ namespace Thundershock
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
 
+        public bool SwapMouseButtons
+        {
+            get => _gameWindow.PrimaryMouseButtonIsRightMouseButton;
+            set => _gameWindow.PrimaryMouseButtonIsRightMouseButton = value;
+        }
+        
         public bool IsBorderless
         {
             get => _borderless;
