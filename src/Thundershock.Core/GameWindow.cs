@@ -1,5 +1,6 @@
 using System;
 using Thundershock.Core.Input;
+using Thundershock.Core.Input.Thundershock.Input;
 using Thundershock.Core.Rendering;
 
 namespace Thundershock.Core
@@ -18,6 +19,28 @@ namespace Thundershock.Core
         
         public AppBase App => _app;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the primary mouse button is the right mouse button.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         If <see cref="get_PrimaryMouseButtonIsRightMouseButton"/> returns true then the
+        ///         engine will swap the Primary and Secondary mouse buttons before dispatching
+        ///         MouseDown or MouseUp events.
+        ///     </para>
+        ///     <para>
+        ///         This property allows the engine's configuration system to honor the user's preferred
+        ///         primary mouse button setting. For Thundershock apps that don't use the configuration system
+        ///         they can set the option through command-line or through the GraphicalAppBase class.
+        ///     </para>
+        ///     <para>
+        ///         If you are deriving from GameWindow to add extra platform support, you do not need to
+        ///         set this property nor do you need to read it. Simply dispatch mouse button events like
+        ///         normal and GameWindow will deal with the swapping for you.
+        ///     </para>
+        /// </remarks>
+        public bool PrimaryMouseButtonIsRightMouseButton { get; set; }
+        
         public string Title
         {
             get => _windowTitle;
@@ -137,6 +160,27 @@ namespace Thundershock.Core
         protected virtual void OnWindowTitleChanged() {}
         protected virtual void OnWindowModeChanged() {}
 
+        protected virtual void DispatchMouseButton(MouseButton button, ButtonState state)
+        {
+            if (PrimaryMouseButtonIsRightMouseButton)
+            {
+                if (button == MouseButton.Primary)
+                    button = MouseButton.Secondary;
+                else if (button == MouseButton.Secondary)
+                    button = MouseButton.Primary;
+            }
+            
+            var evt = new MouseButtonEventArgs(_mouseX, _mouseY, button, state);
+            if (evt.IsPressed)
+            {
+                MouseDown?.Invoke(this, evt);
+            }
+            else
+            {
+                MouseUp?.Invoke(this, evt);
+            }
+        }
+        
         protected void ReportMousePosition(int x, int y)
         {
             var deltaX = x - _mouseX;
@@ -180,6 +224,7 @@ namespace Thundershock.Core
         public event EventHandler<KeyEventArgs> KeyDown;
         public event EventHandler<KeyEventArgs> KeyUp;
         public event EventHandler<KeyCharEventArgs> KeyChar;
-
+        public event EventHandler<MouseButtonEventArgs> MouseDown;
+        public event EventHandler<MouseButtonEventArgs> MouseUp;
     }
 }

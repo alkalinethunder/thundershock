@@ -5,6 +5,7 @@ using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
+using Thundershock.Core.Input.Thundershock.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 
@@ -101,7 +102,14 @@ namespace Thundershock.OpenGL
                 DispatchKeyEvent(key, '\0', isPressed, repeat, false);
             }
 
-            
+            if (_event.type == SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN ||
+                _event.type == SDL.SDL_EventType.SDL_MOUSEBUTTONUP)
+            {
+                var button = MapSdlMouseButton(_event.button.button);
+                var state = _event.button.state == SDL.SDL_PRESSED ? ButtonState.Pressed : ButtonState.Released;
+
+                DispatchMouseButton(button, state);
+            }
             
             if (_event.type == SDL.SDL_EventType.SDL_TEXTINPUT)
             {
@@ -134,6 +142,19 @@ namespace Thundershock.OpenGL
             }
         }
 
+        private MouseButton MapSdlMouseButton(uint button)
+        {
+            return button switch
+            {
+                SDL.SDL_BUTTON_LEFT => MouseButton.Primary,
+                SDL.SDL_BUTTON_RIGHT => MouseButton.Secondary,
+                SDL.SDL_BUTTON_MIDDLE => MouseButton.Middle,
+                SDL.SDL_BUTTON_X1 => MouseButton.BrowserForward,
+                SDL.SDL_BUTTON_X2 => MouseButton.BrowserBack,
+                _ => throw new NotSupportedException()
+            };
+        }
+        
         protected override void OnWindowTitleChanged()
         {
             SDL.SDL_SetWindowTitle(_sdlWindow, Title);
