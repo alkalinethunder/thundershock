@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using OpenGL;
 using SDL2;
 using Thundershock.Core;
@@ -98,6 +99,31 @@ namespace Thundershock.OpenGL
 
                 // Dispatch the event to thundershock.
                 DispatchKeyEvent(key, '\0', isPressed, repeat, false);
+            }
+
+            if (_event.type == SDL.SDL_EventType.SDL_TEXTINPUT)
+            {
+                var text = string.Empty;
+
+                unsafe
+                {
+                    var count = 32;
+                    var end = 0;
+                    while (end < count && _event.text.text[end] > 0)
+                        end++;
+
+                    fixed (byte* bytes = _event.text.text)
+                    {
+                        var span = new ReadOnlySpan<byte>(bytes, end);
+                        text = Encoding.UTF8.GetString(span);
+                    }
+                }
+                
+                foreach (var character in text)
+                {
+                    var key = (Keys) character;
+                    DispatchKeyEvent(key, character, false, false, true);
+                }
             }
         }
 
