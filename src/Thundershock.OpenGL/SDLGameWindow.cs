@@ -109,7 +109,7 @@ namespace Thundershock.OpenGL
 
                 unsafe
                 {
-                    var count = 32;
+                    var count = SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE;
                     var end = 0;
                     while (end < count && _event.text.text[end] > 0)
                         end++;
