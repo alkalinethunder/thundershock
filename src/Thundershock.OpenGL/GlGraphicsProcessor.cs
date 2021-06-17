@@ -223,36 +223,11 @@ namespace Thundershock.OpenGL
         {
             glDeleteTexture(texture);
         }
-    }
-
-    public sealed class GlTextureCollection : TextureCollection
-    {
-        private Texture[] _textures;
         
-        public GlTextureCollection(GraphicsProcessor gpu) : base(gpu)
+        public override void SetViewportArea(int x, int y, int width, int height)
         {
-            _textures = new Texture[32];
+            glViewport(0, 0, width, height);
         }
 
-        public override int Count => _textures.Length;
-        protected override Texture GetTexture(int index)
-        {
-            return _textures[index];
-        }
-
-        protected override void BindTexture(int index, Texture texture)
-        {
-            glActiveTexture(index);
-            if (texture == null)
-            {
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, texture.Id);
-            }
-
-            _textures[index] = texture;
-        }
     }
 }

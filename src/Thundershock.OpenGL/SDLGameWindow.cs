@@ -88,6 +88,14 @@ namespace Thundershock.OpenGL
 
         private void HandleSdlEvent()
         {
+            if (_event.type == SDL.SDL_EventType.SDL_WINDOWEVENT)
+            {
+                if (_event.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                {
+                    ReportClientSize(_event.window.data1, _event.window.data2);
+                }
+            }
+            
             if (_event.type == SDL.SDL_EventType.SDL_QUIT)
             {
                 App.Logger.Log("SDL just told us to quit... Letting thundershock know about that.");
@@ -220,6 +228,7 @@ namespace Thundershock.OpenGL
         {
             // Resize the SDL window.
             SDL.SDL_SetWindowSize(_sdlWindow, Width, Height);
+            ReportClientSize(Width, Height);
             base.OnClientSizeChanged();
         }
 

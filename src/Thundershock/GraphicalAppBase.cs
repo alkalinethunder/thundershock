@@ -48,10 +48,10 @@ namespace Thundershock
 
             PreInit();
 
-            _vertices[0].Position = new Vector3(0, 0, 0);
-            _vertices[1].Position = new Vector3(1, 0, 0);
-            _vertices[2].Position = new Vector3(0, 1, 0);
-            _vertices[3].Position = new Vector3(1, 1, 0);
+            _vertices[0].Position = new Vector3(-0.5f, -0.5f, 0);
+            _vertices[1].Position = new Vector3(0.5f, -0.5f, 0);
+            _vertices[2].Position = new Vector3(-0.5f, 0.5f, 0);
+            _vertices[3].Position = new Vector3(0.5f, 0.5f, 0);
 
             _vertices[0].Color = new Vector4(1, 1, 1, 1);
             _vertices[1].Color = new Vector4(1, 1, 1, 1);

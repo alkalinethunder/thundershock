@@ -213,6 +213,14 @@ namespace Thundershock.Core
 
             MouseScroll?.Invoke(this, evt);
         }
+
+        protected void ReportClientSize(int width, int height)
+        {
+            _width = width;
+            _height = height;
+
+            GraphicsProcessor.SetViewportArea(0, 0, width, height);
+        }
         
         protected void DispatchKeyEvent(Keys key, char character, bool isPressed, bool isRepeated, bool isText)
         {
