@@ -155,8 +155,10 @@ namespace Thundershock.OpenGL
                         _vertexData[i + 5] = current->Color.Z;
                         _vertexData[i + 6] = current->Color.W;
 
+                        // Thundershock will give us texture coordinates that take the form of (0,0) being the top left
+                        // corner of the texture. OpenGL expects (0, 0) to be the bottom left, so we'll flip the Y value.
                         _vertexData[i + 7] = current->TextureCoordinates.X;
-                        _vertexData[i + 8] = current->TextureCoordinates.Y;
+                        _vertexData[i + 8] = 1 - current->TextureCoordinates.Y;
 
                         current++;
                     }

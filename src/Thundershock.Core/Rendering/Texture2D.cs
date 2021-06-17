@@ -39,6 +39,17 @@ namespace Thundershock.Core.Rendering
             // Now we can unlock the bitmap and then free it, we're done with it.
             bmp.UnlockBits(lck);
             bmp.Dispose();
+
+            // GDI+ gives us the bytes in the order of BGRA, but the Thundershock graphics pipeline works in
+            // RGBA. So we need to swap the bytes.
+            for (var i = 0; i < bmpData.Length; i += 4)
+            {
+                var b = bmpData[i];
+                var r = bmpData[i + 2];
+                
+                bmpData[i] = r;
+                bmpData[i + 2] = b;
+            }
             
             // Create the texture.
             var texture = new Texture2D(gpu, width, height);
