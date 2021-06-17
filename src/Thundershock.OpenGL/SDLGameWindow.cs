@@ -19,8 +19,9 @@ namespace Thundershock.OpenGL
         private IntPtr _glContext;
         private SDL.SDL_Event _event;
         private GlGraphicsProcessor _graphicsProcessor;
+        private Renderer _renderer;
 
-        public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
+        public override Renderer Renderer => _renderer;
         
         protected override void OnUpdate()
         {
@@ -67,6 +68,7 @@ namespace Thundershock.OpenGL
             GL.Import(SDL.SDL_GL_GetProcAddress);
             
             _graphicsProcessor = new GlGraphicsProcessor();
+            _renderer = new Renderer(_graphicsProcessor);
         }
         
         private void PollEvents()

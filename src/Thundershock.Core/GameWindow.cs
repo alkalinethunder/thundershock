@@ -46,6 +46,8 @@ namespace Thundershock.Core
             get => _windowTitle;
             set
             {
+                ThrowIfRendering();
+                
                 if (_windowTitle != value)
                 {
                     _windowTitle = value;
@@ -60,6 +62,8 @@ namespace Thundershock.Core
             get => _borderless;
             set
             {
+                ThrowIfRendering();
+                
                 if (_borderless != value)
                 {
                     _borderless = value;
@@ -74,6 +78,8 @@ namespace Thundershock.Core
             get => _fullscreen;
             set
             {
+                ThrowIfRendering();
+                
                 if (_fullscreen != value)
                 {
                     _fullscreen = value;
@@ -88,6 +94,8 @@ namespace Thundershock.Core
             get => _width;
             set
             {
+                ThrowIfRendering();
+                
                 if (_width != value)
                 {
                     if (value <= 0)
@@ -108,6 +116,8 @@ namespace Thundershock.Core
             get => _height;
             set
             {
+                ThrowIfRendering();
+                
                 if (_height != value)
                 {
                     if (value <= 0)
@@ -124,7 +134,7 @@ namespace Thundershock.Core
         }
 
         
-        public abstract GraphicsProcessor GraphicsProcessor { get; }
+        public abstract Renderer Renderer { get; }
         
         public void Show(AppBase app)
         {
@@ -234,5 +244,11 @@ namespace Thundershock.Core
         public event EventHandler<KeyCharEventArgs> KeyChar;
         public event EventHandler<MouseButtonEventArgs> MouseDown;
         public event EventHandler<MouseButtonEventArgs> MouseUp;
+
+        private void ThrowIfRendering()
+        {
+            if (Renderer.IsRendering)
+                throw new InvalidOperationException("Cannot perform this operation while rendering is in progress.");
+        }
     }
 }

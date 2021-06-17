@@ -1,3 +1,4 @@
+using System.Numerics;
 using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Rendering;
@@ -10,10 +11,12 @@ namespace Thundershock
         private bool _fullscreen = false;
         private int _width;
         private int _height;
-        private GraphicsProcessor _graphicsProcessor;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
 
+        private Vertex[] _vertices = new Vertex[4];
+        private int[] _indices = new int[6];
+        
         public bool SwapMouseButtons
         {
             get => _gameWindow.PrimaryMouseButtonIsRightMouseButton;
@@ -43,9 +46,23 @@ namespace Thundershock
             Logger.Log("Game window created.");
 
             PreInit();
+
+            _vertices[0].Position = new Vector3(0, 0, 0);
+            _vertices[1].Position = new Vector3(1, 0, 0);
+            _vertices[2].Position = new Vector3(0, 1, 0);
+            _vertices[3].Position = new Vector3(1, 1, 0);
+
+            _vertices[0].Color = new Vector4(1, 1, 0, 1);
+            _vertices[1].Color = new Vector4(1, 0, 0, 1);
+            _vertices[2].Color = new Vector4(1, 0, 0, 1);
+            _vertices[3].Color = new Vector4(1, 0, 0, 1);
             
-            _graphicsProcessor = _gameWindow.GraphicsProcessor;
-            
+            _indices[0] = 0;
+            _indices[1] = 1;
+            _indices[2] = 2;
+            _indices[3] = 1;
+            _indices[4] = 2;
+            _indices[5] = 3;
             RunLoop();
 
             Logger.Log("RunLoop just returned. That means we're about to die.");
@@ -58,7 +75,11 @@ namespace Thundershock
         {
             while (!_aboutToExit)
             {
-                _graphicsProcessor.Clear(new Color(0x1b, 0xaa, 0xf7));
+                _gameWindow.Renderer.Clear();
+                
+                _gameWindow.Renderer.Begin();
+                _gameWindow.Renderer.Draw(PrimitiveType.TriangleStrip, _vertices, _indices, 0, 2);
+                _gameWindow.Renderer.End();
                 
                 _gameWindow.Update();
             }

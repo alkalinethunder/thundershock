@@ -1,17 +1,19 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Thundershock.Core.Rendering
 {
-    public class Vertex
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Vertex
     {
-        public Vector3 Position { get; set; }
-        public Color Color { get; set; }
-        public Vector2 TextureCoordinates { get; set; }
+        public Vector3 Position;
+        public Vector4 Color;
+        public Vector2 TextureCoordinates;
 
         public Vertex(Vector3 position, Color color, Vector2 texCoords)
         {
             Position = position;
-            Color = color;
+            Color = color.ToVector4();
             TextureCoordinates = texCoords;
         }
     }
