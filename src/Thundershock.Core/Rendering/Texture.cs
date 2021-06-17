@@ -33,6 +33,7 @@ namespace Thundershock.Core.Rendering
 
         public void Dispose()
         {
+            OnDisposing();
             _gpu.DeleteTexture(_id);
         }
 
@@ -40,5 +41,7 @@ namespace Thundershock.Core.Rendering
         {
             _gpu.UploadTextureData(_id, pixelData, _width, _height);
         }
+        
+        protected virtual void OnDisposing() {}
     }
 }

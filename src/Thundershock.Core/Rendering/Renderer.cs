@@ -45,6 +45,13 @@ namespace Thundershock.Core.Rendering
             _isRendering = false;
         }
 
+        public void SetRenderTarget(RenderTarget2D renderTarget)
+        {
+            ThrowIfNotEnded();
+
+            _gpu.SetRenderTarget(renderTarget);
+        }
+        
         public void Draw(PrimitiveType primitive, Vertex[] vertices, int[] indexBuffer, int offset, int primitiveCount)
         {
             ThrowIfNotBegun();

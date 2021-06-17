@@ -23,6 +23,7 @@ namespace Thundershock.Core
             return new Color(gdiColor.R, gdiColor.G, gdiColor.B, gdiColor.A);
         }
 
+        public static Color White => new Color(0xff, 0xff, 0xff);
         public static Color Transparent => new(0, 0, 0, 0);
 
         public static Color operator *(Color a, float b)

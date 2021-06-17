@@ -9,6 +9,11 @@ namespace Thundershock.OpenGL
 {
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
+        private uint _fbo;
+        private int _viewportX;
+        private int _viewportY;
+        private int _viewportW;
+        private int _viewportH;
         private float[] _matrixBuffer = new float[4 * 4];
         private float[] _vertexData = Array.Empty<float>();
         private GlShaderCompiler _shaderCompiler;
@@ -213,6 +218,11 @@ namespace Thundershock.OpenGL
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+            unsafe
+            {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+            }
             
             glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -241,7 +251,15 @@ namespace Thundershock.OpenGL
         
         public override void SetViewportArea(int x, int y, int width, int height)
         {
-            glViewport(0, 0, width, height);
+            _viewportX = x;
+            _viewportY = y;
+            _viewportW = width;
+            _viewportH = height;
+
+            if (_fbo != 0)
+            {
+                glViewport(x, y, width, height);
+            }
         }
 
         private void SubmitMatrix(Matrix4x4 matrix)
@@ -265,6 +283,44 @@ namespace Thundershock.OpenGL
             _matrixBuffer[13] = matrix.M24;
             _matrixBuffer[14] = matrix.M34;
             _matrixBuffer[15] = matrix.M44;
+        }
+
+        public override uint CreateRenderTarget(uint texture)
+        {
+            // Create a framebuffer.
+            var fbo = glGenFramebuffer();
+            
+            // Return it.
+            return fbo;
+        }
+
+        public override void DestroyRenderTarget(uint renderTarget)
+        {
+            glDeleteFramebuffer(renderTarget);
+        }
+
+        protected override void UseRenderTarget(RenderTarget target)
+        {
+            _fbo = target.RenderTargetId;
+            glBindFramebuffer(GL_FRAMEBUFFER, target.RenderTargetId);
+            
+            // Attach it to the texture.
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target.Id, 0);
+            
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+            var result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (result != GL_FRAMEBUFFER_COMPLETE)
+            {
+                throw new InvalidOperationException("Failed to perform a render target switch.");
+            }
+            glViewport(0, 0, target.Width, target.Height);
+        }
+
+        protected override void StopUsingRenderTarget()
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(_viewportX, _viewportY, _viewportW, _viewportH);
+            _fbo = 0;
         }
     }
 }

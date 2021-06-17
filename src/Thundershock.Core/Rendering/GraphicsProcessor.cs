@@ -22,5 +22,18 @@ namespace Thundershock.Core.Rendering
         public abstract void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int width, int height);
         public abstract void DeleteTexture(uint texture);
         public abstract void SetViewportArea(int x, int y, int width, int height);
+        public abstract uint CreateRenderTarget(uint texture);
+        public abstract void DestroyRenderTarget(uint renderTarget);
+
+        public void SetRenderTarget(RenderTarget renderTarget)
+        {
+            if (renderTarget == null)
+                StopUsingRenderTarget();
+            else
+                UseRenderTarget(renderTarget);
+        }
+
+        protected abstract void StopUsingRenderTarget();
+        protected abstract void UseRenderTarget(RenderTarget target);
     }
 }

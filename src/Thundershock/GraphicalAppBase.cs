@@ -13,10 +13,7 @@ namespace Thundershock
         private int _height;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
-        private Texture2D _dickShortForRichie;
-        private Matrix4x4 _projection = Matrix4x4.Identity;
-        private Vertex[] _vertices = new Vertex[4];
-        private int[] _indices = new int[6];
+        private RenderTarget2D _renderTarget;
         
         public bool SwapMouseButtons
         {
@@ -48,34 +45,7 @@ namespace Thundershock
 
             PreInit();
 
-            _vertices[0].Position = new Vector3(0, 0, 0);
-            _vertices[1].Position = new Vector3(256, 0, 0);
-            _vertices[2].Position = new Vector3(0,256, 0);
-            _vertices[3].Position = new Vector3(256, 256, 0);
-
-            _vertices[0].Color = new Vector4(1, 1, 1, 1);
-            _vertices[1].Color = new Vector4(1, 1, 1, 1);
-            _vertices[2].Color = new Vector4(1, 1, 1, 1);
-            _vertices[3].Color = new Vector4(1, 1, 1, 1);
-
-            _vertices[0].TextureCoordinates = new Vector2(0, 0);
-            _vertices[1].TextureCoordinates = new Vector2(1, 0);
-            _vertices[2].TextureCoordinates = new Vector2(0, 1);
-            _vertices[3].TextureCoordinates = new Vector2(1, 1);
-            
-            
-            _indices[0] = 0;
-            _indices[1] = 1;
-            _indices[2] = 2;
-            _indices[3] = 1;
-            _indices[4] = 2;
-            _indices[5] = 3;
-
-            if (Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out var stream))
-            {
-                _dickShortForRichie = Texture2D.FromStream(_gameWindow.GraphicsProcessor, stream);
-                stream.Dispose();
-            }
+            _renderTarget = new RenderTarget2D(_gameWindow.GraphicsProcessor, 3840, 2160);
             
             RunLoop();
 
@@ -87,18 +57,44 @@ namespace Thundershock
 
         private void RunLoop()
         {
+            var vs = new Vertex[4];
+            var indices = new int[6];
+
+            vs[0].Color = Color.White.ToVector4();
+            vs[1].Color = Color.White.ToVector4();
+            vs[2].Color = Color.White.ToVector4();
+            vs[3].Color = Color.White.ToVector4();
+
+            vs[0].Position = new Vector3(-1, -1, 0);
+            vs[1].Position = new Vector3(1, -1, 0);
+            vs[2].Position = new Vector3(-1, 1, 0);
+            vs[3].Position = new Vector3(1, 1, 0);
+
+            vs[0].TextureCoordinates = new Vector2(0, 0);
+            vs[1].TextureCoordinates = new Vector2(1, 0);
+            vs[2].TextureCoordinates = new Vector2(0, 1);
+            vs[3].TextureCoordinates = new Vector2(1, 1);
+
+            indices[0] = 0;
+            indices[1] = 1;
+            indices[2] = 2;
+            indices[3] = 1;
+            indices[4] = 2;
+            indices[5] = 3;
+
             while (!_aboutToExit)
             {
-                _projection = Matrix4x4.CreateOrthographicOffCenter(0, _gameWindow.Width, _gameWindow.Height, 0, 0, 1);
-                
+                _gameWindow.Renderer.SetRenderTarget(_renderTarget);
+                _gameWindow.Renderer.Clear(new Color(0xf7, 0x1b, 0x1b));
+
+                _gameWindow.Renderer.SetRenderTarget(null);
                 _gameWindow.Renderer.Clear();
 
-                _gameWindow.Renderer.Textures[0] = _dickShortForRichie;
-                
-                _gameWindow.Renderer.Begin(_projection);
-                _gameWindow.Renderer.Draw(PrimitiveType.TriangleStrip, _vertices, _indices, 0, 2);
+                _gameWindow.Renderer.Textures[0] = _renderTarget;
+                _gameWindow.Renderer.Begin(Matrix4x4.Identity);
+                _gameWindow.Renderer.Draw(PrimitiveType.TriangleStrip, vs, indices, 0, 2);
                 _gameWindow.Renderer.End();
-                
+
                 _gameWindow.Update();
             }
         }
