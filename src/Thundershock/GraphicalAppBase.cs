@@ -13,6 +13,7 @@ namespace Thundershock
         private int _height;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
+        private Texture2D _dickShortForRichie;
 
         private Vertex[] _vertices = new Vertex[4];
         private int[] _indices = new int[6];
@@ -52,10 +53,16 @@ namespace Thundershock
             _vertices[2].Position = new Vector3(0, 1, 0);
             _vertices[3].Position = new Vector3(1, 1, 0);
 
-            _vertices[0].Color = new Vector4(1, 1, 0, 1);
-            _vertices[1].Color = new Vector4(1, 0, 0, 1);
-            _vertices[2].Color = new Vector4(1, 0, 0, 1);
-            _vertices[3].Color = new Vector4(1, 0, 0, 1);
+            _vertices[0].Color = new Vector4(1, 1, 1, 1);
+            _vertices[1].Color = new Vector4(1, 1, 1, 1);
+            _vertices[2].Color = new Vector4(1, 1, 1, 1);
+            _vertices[3].Color = new Vector4(1, 1, 1, 1);
+
+            _vertices[0].TextureCoordinates = new Vector2(0, 0);
+            _vertices[1].TextureCoordinates = new Vector2(1, 0);
+            _vertices[2].TextureCoordinates = new Vector2(0, 1);
+            _vertices[3].TextureCoordinates = new Vector2(1, 1);
+            
             
             _indices[0] = 0;
             _indices[1] = 1;
@@ -63,6 +70,13 @@ namespace Thundershock
             _indices[3] = 1;
             _indices[4] = 2;
             _indices[5] = 3;
+
+            if (Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out var stream))
+            {
+                _dickShortForRichie = Texture2D.FromStream(_gameWindow.GraphicsProcessor, stream);
+                stream.Dispose();
+            }
+            
             RunLoop();
 
             Logger.Log("RunLoop just returned. That means we're about to die.");
@@ -76,6 +90,8 @@ namespace Thundershock
             while (!_aboutToExit)
             {
                 _gameWindow.Renderer.Clear();
+
+                _gameWindow.Renderer.Textures[0] = _dickShortForRichie;
                 
                 _gameWindow.Renderer.Begin();
                 _gameWindow.Renderer.Draw(PrimitiveType.TriangleStrip, _vertices, _indices, 0, 2);

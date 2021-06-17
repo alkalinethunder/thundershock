@@ -7,9 +7,9 @@ namespace Thundershock.Core
 {
     public static class Resource
     {
-        public static bool TryGetString(Assembly ass, string resourceName, out string result)
+        public static bool GetStream(Assembly ass, string resourceName, out Stream stream)
         {
-            result = string.Empty;
+            stream = null;
             
             if (ass == null)
             {
@@ -19,22 +19,35 @@ namespace Thundershock.Core
 
             Logger.GetLogger()
                 .Log($"Retrieving embedded resource " + resourceName + " from assembly " + ass.ToString());
-            
-            using var stream = ass.GetManifestResourceStream(resourceName);
 
+            stream = ass.GetManifestResourceStream(resourceName);
+            
             if (stream == null)
             {
                 Logger.GetLogger().Log("Resource not found.", LogLevel.Error);
                 return false;
             }
 
-            using var reader = new StreamReader(stream);
-
-            result = reader.ReadToEnd();
-
-            Logger.GetLogger().Log("Done.");
-
             return true;
+        }
+        
+        public static bool TryGetString(Assembly ass, string resourceName, out string result)
+        {
+            if (GetStream(ass, resourceName, out var stream))
+            {
+                using var reader = new StreamReader(stream);
+
+                result = reader.ReadToEnd();
+
+                Logger.GetLogger().Log("Done.");
+
+                return true;
+            }
+            else
+            {
+                result = string.Empty;
+                return false;
+            }
         }
     }
 }

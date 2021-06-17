@@ -22,6 +22,7 @@ namespace Thundershock.OpenGL
         private Renderer _renderer;
 
         public override Renderer Renderer => _renderer;
+        public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
         
         protected override void OnUpdate()
         {

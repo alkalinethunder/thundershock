@@ -10,6 +10,8 @@ namespace Thundershock.Core.Rendering
         
         public bool IsRendering => _isRendering;
         
+        public TextureCollection Textures => _gpu.Textures;
+
         public Renderer(GraphicsProcessor gpu)
         {
             _gpu = gpu ?? throw new ArgumentNullException(nameof(gpu));

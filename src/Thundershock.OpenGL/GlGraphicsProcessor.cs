@@ -15,9 +15,15 @@ namespace Thundershock.OpenGL
         private uint _indexBuffer;
         private uint _vao;
         private uint _basicEffect;
+        private GlTextureCollection _textures;
+
+        public override TextureCollection Textures => _textures;
         
         internal GlGraphicsProcessor()
         {
+            // Texture colllection
+            _textures = new GlTextureCollection(this);
+            
             // Create the shader compiler object
             _shaderCompiler = new GlShaderCompiler(this);
             
@@ -68,7 +74,13 @@ namespace Thundershock.OpenGL
             };
 
             glUseProgram(_basicEffect);
-            
+
+            var texUniform = glGetUniformLocation(_basicEffect, "ts_textureSampler");
+            if (texUniform > -1)
+            {
+                glUniform1i(texUniform, 0);
+            }
+
             unsafe
             {
                 glDrawElements(type, indices.Length, GL_UNSIGNED_INT, null);
@@ -172,6 +184,73 @@ namespace Thundershock.OpenGL
             
             glEnableVertexAttribArray(2);
             glVertexAttribPointer(2, 2, GL_FLOAT, false, vertSize * sizeof(float), new IntPtr(7 * sizeof(float)));
+        }
+
+        public override uint CreateTexture(int width, int height)
+        {
+            var id = glGenTexture();
+
+            glBindTexture(GL_TEXTURE_2D, id);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            return id;
+        }
+
+        public override void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int width, int height)
+        {
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            unsafe
+            {
+                fixed (void* data = pixelData)
+                {
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                }
+            }
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+        public override void DeleteTexture(uint texture)
+        {
+            glDeleteTexture(texture);
+        }
+    }
+
+    public sealed class GlTextureCollection : TextureCollection
+    {
+        private Texture[] _textures;
+        
+        public GlTextureCollection(GraphicsProcessor gpu) : base(gpu)
+        {
+            _textures = new Texture[32];
+        }
+
+        public override int Count => _textures.Length;
+        protected override Texture GetTexture(int index)
+        {
+            return _textures[index];
+        }
+
+        protected override void BindTexture(int index, Texture texture)
+        {
+            glActiveTexture(index);
+            if (texture == null)
+            {
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, texture.Id);
+            }
+
+            _textures[index] = texture;
         }
     }
 }

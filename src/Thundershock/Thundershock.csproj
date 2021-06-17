@@ -28,4 +28,9 @@
     <ProjectReference Include="..\Thundershock.OpenGL\Thundershock.OpenGL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Resources\Dick0.png" />
+    <EmbeddedResource Include="Resources\Dick0.png" />
+  </ItemGroup>
+
 </Project>
