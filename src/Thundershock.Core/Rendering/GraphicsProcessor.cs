@@ -1,10 +1,13 @@
 using System;
 using System.Buffers;
+using System.Numerics;
 
 namespace Thundershock.Core.Rendering
 {
     public abstract class GraphicsProcessor
     {
+        public Matrix4x4 ProjectionMatrix { get; set; } = Matrix4x4.Identity;
+
         public abstract TextureCollection Textures { get; }
         public abstract void Clear(Color color);
 

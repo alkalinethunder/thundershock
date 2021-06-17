@@ -14,7 +14,7 @@ namespace Thundershock
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
         private Texture2D _dickShortForRichie;
-
+        private Matrix4x4 _projection = Matrix4x4.Identity;
         private Vertex[] _vertices = new Vertex[4];
         private int[] _indices = new int[6];
         
@@ -48,10 +48,10 @@ namespace Thundershock
 
             PreInit();
 
-            _vertices[0].Position = new Vector3(-0.5f, -0.5f, 0);
-            _vertices[1].Position = new Vector3(0.5f, -0.5f, 0);
-            _vertices[2].Position = new Vector3(-0.5f, 0.5f, 0);
-            _vertices[3].Position = new Vector3(0.5f, 0.5f, 0);
+            _vertices[0].Position = new Vector3(0, 0, 0);
+            _vertices[1].Position = new Vector3(256, 0, 0);
+            _vertices[2].Position = new Vector3(0,256, 0);
+            _vertices[3].Position = new Vector3(256, 256, 0);
 
             _vertices[0].Color = new Vector4(1, 1, 1, 1);
             _vertices[1].Color = new Vector4(1, 1, 1, 1);
@@ -89,11 +89,13 @@ namespace Thundershock
         {
             while (!_aboutToExit)
             {
+                _projection = Matrix4x4.CreateOrthographicOffCenter(0, _gameWindow.Width, _gameWindow.Height, 0, 0, 1);
+                
                 _gameWindow.Renderer.Clear();
 
                 _gameWindow.Renderer.Textures[0] = _dickShortForRichie;
                 
-                _gameWindow.Renderer.Begin();
+                _gameWindow.Renderer.Begin(_projection);
                 _gameWindow.Renderer.Draw(PrimitiveType.TriangleStrip, _vertices, _indices, 0, 2);
                 _gameWindow.Renderer.End();
                 

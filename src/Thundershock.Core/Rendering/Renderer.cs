@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace Thundershock.Core.Rendering
 {
@@ -28,10 +29,12 @@ namespace Thundershock.Core.Rendering
             _gpu.Clear(color);
         }
 
-        public void Begin()
+        public void Begin(Matrix4x4 projectionMatrix)
         {
             ThrowIfNotEnded();
 
+            _gpu.ProjectionMatrix = projectionMatrix;
+            
             _isRendering = true;
         }
 
