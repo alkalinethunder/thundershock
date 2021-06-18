@@ -1,22 +1,29 @@
 using System;
+using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Numerics;
 
 namespace Thundershock.Core.Rendering
 {
     public class Renderer
     {
+        private Effect.EffectProgram _program;
         private bool _isRendering;
         private GraphicsProcessor _gpu;
         private VertexBuffer _vertexBuffer;
+        private BasicEffect _defaultEffect;
         
         public bool IsRendering => _isRendering;
         
         public TextureCollection Textures => _gpu.Textures;
 
+        public Matrix4x4 ProjectionMatrix { get; set; } = Matrix4x4.Identity;
+        
         public Renderer(GraphicsProcessor gpu)
         {
             _gpu = gpu ?? throw new ArgumentNullException(nameof(gpu));
             _vertexBuffer = new VertexBuffer(_gpu);
+            _defaultEffect = new BasicEffect(_gpu);
         }
 
         public void Clear()
@@ -29,11 +36,20 @@ namespace Thundershock.Core.Rendering
             _gpu.Clear(color);
         }
 
-        public void Begin(Matrix4x4 projectionMatrix)
+        public void Begin(IEffect effect = null)
         {
             ThrowIfNotEnded();
 
-            _gpu.ProjectionMatrix = projectionMatrix;
+            if (effect != null)
+            {
+                _program = effect.Programs.First();
+            }
+            else
+            {
+                _program = _defaultEffect.Programs.First();
+            }
+
+            _program.Apply();
             
             _isRendering = true;
         }
@@ -69,6 +85,9 @@ namespace Thundershock.Core.Rendering
          
             // Submit vertices to the vertex buffer
             _vertexBuffer.SubmitVertices(vertices);
+            
+            // Shader parameters.
+            _program.Parameters["projection"]?.SetValue(ProjectionMatrix);
             
             // Tell the GPU to draw the primitives.
             _gpu.DrawPrimitives(primitive, indexSpan, primitiveCount);

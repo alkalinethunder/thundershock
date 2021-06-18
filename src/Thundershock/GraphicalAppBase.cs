@@ -1,3 +1,4 @@
+using System.IO;
 using System.Numerics;
 using Thundershock.Config;
 using Thundershock.Core;
@@ -14,6 +15,8 @@ namespace Thundershock
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
         private RenderTarget2D _renderTarget;
+        private Renderer _renderer;
+        private Texture2D _dick;
         
         public bool SwapMouseButtons
         {
@@ -46,6 +49,11 @@ namespace Thundershock
             PreInit();
 
             _renderTarget = new RenderTarget2D(_gameWindow.GraphicsProcessor, 3840, 2160);
+            _renderer = new Renderer(_gameWindow.GraphicsProcessor);
+
+            var s = null as Stream;
+            Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out s);
+            _dick = Texture2D.FromStream(_gameWindow.GraphicsProcessor, s);
             
             RunLoop();
 
@@ -84,16 +92,16 @@ namespace Thundershock
 
             while (!_aboutToExit)
             {
-                _gameWindow.Renderer.SetRenderTarget(_renderTarget);
-                _gameWindow.Renderer.Clear(new Color(0xf7, 0x1b, 0x1b));
+                //_renderer.SetRenderTarget(_renderTarget);
+                //_renderer.Clear(new Color(0xf7, 0x1b, 0x1b));
 
-                _gameWindow.Renderer.SetRenderTarget(null);
-                _gameWindow.Renderer.Clear();
+                //_renderer.SetRenderTarget(null);
+                _renderer.Clear(new Color(0x1b, 0xaa, 0xf7));
 
-                _gameWindow.Renderer.Textures[0] = _renderTarget;
-                _gameWindow.Renderer.Begin(Matrix4x4.Identity);
-                _gameWindow.Renderer.Draw(PrimitiveType.TriangleStrip, vs, indices, 0, 2);
-                _gameWindow.Renderer.End();
+                _renderer.Textures[0] = _dick;
+                _renderer.Begin();
+                _renderer.Draw(PrimitiveType.TriangleStrip, vs, indices, 0, 2);
+                _renderer.End();
 
                 _gameWindow.Update();
             }

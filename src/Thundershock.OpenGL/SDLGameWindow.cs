@@ -1,6 +1,6 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
-using OpenGL;
 using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
@@ -9,19 +9,20 @@ using Thundershock.Core.Input.Thundershock.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 
+using Silk.NET.OpenGL;
+
 namespace Thundershock.OpenGL
 {
     public sealed class SDLGameWindow : GameWindow
     {
+        private GL _gl;
         private int _wheelX;
         private int _wheelY;
         private IntPtr _sdlWindow;
         private IntPtr _glContext;
         private SDL.SDL_Event _event;
         private GlGraphicsProcessor _graphicsProcessor;
-        private Renderer _renderer;
 
-        public override Renderer Renderer => _renderer;
         public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
         
         protected override void OnUpdate()
@@ -50,6 +51,12 @@ namespace Thundershock.OpenGL
 
         private void SetupGLRenderer()
         {
+            // Set up the OpenGL context attributes.
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 5);
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK,
+                SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+            
             App.Logger.Log("Setting up the SDL OpenGL renderer...");
             var ctx = SDL.SDL_GL_CreateContext(_sdlWindow);
             if (ctx == IntPtr.Zero)
@@ -66,12 +73,33 @@ namespace Thundershock.OpenGL
             SDL.SDL_GL_MakeCurrent(_sdlWindow, _glContext);
 
             // Glue OpenGL and SDL2 together.
-            GL.Import(SDL.SDL_GL_GetProcAddress);
+            _gl = Silk.NET.OpenGL.GL.GetApi(SDL.SDL_GL_GetProcAddress);
+            _gl.Enable(EnableCap.DebugOutput);
+            _gl.DebugMessageCallback(PrintGLError, 0);
+            _graphicsProcessor = new GlGraphicsProcessor(_gl);
             
-            _graphicsProcessor = new GlGraphicsProcessor();
-            _renderer = new Renderer(_graphicsProcessor);
+            // Set the viewport size.
+            _graphicsProcessor.SetViewportArea(0, 0, Width, Height);
         }
-        
+
+        private void PrintGLError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
+        {
+            var buf = new byte[length];
+            Marshal.Copy(message, buf, 0, buf.Length);
+
+            var messageString = Encoding.UTF8.GetString(buf);
+
+            var logLevel = severity switch
+            {
+                GLEnum.DebugSeverityNotification => LogLevel.Info,
+                GLEnum.DebugSeverityLow => LogLevel.Warning,
+                GLEnum.DebugSeverityMedium => LogLevel.Error,
+                GLEnum.DebugSeverityHigh => LogLevel.Fatal
+            };
+
+            App.Logger.Log(messageString, logLevel);
+        }
+
         private void PollEvents()
         {
             while (SDL.SDL_PollEvent(out _event) != 0)

@@ -1,14 +1,21 @@
 using System;
 using System.Numerics;
+using Silk.NET.OpenGL;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Rendering;
+using Thundershock.Debugging;
 
-using static OpenGL.GL;
+using Silk.NET.OpenGL;
+using Thundershock.OpenGL;
+using PrimitiveType = Thundershock.Core.Rendering.PrimitiveType;
 
 namespace Thundershock.OpenGL
 {
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
+        private uint _program;
+        private GL _gl;
         private uint _fbo;
         private int _viewportX;
         private int _viewportY;
@@ -16,132 +23,89 @@ namespace Thundershock.OpenGL
         private int _viewportH;
         private float[] _matrixBuffer = new float[4 * 4];
         private float[] _vertexData = Array.Empty<float>();
-        private GlShaderCompiler _shaderCompiler;
         private uint _vertexBuffer;
         private uint _indexBuffer;
         private uint _vao;
-        private uint _basicEffect;
         private GlTextureCollection _textures;
 
         public override TextureCollection Textures => _textures;
         
-        internal GlGraphicsProcessor()
+        internal GlGraphicsProcessor(GL glContext)
         {
-            // Texture colllection
-            _textures = new GlTextureCollection(this);
+            _gl = glContext;
             
-            // Create the shader compiler object
-            _shaderCompiler = new GlShaderCompiler(this);
+            // Texture colllection
+            _textures = new GlTextureCollection(this, _gl);
             
             // Vertex array object.
-            _vao = glGenVertexArray();
-            glBindVertexArray(_vao);
+            _vao = _gl.GenVertexArray();
+            _gl.BindVertexArray(_vao);
 
             // generate the vertex buffer and index buffer objects.
-            _vertexBuffer = glGenBuffer();
-            _indexBuffer = glGenBuffer();
+            _vertexBuffer = _gl.GenBuffer();
+            _indexBuffer = _gl.GenBuffer();
             
-            // bind the vbo and ibo to the GPU.
-            glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-            
-            // Compile the basic effect shaders.
-            CompileBasicEffect();
-            
-            // unbind the vertex buffer
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            // bind the index buffer
+            _gl.BindBuffer(GLEnum.ArrayBuffer, _vertexBuffer);
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
         }
 
 
         public override void Clear(Color color)
         {
             var vec4 = color.ToVector4();
-            glClearColor(vec4.X, vec4.Y, vec4.Z, vec4.W);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            _gl.ClearColor(vec4.X, vec4.Y, vec4.Z, vec4.W);
+            _gl.Clear((uint) GLEnum.ColorBufferBit | (uint) GLEnum.DepthBufferBit);
         }
 
-        public override void DrawPrimitives(PrimitiveType primitiveType, ReadOnlySpan<int> indices, int primitiveCount)
-        {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-
-            unsafe
-            {
-                fixed (void* data = indices)
+                public override void DrawPrimitives(PrimitiveType primitiveType, ReadOnlySpan<int> indices, int primitiveCount)
                 {
-                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.Length, data, GL_DYNAMIC_DRAW);
-                }
-            }
-            
-            var type = primitiveType switch
-            {
-                PrimitiveType.LineStrip => GL_LINE_STRIP,
-                PrimitiveType.TriangleStrip => GL_TRIANGLE_STRIP,
-                _ => throw new NotSupportedException()
-            };
-
-            glUseProgram(_basicEffect);
-
-            var texUniform = glGetUniformLocation(_basicEffect, "ts_textureSampler");
-            var camProjectionUniform = glGetUniformLocation(_basicEffect, "ts_cam_projectionMatrix");
-            
-            if (texUniform > -1)
-            {
-                glUniform1i(texUniform, 0);
-            }
-
-            if (camProjectionUniform > -1)
-            {
-                SubmitMatrix(ProjectionMatrix);
-                glUniformMatrix4fv(camProjectionUniform, 1, false, _matrixBuffer);
-            }
-
-            unsafe
-            {
-                glDrawElements(type, indices.Length, GL_UNSIGNED_INT, null);
-            }
-        }
+                    _gl.UseProgram(_program);
+                    _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
+                    _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);
+                    
+                    var type = primitiveType switch
+                    {
+                        PrimitiveType.LineStrip => Silk.NET.OpenGL.PrimitiveType.LineStrip,
+                        PrimitiveType.TriangleStrip => Silk.NET.OpenGL.PrimitiveType.TriangleStrip,
+                        _ => throw new NotSupportedException()
+                    };
         
-        private void CompileBasicEffect()
-        {
-            // Resource names.
-            var vert = "Thundershock.OpenGL.Resources.Shaders.BasicShader.vert";
-            var frag = "Thundershock.OpenGL.Resources.Shaders.BasicShader.frag";
-
-            // Our DLL file.
-            var asm = this.GetType().Assembly;
-
-            if (Resource.TryGetString(asm, vert, out var vertShader) &&
-                Resource.TryGetString(asm, frag, out var fragShader))
-            {
-                _basicEffect = _shaderCompiler.CompileShaderProgram(vertShader, fragShader);
-            }
-            else
-            {
-                _basicEffect = 0;
-            }
-
-            if (_basicEffect == 0)
-            {
-                throw new InvalidOperationException(
-                    "The basic shaders failed to compile. The OpenGL graphics pipeline cannot continue to run without them. Please see the debug log for shader compile errors.");
-            }
-        }
+                    var name = "tex";
+                    ;
+                    
+                    for (var i = 0; i < 32; i++)
+                    {
+                        name = "tex" + i.ToString();
+        
+                        var location = _gl.GetUniformLocation(_program, name);
+        
+                        if (location > -1)
+                        {
+                            _gl.Uniform1(location, i);
+                        }
+                    }
+                    
+                    unsafe
+                    {
+                        void* nullptr = null;
+                        _gl.DrawElements(type, (uint) indices.Length, GLEnum.UnsignedInt, nullptr);
+                    }
+                }
 
         public override uint CreateVertexBuffer()
         {
-            var vbo = glGenBuffer();
+            var vbo = _gl.GenBuffer();
             return vbo;
         }
 
         public override void DeleteVertexBuffer(uint vbo)
         {
-            glDeleteBuffer(vbo);
+            _gl.DeleteBuffer(vbo);
         }
 
         public override void SubmitVertices(uint vbo, ReadOnlySpan<Vertex> vertices)
         {
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            
             var posSize = 3;
             var colorSize = 4;
             var texCoordSize = 2;
@@ -163,7 +127,7 @@ namespace Thundershock.OpenGL
                         _vertexData[i] = current->Position.X;
                         _vertexData[i + 1] = current->Position.Y;
                         _vertexData[i + 2] = current->Position.Z;
-                        
+
                         _vertexData[i + 3] = current->Color.X;
                         _vertexData[i + 4] = current->Color.Y;
                         _vertexData[i + 5] = current->Color.Z;
@@ -184,69 +148,80 @@ namespace Thundershock.OpenGL
                     }
                 }
             }
-            
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+            _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
 
             unsafe
             {
-                fixed (void* data = &_vertexData[0])
+                fixed (void* ptr = _vertexData)
                 {
-                    glBufferData(GL_ARRAY_BUFFER, arrSize * sizeof(float), data, GL_DYNAMIC_DRAW);
+                    _gl.BufferData(GLEnum.ArrayBuffer, new UIntPtr((uint) (_vertexData.Length * sizeof(float))), ptr,
+                        GLEnum.StaticDraw);
                 }
             }
 
-            glBindVertexArray(_vao);
-            
+            _gl.BindVertexArray(_vao);
+
             // Vertex attributes
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, vertSize * sizeof(float), IntPtr.Zero);
-            
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 4, GL_FLOAT, false, vertSize * sizeof(float), new IntPtr(3 * sizeof(float)));
-            
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, false, vertSize * sizeof(float), new IntPtr(7 * sizeof(float)));
+            unsafe
+            {
+                void* pptr = (void*) IntPtr.Zero;
+                void* cptr = (void*) new IntPtr(sizeof(float) * 3);
+                void* tptr = (void*) new IntPtr(sizeof(float) * 7);
+
+                _gl.EnableVertexAttribArray(0);
+                _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, (uint) vertSize * sizeof(float), pptr);
+
+                _gl.EnableVertexAttribArray(1);
+                _gl.VertexAttribPointer(1, 4, GLEnum.Float, false, (uint) vertSize * sizeof(float),
+                    cptr);
+
+                _gl.EnableVertexAttribArray(2);
+                _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
+                    tptr);
+            }
         }
 
         public override uint CreateTexture(int width, int height)
         {
-            var id = glGenTexture();
+            var id = _gl.GenTexture();
 
-            glBindTexture(GL_TEXTURE_2D, id);
+            _gl.BindTexture(GLEnum.Texture2D, id);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int) GLEnum.Nearest);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int) GLEnum.Nearest);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapS, (int) GLEnum.ClampToEdge);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapT, (int) GLEnum.ClampToEdge);
 
             unsafe
             {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+                _gl.TexImage2D(GLEnum.Texture2D, 0, (int) GLEnum.Rgba8, (uint) width, (uint) height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, null);
             }
             
-            glBindTexture(GL_TEXTURE_2D, 0);
+            _gl.BindTexture(GLEnum.Texture2D, 0);
 
             return id;
         }
 
         public override void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int width, int height)
         {
-            glBindTexture(GL_TEXTURE_2D, texture);
+            _gl.BindTexture(GLEnum.Texture2D, texture);
 
             unsafe
             {
                 fixed (void* data = pixelData)
                 {
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                    _gl.TexImage2D(GLEnum.Texture2D, 0, (int) GLEnum.Rgba8, (uint) width, (uint) height, 0, GLEnum.Rgba,
+                        GLEnum.UnsignedByte, data);
                 }
             }
 
-            glBindTexture(GL_TEXTURE_2D, 0);
+            _gl.BindTexture(GLEnum.Texture2D, 0);
         }
 
         public override void DeleteTexture(uint texture)
         {
-            glDeleteTexture(texture);
+            _gl.DeleteTexture(texture);
         }
         
         public override void SetViewportArea(int x, int y, int width, int height)
@@ -256,9 +231,9 @@ namespace Thundershock.OpenGL
             _viewportW = width;
             _viewportH = height;
 
-            if (_fbo != 0)
+            if (_fbo == 0)
             {
-                glViewport(x, y, width, height);
+                _gl.Viewport(x, y, (uint) width, (uint) height);
             }
         }
 
@@ -288,7 +263,7 @@ namespace Thundershock.OpenGL
         public override uint CreateRenderTarget(uint texture)
         {
             // Create a framebuffer.
-            var fbo = glGenFramebuffer();
+            var fbo = _gl.GenFramebuffer();
             
             // Return it.
             return fbo;
@@ -296,31 +271,90 @@ namespace Thundershock.OpenGL
 
         public override void DestroyRenderTarget(uint renderTarget)
         {
-            glDeleteFramebuffer(renderTarget);
+            _gl.DeleteFramebuffer(renderTarget);
         }
 
         protected override void UseRenderTarget(RenderTarget target)
         {
             _fbo = target.RenderTargetId;
-            glBindFramebuffer(GL_FRAMEBUFFER, target.RenderTargetId);
+            _gl.BindFramebuffer(GLEnum.Framebuffer, target.RenderTargetId);
             
             // Attach it to the texture.
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target.Id, 0);
+            _gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, target.Id, 0);
             
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
-            var result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-            if (result != GL_FRAMEBUFFER_COMPLETE)
+            _gl.DrawBuffer(GLEnum.ColorAttachment0);
+            var result = _gl.CheckFramebufferStatus(GLEnum.Framebuffer);
+            if (result != GLEnum.FramebufferComplete)
             {
                 throw new InvalidOperationException("Failed to perform a render target switch.");
             }
-            glViewport(0, 0, target.Width, target.Height);
+            _gl.Viewport(0, 0, (uint) target.Width, (uint) target.Height);
         }
 
         protected override void StopUsingRenderTarget()
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(_viewportX, _viewportY, _viewportW, _viewportH);
+            _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
+            _gl.Viewport(_viewportX, _viewportY, (uint) _viewportW, (uint) _viewportH);
             _fbo = 0;
+        }
+
+        public override uint CreateShaderProgram()
+        {
+            return _gl.CreateProgram();
+        }
+
+        public override void CompileGLSL(uint program, ShaderCompilation type, string glslSource)
+        {
+            var shader = _gl.CreateShader(type == ShaderCompilation.VertexShader ? GLEnum.VertexShader : GLEnum.FragmentShader);
+            _gl.ShaderSource(shader, glslSource);
+            _gl.CompileShader(shader);
+            
+            int result = 0;
+            _gl.GetShader(shader, GLEnum.CompileStatus, out result);
+            
+            var log = _gl.GetShaderInfoLog(shader);
+            if (!string.IsNullOrEmpty(log))
+            {
+                var lines = log.Split(Environment.NewLine);
+                foreach (var line in lines)
+                {
+                    if (line.Contains("warning"))
+                        Logger.GetLogger().Log(line, LogLevel.Warning);
+                    else if (line.Contains("error"))
+                        Logger.GetLogger().Log(line, LogLevel.Error);
+                    else
+                        Logger.GetLogger().Log(line);
+                }
+            }
+
+            if (result == (int) GLEnum.False)
+            {
+                Logger.GetLogger().Log("Shader compilation failed.", LogLevel.Error);
+                _gl.DeleteShader(shader);
+                return;
+            }
+
+            _gl.AttachShader(program, shader);
+        }
+
+        public override void VerifyShaderProgram(uint program)
+        {
+            _gl.LinkProgram(program);
+            _gl.ValidateProgram(program);
+        }
+
+        public override void SetActiveShaderProgram(uint program)
+        {
+            _gl.UseProgram(program);
+            _program = program;
+        }
+
+        public override EffectParameter GetEffectParameter(Effect.EffectProgram program, string name)
+        {
+            var location = _gl.GetUniformLocation(program.Id, name);
+            if (location > -1)
+                return new GLEffectParameter(program.Id, name, location, _gl);
+            return null;
         }
     }
 }

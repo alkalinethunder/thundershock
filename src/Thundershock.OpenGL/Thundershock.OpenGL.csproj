@@ -23,4 +23,9 @@
     <EmbeddedResource Include="Resources\Shaders\BasicShader.vert" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Core" Version="2.5.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.5.0" />
+  </ItemGroup>
+
 </Project>

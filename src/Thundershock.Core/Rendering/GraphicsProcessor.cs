@@ -35,5 +35,14 @@ namespace Thundershock.Core.Rendering
 
         protected abstract void StopUsingRenderTarget();
         protected abstract void UseRenderTarget(RenderTarget target);
+
+        public abstract uint CreateShaderProgram();
+        public abstract void CompileGLSL(uint program, ShaderCompilation type, string glslSource);
+
+        public abstract void SetActiveShaderProgram(uint program);
+        
+        public abstract void VerifyShaderProgram(uint program);
+
+        public abstract EffectParameter GetEffectParameter(Effect.EffectProgram program, string name);
     }
 }
