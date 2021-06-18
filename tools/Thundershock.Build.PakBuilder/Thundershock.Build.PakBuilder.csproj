@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Thundershock.Core\Thundershock.Core.csproj" />
-    <ProjectReference Include="..\..\src\Thundershock.Platform\Thundershock.Platform.csproj" />
     <ProjectReference Include="..\..\src\Thundershock\Thundershock.csproj" />
   </ItemGroup>
 
