@@ -5,12 +5,12 @@ namespace Thundershock.Core
 {
     public struct Rectangle
     {
-        public int X;
-        public int Y;
-        public int Width;
-        public int Height;
+        public float X;
+        public float Y;
+        public float Width;
+        public float Height;
 
-        public Rectangle(int x, int y, int w, int h)
+        public Rectangle(float x, float y, float w, float h)
         {
             X = x;
             Y = y;
@@ -18,14 +18,17 @@ namespace Thundershock.Core
             Height = h;
         }
 
-        public int Left => X;
-        public int Top => Y;
-        public int Right => X + Width;
-        public int Bottom => Y + Height;
+        public float Left => X;
+        public float Top => Y;
+        public float Right => X + Width;
+        public float Bottom => Y + Height;
 
         public Vector2 Location => new Vector2(X, Y);
         public Vector2 Center => new Vector2(X + (Width / 2), Y + (Height / 2));
         public bool IsEmpty => Width * Height == 0;
+
+        public static Rectangle Unit => new Rectangle(0, 0, 1, 1);
+        public static Rectangle Empty => new Rectangle(0, 0, 0, 0);
         
         public static bool operator ==(Rectangle a, Rectangle b)
         {

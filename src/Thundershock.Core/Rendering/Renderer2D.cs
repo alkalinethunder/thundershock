@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Numerics;
 
 namespace Thundershock.Core.Rendering
@@ -52,20 +53,22 @@ namespace Thundershock.Core.Rendering
             _effect = effect;
         }
 
-        private RenderItem MakeRenderItem(Texture2D texture)
+        private RenderItem MakeRenderItem(Texture2D texture, Matrix4x4? transform = null)
         {
             if (_running)
             {
                 var tex = texture ?? _blankTexture;
-
+                var mat = transform ?? Matrix4x4.Identity;
+                
                 if (_batch.Count > 0)
                 {
                     var last = _batch[_batch.Count - 1];
-                    if (last.Texture == tex) return last;
+                    if (last.Texture == tex && last.Transform == mat) return last;
                 }
 
                 var newBatchItem = new RenderItem();
                 newBatchItem.Texture = tex;
+                newBatchItem.Transform = mat;
                 _batch.Add(newBatchItem);
                 return newBatchItem;
             }
@@ -146,6 +149,11 @@ namespace Thundershock.Core.Rendering
             FillRectangle(top, color);
             FillRectangle(right, color);
             FillRectangle(bottom, color);
+        }
+
+        public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv, Matrix4x4 transform)
+        {
+            var batch = MakeRenderItem(texture, transform);
         }
         
         /// <summary>
@@ -328,6 +336,8 @@ namespace Thundershock.Core.Rendering
             public Vertex[] Vertices => _vbo;
             public int[] IndexBuffer => _ibo;
 
+            public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
+            
             public RenderItem()
             {
                 _vbo = new Vertex[128];
@@ -351,7 +361,9 @@ namespace Thundershock.Core.Rendering
                     Array.Resize(ref _vbo, _vbo.Length * 2);
                 }
 
-                var v = new Vertex(new Vector3(position, 0), color, texCoord);
+                var pos3D = new Vector3(position, 0);
+                pos3D = Vector3.Transform(pos3D, Transform);
+                var v = new Vertex(pos3D, color, texCoord);
                 _vbo[_vertexPointer] = v;
                 _vertexPointer++;
             
