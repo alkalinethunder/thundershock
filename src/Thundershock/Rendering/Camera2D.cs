@@ -8,7 +8,7 @@ namespace Thundershock.Rendering
     {
         public AspectRatioMode AspectRatioMode { get; set; } = AspectRatioMode.ScaleVertically;
 
-        public override Rectangle ViewportBounds
+        public override Microsoft.Xna.Framework.Rectangle ViewportBounds
         {
             get
             {
@@ -28,7 +28,7 @@ namespace Thundershock.Rendering
                     viewSize.X = viewSize.Y * aspectRatio;
                 }
 
-                return new Rectangle(0, 0, (int) viewSize.X, (int) viewSize.Y);
+                return new Microsoft.Xna.Framework.Rectangle(0, 0, (int) viewSize.X, (int) viewSize.Y);
             }
         }
 

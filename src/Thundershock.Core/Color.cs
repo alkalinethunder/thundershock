@@ -1,4 +1,5 @@
 using System;
+using System.Drawing.Printing;
 using System.Numerics;
 
 namespace Thundershock.Core
@@ -8,14 +9,16 @@ namespace Thundershock.Core
         public byte R;
         public byte G;
         public byte B;
-        public byte Alpha;
+        public byte A;
 
+        public byte Alpha => A;
+        
         public Color(byte r, byte g, byte b, byte alpha = 255)
         {
             R = r;
             G = g;
             B = b;
-            Alpha = alpha;
+            A = alpha;
         }
         
         public static implicit operator Color(System.Drawing.Color gdiColor)

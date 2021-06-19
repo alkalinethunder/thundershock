@@ -14,9 +14,7 @@ namespace Thundershock
         private int _height;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
-        private RenderTarget2D _renderTarget;
-        private Renderer _renderer;
-        private Texture2D _dick;
+        private Renderer2D _renderer;
         
         public bool SwapMouseButtons
         {
@@ -48,12 +46,7 @@ namespace Thundershock
 
             PreInit();
 
-            _renderTarget = new RenderTarget2D(_gameWindow.GraphicsProcessor, 3840, 2160);
-            _renderer = new Renderer(_gameWindow.GraphicsProcessor);
-
-            var s = null as Stream;
-            Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out s);
-            _dick = Texture2D.FromStream(_gameWindow.GraphicsProcessor, s);
+            _renderer = new Renderer2D(_gameWindow.GraphicsProcessor);
             
             RunLoop();
 
@@ -65,44 +58,24 @@ namespace Thundershock
 
         private void RunLoop()
         {
-            var vs = new Vertex[4];
-            var indices = new int[6];
+            var projection = Matrix4x4.Identity;
 
-            vs[0].Color = Color.White.ToVector4();
-            vs[1].Color = Color.White.ToVector4();
-            vs[2].Color = Color.White.ToVector4();
-            vs[3].Color = Color.White.ToVector4();
-
-            vs[0].Position = new Vector3(-1, -1, 0);
-            vs[1].Position = new Vector3(1, -1, 0);
-            vs[2].Position = new Vector3(-1, 1, 0);
-            vs[3].Position = new Vector3(1, 1, 0);
-
-            vs[0].TextureCoordinates = new Vector2(0, 0);
-            vs[1].TextureCoordinates = new Vector2(1, 0);
-            vs[2].TextureCoordinates = new Vector2(0, 1);
-            vs[3].TextureCoordinates = new Vector2(1, 1);
-
-            indices[0] = 0;
-            indices[1] = 1;
-            indices[2] = 2;
-            indices[3] = 1;
-            indices[4] = 2;
-            indices[5] = 3;
-
+            var stream = Stream.Null;
+            Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out stream);
+            var texture = Texture2D.FromStream(_gameWindow.GraphicsProcessor, stream);
+            
             while (!_aboutToExit)
             {
-                //_renderer.SetRenderTarget(_renderTarget);
-                //_renderer.Clear(new Color(0xf7, 0x1b, 0x1b));
+                projection = Matrix4x4.CreateOrthographicOffCenter(0, _gameWindow.Width, _gameWindow.Height, 0, -1, 1);
+                
+                _gameWindow.GraphicsProcessor.Clear(Color.Black);
 
-                //_renderer.SetRenderTarget(null);
-                _renderer.Clear(new Color(0x1b, 0xaa, 0xf7));
-
-                _renderer.Textures[0] = _dick;
-                _renderer.Begin();
-                _renderer.Draw(PrimitiveType.TriangleStrip, vs, indices, 0, 2);
+                var peace = new Color(0x1B, 0xAA, 0xF7, 0xFF);
+                _renderer.Begin(projection);
+                _renderer.FillRectangle(new Rectangle(0, 0, 200, 200), Color.White, texture);
                 _renderer.End();
-
+                
+                
                 _gameWindow.Update();
             }
         }

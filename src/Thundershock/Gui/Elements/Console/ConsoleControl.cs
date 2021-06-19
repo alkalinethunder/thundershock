@@ -13,6 +13,8 @@ using Thundershock.Input;
 using GameTime = Microsoft.Xna.Framework.GameTime;
 using Color = Microsoft.Xna.Framework.Color;
 
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
+
 namespace Thundershock.Gui.Elements.Console
 {
     public sealed class ConsoleControl : Element, IConsole
@@ -1319,7 +1321,7 @@ namespace Thundershock.Gui.Elements.Console
             public bool Blinking;
             public bool IsWrapPoint;
             public bool IsWrapResetPoint;
-            public Rectangle MouseBounds;
+            public Microsoft.Xna.Framework.Rectangle MouseBounds;
             
             public TextElement Clone()
             {

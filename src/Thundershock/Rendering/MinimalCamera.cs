@@ -6,7 +6,7 @@ namespace Thundershock.Rendering
 {
     public sealed class MinimalCamera : Camera
     {
-        public override Rectangle ViewportBounds
+        public override Microsoft.Xna.Framework.Rectangle ViewportBounds
         {
             get
             {
@@ -15,7 +15,7 @@ namespace Thundershock.Rendering
                     return game.GraphicsDevice.Viewport.Bounds;
                 }
 
-                return Rectangle.Empty;
+                return Microsoft.Xna.Framework.Rectangle.Empty;
             }
         }
 
