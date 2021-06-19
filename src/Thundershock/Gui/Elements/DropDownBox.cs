@@ -1,7 +1,7 @@
 ﻿using System;
-using Gtk;
-using Microsoft.Xna.Framework;
-using Thundershock.Input;
+using Thundershock.Core;
+using Thundershock.Core.Input;
+
 
 namespace Thundershock.Gui.Elements
 {

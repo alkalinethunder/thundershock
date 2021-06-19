@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Rendering;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Gui
 {
@@ -10,7 +9,7 @@ namespace Thundershock.Gui
     {
         private float _opacity;
         private Color _masterTint;
-        private Renderer _spriteBatch;
+        private Renderer2D _spriteBatch;
 
         private Color GetProperTint(Color tint)
         {
@@ -29,7 +28,7 @@ namespace Thundershock.Gui
             return new Color((byte) r, (byte) g, (byte) b, tint.A) * _opacity;
         }
         
-        public GuiRenderer(Renderer batch, float opacity, Color tint)
+        public GuiRenderer(Renderer2D batch, float opacity, Color tint)
         {
             _spriteBatch = batch;
             _opacity = opacity;
@@ -39,9 +38,9 @@ namespace Thundershock.Gui
         public void FillRectangle(Rectangle rect, Color color)
             => _spriteBatch.FillRectangle(rect, GetProperTint(color));
 
-        public void FillRectangle(Rectangle rect, Texture2D texture, Color color, SpriteEffects effects = SpriteEffects.None)
+        public void FillRectangle(Rectangle rect, Texture2D texture, Color color)
         {
-            _spriteBatch.FillRectangle(rect.Location.ToVector2(), rect.Size.ToVector2(), GetProperTint(color), texture, effects);
+            _spriteBatch.FillRectangle(rect, GetProperTint(color), texture);
         }
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
@@ -65,7 +64,7 @@ namespace Thundershock.Gui
             FillRectangle(bottom, color);
         }
 
-        public void DrawString(SpriteFont font, string text, Vector2 position, Color color,
+        public void DrawString(Font font, string text, Vector2 position, Color color,
             TextAlign textAlign = TextAlign.Left, int dropShadow = 0)
         {
             if (string.IsNullOrWhiteSpace(text))

@@ -1,7 +1,9 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System.Numerics;
 using Thundershock.Gui.Elements;
+using Thundershock.Core;
+
+using GdiColor = Microsoft.Xna.Framework.Color;
 
 namespace Thundershock.Gui.Styling
 {
@@ -14,12 +16,12 @@ namespace Thundershock.Gui.Styling
         public virtual int ProgressBarHeight => 4;
         public virtual Padding CheckPadding => 4;
         
-        public virtual SpriteFont StringListFont => DefaultFont;
-        public virtual SpriteFont ButtonFont => _guiSystem.FallbackFont;
+        public virtual Font StringListFont => DefaultFont;
+        public virtual Font ButtonFont => _guiSystem.FallbackFont;
         
         protected GuiSystem Gui => _guiSystem;
         
-        public abstract SpriteFont DefaultFont { get; }
+        public abstract Font DefaultFont { get; }
         public abstract int CheckSize { get; }
         public abstract int TextCursorWidth { get; }
         

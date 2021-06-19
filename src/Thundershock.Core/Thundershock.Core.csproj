@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Effects\BasicEffect.glsl" />
+    <EmbeddedResource Include="Resources\BuiltinFont.ttf" />
     <EmbeddedResource Include="Resources\Effects\BasicEffect.glsl" />
   </ItemGroup>
 

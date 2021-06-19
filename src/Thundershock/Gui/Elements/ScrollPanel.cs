@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Thundershock.Input;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
     public class ScrollPanel : Element
     {
-        private int _scrollOffset;
-        private int _pageHeight;
-        private int _scrollHeight;
+        private float _scrollOffset;
+        private float _pageHeight;
+        private float _scrollHeight;
 
         public ScrollPanel()
         {
@@ -45,7 +46,7 @@ namespace Thundershock.Gui.Elements
             // And now we deal with our child.
             if (Children.Any())
             {
-                var measure = Children.First().Measure(contentRectangle.Size.ToVector2());
+                var measure = Children.First().Measure(contentRectangle.Size);
                 
                 // Store the scroll height.
                 _scrollHeight = (int) measure.Y;

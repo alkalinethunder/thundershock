@@ -1,7 +1,6 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Rendering;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock
 {
@@ -9,13 +8,11 @@ namespace Thundershock
     {
         private Scene _scene;
 
-        public GameAppBase App => _scene.App;
+        public GraphicalAppBase App => _scene.App;
         public Scene Scene => _scene;
 
         public bool Visible { get; set; } = true;
-
-        public MonoGameLoop Game => _scene.Game;
-
+        
         public void Load(Scene scene)
         {
             _scene = scene ?? throw new ArgumentNullException(nameof(scene));
@@ -35,7 +32,7 @@ namespace Thundershock
             OnUpdate(gameTime);
         }
 
-        public void Draw(GameTime gameTime, Renderer renderer)
+        public void Draw(GameTime gameTime, Renderer2D renderer)
         {
             if (Visible)
             {
@@ -47,7 +44,7 @@ namespace Thundershock
         protected virtual void OnUnload() {}
 
         protected virtual void OnUpdate(GameTime gameTime) {}
-        protected virtual void OnDraw(GameTime gameTime, Renderer renderer) {}
+        protected virtual void OnDraw(GameTime gameTime, Renderer2D renderer) {}
 
     }
 }

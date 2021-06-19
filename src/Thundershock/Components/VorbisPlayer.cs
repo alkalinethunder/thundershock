@@ -9,6 +9,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using NVorbis;
 
+using GameTime = Thundershock.Core.GameTime;
+
 namespace Thundershock.Components
 {
     public class VorbisPlayer : SceneComponent

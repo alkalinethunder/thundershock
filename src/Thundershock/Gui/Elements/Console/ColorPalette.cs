@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Gui.Elements.Console
 {

@@ -1,32 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Components;
-using Thundershock.Debugging;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 using Thundershock.Rendering;
 
 namespace Thundershock
 {
     public abstract class Scene
     {
-        private GameAppBase _app;
-        private MonoGameLoop _gameLoop;
+        private GameLoop _gameLoop;
         private List<SceneComponent> _components = new List<SceneComponent>();
-        private SpriteFont _debugFont;
-        private WarningPrinter _warningPrinter;
-        private DeveloperConsole _devConsole;
+        private Font _debugFont;
+        private Renderer2D _renderer;
 
         public Camera Camera { get; protected set; }
 
         public Rectangle ViewportBounds
-            => Camera != null ? Camera.ViewportBounds : Rectangle.Empty;
+            => _gameLoop.ViewportBounds;
 
-        public GameAppBase App => _app;
-        public MonoGameLoop Game => _gameLoop;
+        public GraphicalAppBase App => _gameLoop.App;
 
+        public GraphicsProcessor Graphics => _gameLoop.Graphics;
+        
         public bool HasComponent<T>() where T : SceneComponent
         {
             return _components.Any(x => x is T);
@@ -38,11 +35,15 @@ namespace Thundershock
                 throw new ArgumentNullException(nameof(component));
             if (component.Scene != null)
                 throw new InvalidOperationException("Scene component already belongs to a Scene.");
-            _app.Logger.Log($"Adding new component: {component}");
             _components.Add(component);
             component.Load(this);
         }
 
+        public void GoToScene<T>() where T : Scene, new ()
+        {
+            _gameLoop.LoadScene<T>();
+        }
+        
         public T GetComponent<T>() where T : SceneComponent
         {
             return _components.OfType<T>().First();
@@ -60,39 +61,25 @@ namespace Thundershock
             if (component == null)
                 throw new ArgumentNullException(nameof(component));
 
-            _app.Logger.Log($"Unloading component: {component}");
             component.Unload();
             _components.Remove(component);
         }
 
-        internal void Load(GameAppBase app, MonoGameLoop gameLoop)
+        internal void Load(GameLoop gameLoop)
         {
-            _app = app ?? throw new ArgumentNullException(nameof(app));
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
-            _app.Logger.Log("OnLoad reached.");
-            _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
+            _debugFont = Font.GetDefaultFont(_gameLoop.Graphics);
+            _renderer = new Renderer2D(_gameLoop.Graphics);
             OnLoad();
-
-            // Selective load: Only load dev tools on full game apps.
-            // GameAppBase doesn't need this.
-            if (App is GameApp)
-            {
-                // Warning printer goes on top of everything else.
-                _warningPrinter = AddComponent<WarningPrinter>();
-                _devConsole = AddComponent<DeveloperConsole>();
-            }
         }
 
         public void Unload()
         {
-            _app.Logger.Log($"Scene is now unloading ({GetType().FullName})");
             while (_components.Any())
                 RemoveComponent(_components.First());
 
-            _app.Logger.Log("OnUnload reached.");
             OnUnload();
             _gameLoop = null;
-            _app = null;
         }
 
         internal void Update(GameTime gameTime)
@@ -107,24 +94,25 @@ namespace Thundershock
 
         public void Draw(GameTime gameTime)
         {
+            _renderer.ProjectionMatrix =
+                Matrix4x4.CreateOrthographicOffCenter(0, ViewportBounds.Width, ViewportBounds.Height, 0, -1, 1);
+            
             if (Camera != null)
             {
-                var renderer = new Renderer(Game.White, Game.SpriteBatch, Camera);
-
                 foreach (var component in _components)
-                    component.Draw(gameTime, renderer);
+                    component.Draw(gameTime, _renderer);
             }
             else
             {
-                Game.SpriteBatch.Begin();
+                _renderer.Begin();
 
                 var text = "No Camera Active on Current Scene";
                 var m = _debugFont.MeasureString(text);
-                var loc = new Vector2(0.5f, 0.5f) * new Vector2(Game.ScreenWidth, Game.ScreenHeight) - (m / 2);
+                var loc = Vector2.Zero;
 
-                Game.SpriteBatch.DrawString(_debugFont, text, loc, Color.White);
+                _renderer.DrawString(_debugFont, text, loc, Color.White);
 
-                Game.SpriteBatch.End();
+                _renderer.End();
             }
         }
 
@@ -137,14 +125,12 @@ namespace Thundershock
 
         public Vector2 ViewportToScreen(Vector2 coordinates)
         {
-            var scale = _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2() / ViewportBounds.Size.ToVector2();
-            return coordinates * scale;
+            return coordinates;
         }
 
         public Vector2 ScreenToViewport(Vector2 coordinates)
         {
-            var scale = ViewportBounds.Size.ToVector2() / _gameLoop.GraphicsDevice.Viewport.Bounds.Size.ToVector2();
-            return coordinates * scale;
+            return coordinates;
         }
 
 

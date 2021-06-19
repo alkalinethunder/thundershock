@@ -8,9 +8,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
-using Microsoft.Xna.Framework;
 using Thundershock.Core;
-using Color = Microsoft.Xna.Framework.Color;
+
 namespace Thundershock
 {
     public static class ThundershockPlatform
@@ -35,7 +34,7 @@ namespace Thundershock
 
         public static readonly string Community = "https://community.mvanoverbeek.me/";
 
-        public static Microsoft.Xna.Framework.Color HtmlColor(string html)
+        public static Color HtmlColor(string html)
         {
             var gdiColor = System.Drawing.ColorTranslator.FromHtml(html);
             return new Color(gdiColor.R, gdiColor.G, gdiColor.B, gdiColor.A);

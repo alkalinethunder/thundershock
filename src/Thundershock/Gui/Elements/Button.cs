@@ -1,6 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Thundershock.Core;
+using System.Numerics;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {

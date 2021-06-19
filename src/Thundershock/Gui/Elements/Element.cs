@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System.Numerics;
 using Thundershock.Flumberboozles;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
+using Thundershock.Core.Input;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
@@ -99,14 +98,14 @@ namespace Thundershock.Gui.Elements
         }
 
         private GuiSystem _guiSystem;
-        private int _minWidth;
-        private int _minHeight;
-        private int _maxWidth;
-        private int _maxHeight;
-        private int _fixedWidth;
-        private int _fixedHeight;
-        private int _widthUnitRounding;
-        private int _heightUnitRounding;
+        private float _minWidth;
+        private float _minHeight;
+        private float _maxWidth;
+        private float _maxHeight;
+        private float _fixedWidth;
+        private float _fixedHeight;
+        private float _widthUnitRounding;
+        private float _heightUnitRounding;
         private string _name;
         private LayoutManager _layout;
         private Element _parent;
@@ -128,13 +127,13 @@ namespace Thundershock.Gui.Elements
         
         public PropertySet Properties { get; } = new PropertySet();
 
-        public int WidthUnitRounding
+        public float WidthUnitRounding
         {
             get => _widthUnitRounding;
             set => _widthUnitRounding = value;
         }
 
-        public int HeightUnitRounding
+        public float HeightUnitRounding
         {
             get => _heightUnitRounding;
             set => _heightUnitRounding = value;
@@ -190,25 +189,25 @@ namespace Thundershock.Gui.Elements
         public Padding Padding { get; set; }
         public Padding Margin { get; set; }
         
-        public int FixedWidth
+        public float FixedWidth
         {
             get => _fixedWidth;
             set => _fixedWidth = value;
         }
 
-        public int FixedHeight
+        public float FixedHeight
         {
             get => _fixedHeight;
             set => _fixedHeight = value;
         }
 
-        public int MinimumWidth
+        public float MinimumWidth
         {
             get => _minWidth;
             set => _minWidth = value;
         }
 
-        public int MinimumHeight
+        public float MinimumHeight
         {
             get => _minHeight;
             set => _minHeight = value;
@@ -216,13 +215,13 @@ namespace Thundershock.Gui.Elements
 
         public Visibility Visibility { get; set; }
         
-        public int MaximumWidth
+        public float MaximumWidth
         {
             get => _maxWidth;
             set => _maxWidth = value;
         }
 
-        public int MaximumHeight
+        public float MaximumHeight
         {
             get => _maxHeight;
             set => _maxHeight = value;
@@ -371,7 +370,7 @@ namespace Thundershock.Gui.Elements
             
             public void SetBounds(Rectangle rectangle)
             {
-                var contentSize = this.GetContentSize(rectangle.Size.ToVector2());
+                var contentSize = this.GetContentSize(rectangle.Size);
 
                 // Apply padding.
                 rectangle.X += _owner.Padding.Left;

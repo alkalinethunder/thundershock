@@ -1,8 +1,7 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Thundershock.Input;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
@@ -43,7 +42,7 @@ namespace Thundershock.Gui.Elements
         public event EventHandler TextCommitted;
         public event EventHandler TextChanged;
         
-        private SpriteFont GetFont()
+        private Font GetFont()
         {
             return Font.GetFont(GuiSystem.Style.DefaultFont);
         }
@@ -90,7 +89,7 @@ namespace Thundershock.Gui.Elements
                         TextChanged?.Invoke(this, EventArgs.Empty);
                     }
                     break;
-                case Keys.Back:
+                case Keys.Backspace:
                     if (_inputPos > 0)
                     {
                         _inputPos--;
@@ -110,17 +109,13 @@ namespace Thundershock.Gui.Elements
         {
             var f = GetFont();
 
-            if (f.Characters.Contains(e.Character))
-            {
-                _text = _text.Insert(_inputPos, e.Character.ToString());
-                TextChanged?.Invoke(this, EventArgs.Empty);
-                _inputPos++;
+            _text = _text.Insert(_inputPos, e.Character.ToString());
+            TextChanged?.Invoke(this, EventArgs.Empty);
+            _inputPos++;
 
-                return true;
-            }
-
-            return base.OnKeyChar(e);
+            return true;
         }
+        
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {

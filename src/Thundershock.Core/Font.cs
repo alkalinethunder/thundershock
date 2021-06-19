@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using Thundershock.Core.Rendering;
 
@@ -24,13 +26,19 @@ namespace Thundershock.Core
             return new FontStashFont(gpu, data, defaultSize);
         }
 
-    }
 
-    public static class RenderHelpers
-    {
-        public static void DrawString(this Renderer2D renderer, Font font, string text, Vector2 location, Color color)
+        public static Font GetDefaultFont(GraphicsProcessor gpu)
         {
-            font.Draw(renderer, text, location, color);
+            var result = false;
+
+            if (Resource.GetStream(typeof(Font).Assembly, "Thundershock.Core.Resources.BuiltinFont.ttf", out Stream stream))
+            {
+                result = true;
+                return FromTtfStream(gpu, stream);
+            }
+
+            Debug.Assert(false, "Couldn't find built-in engine font resource.");
+            return null;
         }
     }
 }

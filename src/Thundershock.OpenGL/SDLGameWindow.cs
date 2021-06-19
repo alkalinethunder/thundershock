@@ -5,7 +5,6 @@ using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
-using Thundershock.Core.Input.Thundershock.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 

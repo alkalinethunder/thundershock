@@ -1,6 +1,5 @@
 using System;
 using Thundershock.Core.Input;
-using Thundershock.Core.Input.Thundershock.Input;
 using Thundershock.Core.Rendering;
 
 namespace Thundershock.Core

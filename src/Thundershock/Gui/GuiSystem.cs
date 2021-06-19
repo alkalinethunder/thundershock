@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System.Numerics;
+using Thundershock.Core;
 using Thundershock.Gui.Elements;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
-using Thundershock.Rendering;
+using Thundershock.Core.Input;
+using Thundershock.Core.Rendering;
+
+using MgRect = Microsoft.Xna.Framework.Rectangle;
 
 namespace Thundershock.Gui
 {
@@ -16,15 +18,14 @@ namespace Thundershock.Gui
         private GuiStyle _activeStyle;
         private RootElement _rootElement;
         private bool _debugShowBounds = false;
-        private SpriteFont _debugFont;
+        private Font _debugFont;
         private Element _focused;
         private Element _hovered;
         private Element _down;
-        private InputManager _input;
         private string _tooltip;
         private Vector2 _tooltipPosition;
 
-        public SpriteFont FallbackFont => _debugFont;
+        public Font FallbackFont => _debugFont;
         
         public Element FocusedElement => _focused;
 
@@ -41,18 +42,17 @@ namespace Thundershock.Gui
         protected override void OnLoad()
         {
             base.OnLoad();
-            _input = App.GetComponent<InputManager>();
             _rootElement = new RootElement(this);
 
-            _debugFont = App.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
+            _debugFont = Font.GetDefaultFont(Scene.Graphics);
             
-            _input.MouseMove += HandleMouseMove;
-            _input.MouseDown += HandleMouseDown;
-            _input.MouseUp += HandleMouseUp;
-            _input.KeyChar += HandleKeyChar;
-            _input.MouseScroll += HandleMouseScroll;
-            _input.KeyDown += HandleKeyDown;
-            _input.KeyUp += HandleKeyUp;
+            //_input.MouseMove += HandleMouseMove;
+            //_input.MouseDown += HandleMouseDown;
+            //_input.MouseUp += HandleMouseUp;
+            //_input.KeyChar += HandleKeyChar;
+            //_input.MouseScroll += HandleMouseScroll;
+            //_input.KeyDown += HandleKeyDown;
+            //_input.KeyUp += HandleKeyUp;
 
             if (_defaultStyleType != null)
             {
@@ -66,13 +66,13 @@ namespace Thundershock.Gui
 
         protected override void OnUnload()
         {
-            _input.MouseMove -= HandleMouseMove;
-            _input.MouseDown -= HandleMouseDown;
-            _input.MouseUp -= HandleMouseUp;
-            _input.KeyChar -= HandleKeyChar;
-            _input.MouseScroll -= HandleMouseScroll;
-            _input.KeyDown -= HandleKeyDown;
-            _input.KeyUp -= HandleKeyUp;
+            //_input.MouseMove -= HandleMouseMove;
+            //_input.MouseDown -= HandleMouseDown;
+            //_input.MouseUp -= HandleMouseUp;
+            //_input.KeyChar -= HandleKeyChar;
+            //_input.MouseScroll -= HandleMouseScroll;
+            //_input.KeyDown -= HandleKeyDown;
+            //_input.KeyUp -= HandleKeyUp;
         }
 
         private void LoadStyle(Type styleType)
@@ -109,7 +109,7 @@ namespace Thundershock.Gui
 
         private void HandleMouseScroll(object sender, MouseScrollEventArgs e)
         {
-            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
             Bubble(hovered, x => x.FireMouseScroll(e));
         }
@@ -157,7 +157,7 @@ namespace Thundershock.Gui
             if (Scene == null)
                 return;
             
-            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 
             Bubble(_down, x => x.FireMouseUp(e));
@@ -175,7 +175,7 @@ namespace Thundershock.Gui
             if (Scene == null)
                 return;
 
-            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
             
             _down = hovered;
@@ -187,7 +187,7 @@ namespace Thundershock.Gui
             if (Scene == null)
                 return;
 
-            var pos = Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 
             // MouseEnter and MouseLeave.
@@ -215,7 +215,7 @@ namespace Thundershock.Gui
                 if (!string.IsNullOrWhiteSpace(tooltip))
                 {
                     _tooltip = tooltip;
-                    _tooltipPosition = Scene.ScreenToViewport( new Vector2(e.XPosition, e.YPosition));
+                    _tooltipPosition = Scene.ScreenToViewport( new Vector2(e.X, e.Y));
                 }
             }
         }
@@ -291,8 +291,8 @@ namespace Thundershock.Gui
             }
 
             // Translate the vectors into screen space.
-            var pos = Scene.ViewportToScreen(rect.Location.ToVector2());
-            var size = Scene.ViewportToScreen(rect.Size.ToVector2() + Vector2.One);
+            var pos = Scene.ViewportToScreen(rect.Location);
+            var size = Scene.ViewportToScreen(rect.Size + Vector2.One);
 
             rect.X = (int) pos.X;
             rect.Y = (int) pos.Y;
@@ -314,7 +314,7 @@ namespace Thundershock.Gui
             return true;
         }
         
-        protected override void OnDraw(GameTime gameTime, Renderer batch)
+        protected override void OnDraw(GameTime gameTime, Renderer2D batch)
         {
             base.OnDraw(gameTime, batch);
 
@@ -328,7 +328,7 @@ namespace Thundershock.Gui
                 if (clip.IsEmpty || !IsVisible(element))
                     continue;
 
-                batch.SetScissorRectangle(clip);
+                // batch.SetScissorRectangle(clip);
                 batch.Begin();
                 
                 var renderer = new GuiRenderer(batch, opacity, masterTint);
@@ -337,7 +337,7 @@ namespace Thundershock.Gui
 
                 batch.End();
 
-                batch.SetScissorRectangle(ComputeClippingRect(_rootElement));
+                // batch.SetScissorRectangle(ComputeClippingRect(_rootElement));
                 
                 if (_debugShowBounds)
                 {

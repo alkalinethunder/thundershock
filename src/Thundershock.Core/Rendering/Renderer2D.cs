@@ -17,6 +17,12 @@ namespace Thundershock.Core.Rendering
         private Texture2D _blankTexture;
         private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
         private Renderer _renderer;
+
+        public Matrix4x4 ProjectionMatrix
+        {
+            get => _projectionMatrix;
+            set => _projectionMatrix = value;
+        }
         
         public Renderer2D(GraphicsProcessor gpu)
         {
@@ -33,8 +39,6 @@ namespace Thundershock.Core.Rendering
             {
                 throw new InvalidOperationException("Cannot begin a new batch of sprites as the current batch has not been ended.");
             }
-
-            _projectionMatrix = projection ?? Matrix4x4.Identity;
             
             _running = true;
             

@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks.Dataflow;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Rendering
 {
@@ -11,7 +11,7 @@ namespace Thundershock.Rendering
 
         public virtual Rectangle ViewportBounds
             => new Rectangle(0, 0, ViewportWidth, ViewportHeight);
-        
-        public abstract Matrix GetRenderTransform(GraphicsDevice gfx);
+
+        public abstract Matrix4x4 GetRenderTransform(GraphicsProcessor gfx);
     }
 }

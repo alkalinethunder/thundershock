@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using Thundershock.Core;
 using Thundershock.Gui.Styling;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+
 
 namespace Thundershock.Gui.Elements
 {
@@ -21,12 +20,12 @@ namespace Thundershock.Gui.Elements
 
         public TextWrapMode WrapMode { get; set; } = TextWrapMode.WordWrap;
         
-        private SpriteFont GetFont()
+        private Font GetFont()
         {
             return Font.GetFont(GuiSystem.Style.DefaultFont);
         }
 
-        public static string LetterWrap(SpriteFont font, string text, float wrapWidth)
+        public static string LetterWrap(Font font, string text, float wrapWidth)
         {
             if (wrapWidth <= 0)
                 return text;
@@ -50,7 +49,7 @@ namespace Thundershock.Gui.Elements
             return sb.ToString();
         }
 
-        public static string WordWrap(SpriteFont font, string text, float wrapWidth)
+        public static string WordWrap(Font font, string text, float wrapWidth)
         {
             if (wrapWidth <= 0)
                 return text;
@@ -194,7 +193,7 @@ namespace Thundershock.Gui.Elements
             if (!string.IsNullOrWhiteSpace(_wrappedText))
             {
                 var lines = _wrappedText.Split(Environment.NewLine);
-                var pos = ContentRectangle.Location.ToVector2();
+                var pos = ContentRectangle.Location;
                 
                 var f = GetFont();
 

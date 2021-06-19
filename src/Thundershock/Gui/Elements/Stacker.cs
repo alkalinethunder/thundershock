@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using Microsoft.Xna.Framework;
+using System.Numerics;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {

@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using Thundershock.Config;
@@ -14,8 +16,9 @@ namespace Thundershock
         private int _height;
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
-        private Renderer2D _renderer;
-        private Font _font;
+        private Stopwatch _frameTimer = new();
+        private TimeSpan _totalGameTime;
+        private GameLoop _game;
         
         public bool SwapMouseButtons
         {
@@ -46,8 +49,6 @@ namespace Thundershock
             Logger.Log("Game window created.");
 
             PreInit();
-
-            _renderer = new Renderer2D(_gameWindow.GraphicsProcessor);
             
             RunLoop();
 
@@ -59,36 +60,24 @@ namespace Thundershock
 
         private void RunLoop()
         {
-            var projection = Matrix4x4.Identity;
-
-            var stream = Stream.Null;
-            Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out stream);
-            var texture = Texture2D.FromStream(_gameWindow.GraphicsProcessor, stream);
-
-            stream.Dispose();
-
-            var fontStream = Stream.Null;
-            Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.FallbackFont.ttf",
-                out fontStream);
-            _font = Font.FromTtfStream(_gameWindow.GraphicsProcessor, fontStream);
+            Init();
+            PostInit();
             
             while (!_aboutToExit)
             {
-                projection = Matrix4x4.CreateOrthographicOffCenter(0, _gameWindow.Width, _gameWindow.Height, 0, -1, 1);
+                var gameTime = _frameTimer.Elapsed;
+                var frameTime = gameTime - _totalGameTime;
+
+                var gameTimeInfo = new GameTime(frameTime, gameTime);
                 
                 _gameWindow.GraphicsProcessor.Clear(Color.Black);
 
-                var peace = new Color(0x1B, 0xAA, 0xF7, 0xFF);
-                _renderer.Begin(projection);
-
-                _renderer.FillRectangle(new Rectangle(200, 200, 512, 512), Color.White, texture);
-                
-                _renderer.DrawString(_font, "Hello world!", Vector2.Zero, Color.White);
-                
-                _renderer.End();
-                
+                _game.Update(gameTimeInfo);
+                _game.Render(gameTimeInfo);
                 
                 _gameWindow.Update();
+                
+                _totalGameTime = gameTime;
             }
         }
 
@@ -112,6 +101,20 @@ namespace Thundershock
             OnPreInit();
         }
 
+        private void Init()
+        {
+            _game = new GameLoop(this, _gameWindow);
+            
+            OnInit();
+        }
+
+        private void PostInit()
+        {
+            OnPostInit();
+
+            _frameTimer.Start();
+        }
+
         protected void ApplyGraphicsChanges()
         {
             _gameWindow.IsBorderless = _borderless;
@@ -131,7 +134,15 @@ namespace Thundershock
         }
         
         protected virtual void OnPreInit() {}
-        
+        protected virtual void OnInit() {}
+        protected virtual void OnPostInit() {}
+
+
         protected abstract GameWindow CreateGameWindow();
+
+        protected void LoadScene<T>() where T : Scene, new()
+        {
+            _game.LoadScene<T>();
+        }
     }
 }

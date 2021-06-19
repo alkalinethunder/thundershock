@@ -1,6 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Rendering;
+﻿using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Components
 {
@@ -8,16 +7,16 @@ namespace Thundershock.Components
     {
         public Texture2D Texture { get; set; }
 
-        protected override void OnDraw(GameTime gameTime, Renderer batch)
+        protected override void OnDraw(GameTime gameTime, Renderer2D batch)
         {
-            if (Texture != null)
+            /* if (Texture != null)
             {
                 var rect = batch.ViewportBounds;
 
                 batch.Begin();
                 batch.FillRectangle(rect, Color.White, Texture);
                 batch.End();
-            }
+            }*/
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Numerics;
-using Microsoft.Xna.Framework;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {

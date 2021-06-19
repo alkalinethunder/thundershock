@@ -1,15 +1,15 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Rendering;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Components
 {
     public class TextComponent : SceneComponent
     {
-        private SpriteFont _font;
+        private Font _font;
 
-        public SpriteFont Font
+        public Font Font
         {
             get => _font;
             set
@@ -30,17 +30,17 @@ namespace Thundershock.Components
         
         protected override void OnLoad()
         {
-            _font = Game.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
+            _font = Font.GetDefaultFont(Scene.Graphics);
             base.OnLoad();
         }
 
-        protected override void OnDraw(GameTime gameTime, Renderer batch)
+        protected override void OnDraw(GameTime gameTime, Renderer2D batch)
         {
             if (!string.IsNullOrWhiteSpace(Text))
             {
-                var rect = batch.ViewportBounds;
-                var size = rect.Size.ToVector2();
-                var location = rect.Location.ToVector2();
+                var rect = Scene.ViewportBounds;
+                var size = rect.Size;
+                var location = rect.Location;
 
                 var origin = location + (size * Origin);
                 var pivot = TextMeasure * Pivpt;

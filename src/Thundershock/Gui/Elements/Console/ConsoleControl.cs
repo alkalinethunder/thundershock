@@ -1,19 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Thundershock;
+using System.Numerics;
 using Thundershock.Core;
-using Thundershock.Gui;
-using Thundershock.Gui.Elements;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
-using GameTime = Microsoft.Xna.Framework.GameTime;
-using Color = Microsoft.Xna.Framework.Color;
-
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements.Console
 {
@@ -37,10 +28,10 @@ namespace Thundershock.Gui.Elements.Console
         
         private bool _textIsDirty = true;
         private Attributes _attributes;
-        private SpriteFont _regularFont;
-        private SpriteFont _boldFont;
-        private SpriteFont _italicFont;
-        private SpriteFont _boldItalicFont;
+        private Font _regularFont;
+        private Font _boldFont;
+        private Font _italicFont;
+        private Font _boldItalicFont;
 
         private ColorPalette _fallbackPalette = new ColorPalette();
         private ColorPalette _activePalette = null;
@@ -95,15 +86,11 @@ namespace Thundershock.Gui.Elements.Console
 
         public ConsoleControl()
         {
-            _regularFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Regular");
-            _boldFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Bold");
-            _boldItalicFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/BoldItalic");
-            _italicFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Italic");
             CanFocus = true;
             IsInteractable = true;
         }
 
-        private Microsoft.Xna.Framework.Color GetColor(ConsoleColor color)
+        private Color GetColor(ConsoleColor color)
         {
             return ColorPalette.GetColor(color);
         }
@@ -196,7 +183,7 @@ namespace Thundershock.Gui.Elements.Console
             return words.ToArray();
         }
 
-        private string[] LetterWrap(SpriteFont font, string text, float width)
+        private string[] LetterWrap(Font font, string text, float width)
         {
             var lines = new List<string>();
 
@@ -330,7 +317,7 @@ namespace Thundershock.Gui.Elements.Console
             }
         }
 
-        private SpriteFont GetFont(bool bold, bool italic)
+        private Font GetFont(bool bold, bool italic)
         {
             if (bold && italic)
                 return (BoldItalicFont ?? StyleFont.Default).GetFont(_boldItalicFont);
@@ -377,7 +364,7 @@ namespace Thundershock.Gui.Elements.Console
                 
                 // reset attributes
                 attrs = new Attributes();
-                attrs.Position = ContentRectangle.Location.ToVector2();
+                attrs.Position = ContentRectangle.Location;
                 attrs.Background = ConsoleColor.Black;
                 attrs.Foreground = ConsoleColor.Gray;
                 
@@ -710,8 +697,7 @@ namespace Thundershock.Gui.Elements.Console
                     if (char.IsWhiteSpace(elem.Text[j]))
                         continue;
 
-                    if (!elem.Font.Characters.Contains(elem.Text[j]))
-                        elem.Text = elem.Text.Replace(elem.Text[j], '?');
+                    elem.Text = elem.Text.Replace(elem.Text[j], '?');
                 }
                 
                 // Measure the element.
@@ -987,7 +973,7 @@ namespace Thundershock.Gui.Elements.Console
 
                     // render the background rect followed by the text.
                     renderer.FillRectangle(rect, bg);
-                    renderer.DrawString(elem.Font, elem.Text, rect.Location.ToVector2(), fg);
+                    renderer.DrawString(elem.Font, elem.Text, rect.Location, fg);
 
                     // Render a nice text underline if that attribute is set.
                     if (elem.Underline)
@@ -1129,7 +1115,7 @@ namespace Thundershock.Gui.Elements.Console
                         }
 
                         // draw the text
-                        renderer.DrawString(_regularFont, _relevantCompletions[i], bgRect.Location.ToVector2(), color);
+                        renderer.DrawString(_regularFont, _relevantCompletions[i], bgRect.Location, color);
 
                         bgRect.Y += _regularFont.LineSpacing;
                     }
@@ -1239,7 +1225,7 @@ namespace Thundershock.Gui.Elements.Console
             var result = base.OnKeyChar(e);
 
             ScrollToBottom();
-            
+
             if (e.Key == Keys.Enter)
             {
                 var nl = Environment.NewLine;
@@ -1248,7 +1234,7 @@ namespace Thundershock.Gui.Elements.Console
                 MoveToEnd();
                 result = true;
             }
-            
+
             if (e.Character == '\b')
             {
                 if (_inputPos > 0)
@@ -1260,22 +1246,19 @@ namespace Thundershock.Gui.Elements.Console
 
                 return true;
             }
-            
-            if (_regularFont.Characters.Contains(e.Character))
-            {
-                _input = _input.Insert(_inputPos, e.Character.ToString());
-                _inputPos += 1;
-                _inputIsDirty = true;
-                result = true;
-            }
+
+            _input = _input.Insert(_inputPos, e.Character.ToString());
+            _inputPos += 1;
+            _inputIsDirty = true;
+            result = true;
 
             return result;
         }
 
         protected override bool OnMouseMove(MouseMoveEventArgs e)
         {
-            var x = e.XPosition;
-            var y = e.YPosition;
+            var x = e.X;
+            var y = e.Y;
 
             var rect = BoundingBox;
 
@@ -1311,7 +1294,7 @@ namespace Thundershock.Gui.Elements.Console
 
         private class TextElement
         {
-            public SpriteFont Font;
+            public Font Font;
             public string Text;
             public Color Background;
             public Color Foreground;
@@ -1321,7 +1304,7 @@ namespace Thundershock.Gui.Elements.Console
             public bool Blinking;
             public bool IsWrapPoint;
             public bool IsWrapResetPoint;
-            public Microsoft.Xna.Framework.Rectangle MouseBounds;
+            public Rectangle MouseBounds;
             
             public TextElement Clone()
             {

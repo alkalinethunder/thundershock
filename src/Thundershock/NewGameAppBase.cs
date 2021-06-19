@@ -5,7 +5,7 @@ using Thundershock.OpenGL;
 
 namespace Thundershock
 {
-    public class NewGameAppBase : GraphicalAppBase
+    public abstract class NewGameAppBase : GraphicalAppBase
     {
         protected override GameWindow CreateGameWindow()
         {
@@ -20,6 +20,12 @@ namespace Thundershock
             GetComponent<ConfigurationManager>().ConfigurationLoaded += OnConfigurationLoaded;
             ApplyConfig();
             base.OnPreInit();
+        }
+
+        protected sealed override void OnPostInit()
+        {
+            base.OnPostInit();
+            OnLoad();
         }
 
         private void OnConfigurationLoaded(object? sender, EventArgs e)
@@ -85,5 +91,7 @@ namespace Thundershock
                 ApplyGraphicsChanges();
             }
         }
+        
+        protected virtual void OnLoad() {}
     }
 }

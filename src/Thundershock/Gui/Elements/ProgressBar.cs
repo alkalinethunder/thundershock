@@ -1,4 +1,5 @@
-using Microsoft.Xna.Framework;
+using System.Numerics;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {

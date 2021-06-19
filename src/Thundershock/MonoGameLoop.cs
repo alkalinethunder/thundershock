@@ -6,8 +6,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Config;
+using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 using Thundershock.Input;
+using RenderTarget2D = Microsoft.Xna.Framework.Graphics.RenderTarget2D;
+using Texture2D = Microsoft.Xna.Framework.Graphics.Texture2D;
 
 namespace Thundershock
 {
@@ -77,14 +80,7 @@ namespace Thundershock
 
         private void LoadScene(Scene scene)
         {
-            if (scene == null)
-                throw new ArgumentNullException(nameof(scene));
-
-            if (_activeScene != null)
-                _activeScene.Unload();
-
-            _activeScene = scene;
-            scene.Load(_app, this);
+            // Stub
         }
 
         internal void LoadScene<T>() where T : Scene, new()
@@ -211,24 +207,12 @@ namespace Thundershock
             _app.Logger.Log("Out gfx resources are gone, telling MonoGame to finish tearing down.");
             base.UnloadContent();
         }
-
-        protected override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-
-            // Allow the app to update
-            _app.Update(new Thundershock.Core.GameTime(gameTime.ElapsedGameTime, gameTime.TotalGameTime));
-
-            _activeScene?.Update(gameTime);
-        }
-
+        
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.SetRenderTarget(_renderTarget);
             GraphicsDevice.Clear(Color.Black);
-
-            _activeScene?.Draw(gameTime);
-
+            
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(Color.Black);
 

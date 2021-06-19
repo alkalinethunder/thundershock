@@ -1,6 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System.Numerics;
 using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Rendering
 {
@@ -8,40 +8,17 @@ namespace Thundershock.Rendering
     {
         public AspectRatioMode AspectRatioMode { get; set; } = AspectRatioMode.ScaleVertically;
 
-        public override Microsoft.Xna.Framework.Rectangle ViewportBounds
+        public override Rectangle ViewportBounds
         {
             get
             {
-                // TODO: make this not require the use of the fucking EntryPoint class.
-                var screenSize = new Vector2((EntryPoint.CurrentApp as GameApp).ScreenWidth, (EntryPoint.CurrentApp as GameApp).ScreenHeight);
-
-                var aspectRatio = screenSize.X / screenSize.Y;
-
-                var viewSize = new Vector2(ViewportWidth, ViewportHeight);
-
-                if (AspectRatioMode == AspectRatioMode.ScaleHorizontally)
-                {
-                    viewSize.Y = viewSize.X * aspectRatio;
-                }
-                else if (AspectRatioMode == AspectRatioMode.ScaleVertically)
-                {
-                    viewSize.X = viewSize.Y * aspectRatio;
-                }
-
-                return new Microsoft.Xna.Framework.Rectangle(0, 0, (int) viewSize.X, (int) viewSize.Y);
+                return Rectangle.Empty;
             }
         }
 
-        public override Matrix GetRenderTransform(GraphicsDevice gfx)
+        public override Matrix4x4 GetRenderTransform(GraphicsProcessor gfx)
         {
-            var scale2D = gfx.Viewport.Bounds.Size.ToVector2() / ViewportBounds.Size.ToVector2();
-
-            var scale = new Vector3(scale2D.X, scale2D.Y, 1);
-
-            var identity = Matrix.Identity;
-            Matrix.CreateScale(ref scale, out identity);
-
-            return identity;
+            return Matrix4x4.Identity;
         }
     }
 }

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Thundershock.Input;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
@@ -93,7 +94,7 @@ namespace Thundershock.Gui.Elements
         {
             if (HotTracking)
             {
-                var pos = GuiSystem.Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+                var pos = GuiSystem.Scene.ScreenToViewport(new Vector2(e.X, e.Y));
 
                 if (TryGetItem((int) pos.X, (int) pos.Y,  out int index))
                 {
@@ -122,7 +123,7 @@ namespace Thundershock.Gui.Elements
         {
             if (e.Button == MouseButton.Primary)
             {
-                var pos = GuiSystem.Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+                var pos = GuiSystem.Scene.ScreenToViewport(new Vector2(e.X, e.Y));
 
                 if (TryGetItem((int) pos.X, (int) pos.Y, out int index))
                 {

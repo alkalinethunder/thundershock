@@ -1,6 +1,4 @@
-namespace Thundershock.Core.Input
-{
-    namespace Thundershock.Input
+    namespace Thundershock.Core.Input
     {
         public enum MouseButton
         {
@@ -10,4 +8,4 @@ namespace Thundershock.Core.Input
             BrowserBack,
             BrowserForward
         }
-    }}
+    }

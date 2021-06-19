@@ -1,11 +1,11 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Thundershock.Core;
 
 namespace Thundershock.Gui.Styling
 {
     public class StyleFont
     {
         private bool _isDefault;
-        private SpriteFont _realFont;
+        private Font _realFont;
 
         private StyleFont()
         {
@@ -13,20 +13,20 @@ namespace Thundershock.Gui.Styling
             _realFont = null;
         }
 
-        public StyleFont(SpriteFont font)
+        public StyleFont(Font font)
         {
             _isDefault = false;
             _realFont = font;
         }
         
-        public static implicit operator StyleFont(SpriteFont font)
+        public static implicit operator StyleFont(Font font)
         {
             return new StyleFont(font);
         }
         
         public static StyleFont Default => new StyleFont();
         
-        public SpriteFont GetFont(SpriteFont defaultFont)
+        public Font GetFont(Font defaultFont)
         {
             if (_isDefault)
                 return defaultFont;

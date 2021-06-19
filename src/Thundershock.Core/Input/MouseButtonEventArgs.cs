@@ -1,5 +1,3 @@
-using Thundershock.Core.Input.Thundershock.Input;
-
 namespace Thundershock.Core.Input
 {
     public sealed class MouseButtonEventArgs : MouseEventArgs

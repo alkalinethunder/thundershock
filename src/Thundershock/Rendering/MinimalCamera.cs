@@ -1,27 +1,22 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System.Numerics;
 using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Rendering
 {
     public sealed class MinimalCamera : Camera
     {
-        public override Microsoft.Xna.Framework.Rectangle ViewportBounds
+        public override Rectangle ViewportBounds
         {
             get
             {
-                if (EntryPoint.CurrentApp is GameAppBase game)
-                {
-                    return game.GraphicsDevice.Viewport.Bounds;
-                }
-
-                return Microsoft.Xna.Framework.Rectangle.Empty;
+                return Rectangle.Empty;
             }
         }
 
-        public override Matrix GetRenderTransform(GraphicsDevice gfx)
+        public override Matrix4x4 GetRenderTransform(GraphicsProcessor gfx)
         {
-            return Matrix.Identity;
+            return Matrix4x4.Identity;
         }
     }
 }

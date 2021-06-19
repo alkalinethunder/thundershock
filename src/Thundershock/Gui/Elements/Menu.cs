@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Thundershock.Input;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
@@ -159,7 +160,7 @@ namespace Thundershock.Gui.Elements
                 }
 
                 // Now we can position the menu.
-                menu.Properties.SetValue(FreePanel.PositionProperty, menuRect.Location.ToVector2());
+                menu.Properties.SetValue(FreePanel.PositionProperty, menuRect.Location);
             }
         }
     }
