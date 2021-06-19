@@ -14,6 +14,10 @@ namespace Thundershock.Core.Rendering
         public int Height => _height;
 
         public uint Id => _id;
+
+        private Rectangle _bounds;
+
+        public Rectangle Bounds => _bounds;
         
         public Texture(GraphicsProcessor gpu, int width, int height)
         {
@@ -29,6 +33,8 @@ namespace Thundershock.Core.Rendering
             
             // create the texture on the GPU
             _id = _gpu.CreateTexture(width, height);
+
+            _bounds = new Rectangle(0, 0, Width, Height);
         }
 
         public void Dispose()
@@ -37,9 +43,11 @@ namespace Thundershock.Core.Rendering
             _gpu.DeleteTexture(_id);
         }
 
-        public void Upload(ReadOnlySpan<byte> pixelData)
+        public void Upload(ReadOnlySpan<byte> pixelData, Rectangle? bounds = null)
         {
-            _gpu.UploadTextureData(_id, pixelData, _width, _height);
+            var trueBounds = bounds ?? this.Bounds;
+            _gpu.UploadTextureData(_id, pixelData, (int) trueBounds.X, (int) trueBounds.Y, (int) trueBounds.Width,
+                (int) trueBounds.Height);
         }
         
         protected virtual void OnDisposing() {}

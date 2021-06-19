@@ -30,6 +30,8 @@
   <ItemGroup>
     <None Remove="Resources\Dick0.png" />
     <EmbeddedResource Include="Resources\Dick0.png" />
+    <None Remove="Resources\FallbackFont.ttf" />
+    <EmbeddedResource Include="Resources\FallbackFont.ttf" />
   </ItemGroup>
 
 </Project>

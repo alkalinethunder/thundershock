@@ -16,7 +16,7 @@ namespace Thundershock.Core
         public abstract Vector2 MeasureString(string text);
         public abstract void Draw(Renderer2D renderer, string text, Vector2 location, Color color);
         
-        public static Font FromTtfStream(GraphicsProcessor gpu, Stream stream, int defaultSize = 12)
+        public static Font FromTtfStream(GraphicsProcessor gpu, Stream stream, int defaultSize = 48)
         {
             var data = new byte[stream.Length];
             stream.Read(data, 0, data.Length);

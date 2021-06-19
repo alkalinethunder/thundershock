@@ -44,7 +44,7 @@ namespace Thundershock.Core
             _fontSystem = new FontSystem(_texManager, 1024, 1024);
 
             _fontSystem.UseKernings = true;
-
+            
             _fontSystem.AddFont(ttfData);
             _fontSize = defaultSize;
         }

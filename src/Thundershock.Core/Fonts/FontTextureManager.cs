@@ -22,7 +22,8 @@ namespace Thundershock.Core.Fonts
         {
             if (texture is Texture2D tsTexture)
             {
-                tsTexture.Upload(data);
+                var tsRect = new Rectangle(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+                tsTexture.Upload(data, tsRect);
             }
         }
 

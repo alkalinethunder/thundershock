@@ -154,6 +154,19 @@ namespace Thundershock.Core.Rendering
         public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv, Matrix4x4 transform)
         {
             var batch = MakeRenderItem(texture, transform);
+
+            var tl = batch.AddVertex(rect.Location, color, uv.Location);
+            var tr = batch.AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top));
+            var bl = batch.AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom));
+            var br = batch.AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom));
+            
+            batch.AddIndex(tl);
+            batch.AddIndex(tr);
+            batch.AddIndex(bl);
+            
+            batch.AddIndex(bl);
+            batch.AddIndex(tr);
+            batch.AddIndex(br);
         }
         
         /// <summary>
@@ -333,8 +346,8 @@ namespace Thundershock.Core.Rendering
         
             public Texture2D Texture { get; set; }
 
-            public Vertex[] Vertices => _vbo;
-            public int[] IndexBuffer => _ibo;
+            public Vertex[] Vertices => _vbo.AsSpan(0, _vertexPointer).ToArray();
+            public int[] IndexBuffer => _ibo.AsSpan(0, _indexPointer).ToArray();
 
             public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
             
@@ -366,7 +379,7 @@ namespace Thundershock.Core.Rendering
                 var v = new Vertex(pos3D, color, texCoord);
                 _vbo[_vertexPointer] = v;
                 _vertexPointer++;
-            
+                
                 return i;
             }
 

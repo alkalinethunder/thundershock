@@ -15,6 +15,7 @@ namespace Thundershock
         private GameWindow _gameWindow;
         private bool _aboutToExit = false;
         private Renderer2D _renderer;
+        private Font _font;
         
         public bool SwapMouseButtons
         {
@@ -63,6 +64,13 @@ namespace Thundershock
             var stream = Stream.Null;
             Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.Dick0.png", out stream);
             var texture = Texture2D.FromStream(_gameWindow.GraphicsProcessor, stream);
+
+            stream.Dispose();
+
+            var fontStream = Stream.Null;
+            Resource.GetStream(typeof(GraphicalAppBase).Assembly, "Thundershock.Resources.FallbackFont.ttf",
+                out fontStream);
+            _font = Font.FromTtfStream(_gameWindow.GraphicsProcessor, fontStream);
             
             while (!_aboutToExit)
             {
@@ -72,7 +80,11 @@ namespace Thundershock
 
                 var peace = new Color(0x1B, 0xAA, 0xF7, 0xFF);
                 _renderer.Begin(projection);
-                _renderer.FillRectangle(new Rectangle(0, 0, 200, 200), Color.White, texture);
+
+                _renderer.FillRectangle(new Rectangle(200, 200, 512, 512), Color.White, texture);
+                
+                _renderer.DrawString(_font, "Hello world!", Vector2.Zero, Color.White);
+                
                 _renderer.End();
                 
                 

@@ -19,7 +19,7 @@ namespace Thundershock.Core.Rendering
 
         public abstract uint CreateTexture(int width, int height);
 
-        public abstract void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int width, int height);
+        public abstract void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int x, int y, int width, int height);
         public abstract void DeleteTexture(uint texture);
         public abstract void SetViewportArea(int x, int y, int width, int height);
         public abstract uint CreateRenderTarget(uint texture);

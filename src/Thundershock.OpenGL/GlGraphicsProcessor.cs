@@ -203,16 +203,24 @@ namespace Thundershock.OpenGL
             return id;
         }
 
-        public override void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int width, int height)
+        public override void UploadTextureData(uint texture, ReadOnlySpan<byte> pixelData, int x, int y, int width, int height)
         {
+            var checkedSize = (((width) * (height)) * 4);
+            if (checkedSize > pixelData.Length)
+                throw new InvalidOperationException(
+                    $"Texture pixel data length mismatch. Expected: {checkedSize}, instead got {pixelData.Length}.");
+            
             _gl.BindTexture(GLEnum.Texture2D, texture);
 
             unsafe
             {
                 fixed (void* data = pixelData)
                 {
-                    _gl.TexImage2D(GLEnum.Texture2D, 0, (int) GLEnum.Rgba8, (uint) width, (uint) height, 0, GLEnum.Rgba,
-                        GLEnum.UnsignedByte, data);
+                    _gl.TexSubImage2D(GLEnum.Texture2D, 0, x, y, (uint) width, (uint) height, GLEnum.Rgba, GLEnum.UnsignedByte,
+                        data);
+                    
+                    // _gl.TexImage2D(GLEnum.Texture2D, 0, (int) GLEnum.Rgba8, (uint) width, (uint) height, 0, GLEnum.Rgba,
+                        // GLEnum.UnsignedByte, data);
                 }
             }
 
