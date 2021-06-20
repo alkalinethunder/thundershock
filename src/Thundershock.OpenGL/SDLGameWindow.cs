@@ -3,10 +3,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using SDL2;
 using Thundershock.Core;
-using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
+using Thundershock.Core.Audio;
 
 using Silk.NET.OpenGL;
 
@@ -21,13 +21,15 @@ namespace Thundershock.OpenGL
         private IntPtr _glContext;
         private SDL.SDL_Event _event;
         private GlGraphicsProcessor _graphicsProcessor;
+        private SDLAudioBackend _audio;
 
+        public override AudioBackend AudioBackend => _audio;
         public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
         
         protected override void OnUpdate()
         {
             PollEvents();
-            
+
             // Swap the OpenGL buffers so we can see what was just rendered by
             // Thundershock.
             SDL.SDL_GL_SwapWindow(_sdlWindow);
@@ -46,6 +48,9 @@ namespace Thundershock.OpenGL
             }
             
             CreateSdlWindow();
+
+            App.Logger.Log("Initializing SDL_mixer audio backend...");
+            _audio = new SDLAudioBackend();
         }
 
         private void SetupGLRenderer()

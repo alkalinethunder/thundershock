@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using NVorbis;
-
+using Thundershock.Core.Audio;
 using GameTime = Thundershock.Core.GameTime;
 
 namespace Thundershock.Components
@@ -35,7 +35,7 @@ namespace Thundershock.Components
         private float _power;
         private float _lowest;
         private bool _endOfPlay = false;
-        
+        private AudioOutput _audioOutput;
         
         public bool IsPlaying => _isPlaying;
         private float _sensitivity = 6;
@@ -97,11 +97,11 @@ namespace Thundershock.Components
             _buffer = new float[(_channels * _sampleRate) / 20];
 
             // Allocate the output sound.
-            _output = new DynamicSoundEffectInstance(_sampleRate, _reader.Channels == 2 ? AudioChannels.Stereo : AudioChannels.Mono);
+            _audioOutput = this.Scene.Audio.OpenAudioOutput();
 
             // play.
             _isPlaying = true;
-            _output.Play();
+            _audioOutput.Play();
             _endOfPlay = false;
         }
 
@@ -120,7 +120,7 @@ namespace Thundershock.Components
         {
             if (_isPlaying)
             {
-                if (_output.PendingBufferCount < 2 && !_endOfPlay)
+                if (_audioOutput.PendingBufferCount < 2 && !_endOfPlay)
                 {
                     var count = _reader.ReadSamples(_buffer, 0, _buffer.Length);
 
@@ -151,7 +151,7 @@ namespace Thundershock.Components
                         
                         WriteSamples();
 
-                        _output.SubmitBuffer(_mgBuffer);
+                        _audioOutput.SubmitBuffer(_mgBuffer);
                     }
                     else
                     {
@@ -159,7 +159,7 @@ namespace Thundershock.Components
                     }
                 }
 
-                if (_endOfPlay && _output.PendingBufferCount <= 0)
+                if (_endOfPlay && _audioOutput.PendingBufferCount <= 0)
                 {
                     if (_isLooped)
                     {

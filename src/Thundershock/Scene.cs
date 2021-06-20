@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Thundershock.Core;
+using Thundershock.Core.Audio;
 using Thundershock.Core.Rendering;
 using Thundershock.Rendering;
 
@@ -16,7 +17,7 @@ namespace Thundershock
         private Renderer2D _renderer;
 
         public Camera Camera { get; protected set; }
-
+        public AudioBackend Audio => _gameLoop.Audio;
         public Rectangle ViewportBounds
             => _gameLoop.ViewportBounds;
 

@@ -1,4 +1,5 @@
 using System;
+using Thundershock.Core.Audio;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 
@@ -18,6 +19,8 @@ namespace Thundershock.Core
         
         public AppBase App => _app;
 
+        public abstract AudioBackend AudioBackend { get; }
+        
         /// <summary>
         /// Gets or sets a value indicating whether the primary mouse button is the right mouse button.
         /// </summary>

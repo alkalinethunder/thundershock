@@ -1,5 +1,6 @@
 using SDL2;
 using Thundershock.Core;
+using Thundershock.Core.Audio;
 using Thundershock.Core.Rendering;
 
 namespace Thundershock
@@ -12,6 +13,7 @@ namespace Thundershock
 
         public GraphicalAppBase App => _app;
 
+        public AudioBackend Audio => _gameWindow.AudioBackend;
         public GraphicsProcessor Graphics => _gameWindow.GraphicsProcessor;
 
         public Rectangle ViewportBounds
