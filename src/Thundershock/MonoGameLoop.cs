@@ -5,10 +5,7 @@ using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Config;
-using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
-using Thundershock.Input;
 using RenderTarget2D = Microsoft.Xna.Framework.Graphics.RenderTarget2D;
 using Texture2D = Microsoft.Xna.Framework.Graphics.Texture2D;
 

@@ -24,7 +24,7 @@ namespace Thundershock.Core.Fonts
             var scaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1);
 
             var transform = translate * scaleMatrix * rotate;
-
+            
             var tsColor = new Color(color.R, color.G, color.B, color.A);
 
             var tsRectangle = Rectangle.Unit;

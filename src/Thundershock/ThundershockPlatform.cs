@@ -37,7 +37,13 @@ namespace Thundershock
         public static Color HtmlColor(string html)
         {
             var gdiColor = System.Drawing.ColorTranslator.FromHtml(html);
-            return new Color(gdiColor.R, gdiColor.G, gdiColor.B, gdiColor.A);
+            
+            // I have no idea why.
+            // But for some FUCKING STUPID REASON...
+            // GDI takes HTML colors in as #aarrggbb...
+            // When IN REALITY it should be #rrggbbaa....
+            // So this weird ordering fucks with us.
+            return new Color(gdiColor.A, gdiColor.R, gdiColor.G, gdiColor.B);
         }
 
         public static Platform GetCurrentPlatform()

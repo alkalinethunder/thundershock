@@ -8,6 +8,8 @@ namespace Thundershock.Core.Rendering
     {
         public Matrix4x4 ProjectionMatrix { get; set; } = Matrix4x4.Identity;
 
+        public abstract Rectangle ViewportBounds { get; }
+        
         public abstract TextureCollection Textures { get; }
         public abstract void Clear(Color color);
 

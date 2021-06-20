@@ -1,42 +1,48 @@
 using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Audio;
+using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
+using Thundershock.Debugging;
 
 namespace Thundershock
 {
-    internal sealed class GameLoop
+    public sealed class GameLayer : Layer
     {
-        private GraphicalAppBase _app;
-        private GameWindow _gameWindow;
         private Scene _currentScene = null;
 
-        public GraphicalAppBase App => _app;
-
-        public AudioBackend Audio => _gameWindow.AudioBackend;
-        public GraphicsProcessor Graphics => _gameWindow.GraphicsProcessor;
+        public GameWindow Window => App.Window;
+        
+        public AudioBackend Audio => Window.AudioBackend;
+        public GraphicsProcessor Graphics => Window.GraphicsProcessor;
 
         public Rectangle ViewportBounds
-            => new Rectangle(0, 0, _gameWindow.Width, _gameWindow.Height);
+            => new Rectangle(0, 0, Window.Width, Window.Height);
         
-        public GameLoop(GraphicalAppBase app, GameWindow gameWindow)
+        protected override void OnRender(GameTime gameTime)
         {
-            _app = app;
-            _gameWindow = gameWindow;
+            if (_currentScene != null)
+                _currentScene.Draw(gameTime);
         }
 
-        public void Update(GameTime gameTime)
+        protected override void OnInit()
+        {
+        }
+
+        protected override void OnUnload()
+        {
+            if (_currentScene != null)
+                _currentScene.Unload();
+
+            _currentScene = null;
+        }
+
+        protected override void OnUpdate(GameTime gameTime)
         {
             if (_currentScene != null)
             {
                 _currentScene.Update(gameTime);
             }
-        }
-
-        public void Render(GameTime gameTime)
-        {
-            if (_currentScene != null)
-                _currentScene.Draw(gameTime);
         }
 
         private void LoadSceneInternal(Scene scene)
@@ -65,7 +71,25 @@ namespace Thundershock
             var scene = new T();
             LoadSceneInternal(scene);
         }
-        
-        
+
+        public T GetComponent<T>() where T : IGlobalComponent, new()
+            => App.GetComponent<T>();
+
+        public void Exit() => App.Exit();
+
+        public override bool KeyDown(KeyEventArgs e)
+        {
+            return _currentScene.KeyDown(e);
+        }
+
+        public override bool KeyUp(KeyEventArgs e)
+        {
+            return _currentScene.KeyUp(e);
+        }
+
+        public override bool KeyChar(KeyCharEventArgs e)
+        {
+            return _currentScene.KeyChar(e);
+        }
     }
 }

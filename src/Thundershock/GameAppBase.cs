@@ -9,7 +9,6 @@ using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Debugging;
-using Thundershock.Input;
 
 namespace Thundershock
 {
@@ -59,7 +58,6 @@ namespace Thundershock
             OnInit();
 
             // Initialize core components
-            RegisterComponent<InputManager>();
             RegisterComponent<CheatManager>();
 
             // post-init hook

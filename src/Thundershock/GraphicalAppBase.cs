@@ -4,7 +4,9 @@ using System.IO;
 using System.Numerics;
 using Thundershock.Config;
 using Thundershock.Core;
+using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
+using Thundershock.Debugging;
 
 namespace Thundershock
 {
@@ -18,7 +20,11 @@ namespace Thundershock
         private bool _aboutToExit = false;
         private Stopwatch _frameTimer = new();
         private TimeSpan _totalGameTime;
-        private GameLoop _game;
+        private LayerManager _layerManager;
+        private GameLayer _gameLayer;
+        
+        public GameWindow Window => _gameWindow;
+        public LayerManager LayerManager => _layerManager;
         
         public bool SwapMouseButtons
         {
@@ -67,13 +73,19 @@ namespace Thundershock
             {
                 var gameTime = _frameTimer.Elapsed;
                 var frameTime = gameTime - _totalGameTime;
-
                 var gameTimeInfo = new GameTime(frameTime, gameTime);
                 
-                _gameWindow.GraphicsProcessor.Clear(Color.Black);
+                // Run enqueued actions.
+                RunQueuedActions();
+                
+                // Tick all of the global app modules.
+                UpdateComponents(gameTimeInfo);
 
-                _game.Update(gameTimeInfo);
-                _game.Render(gameTimeInfo);
+                _layerManager.Update(gameTimeInfo);
+                
+                _gameWindow.GraphicsProcessor.Clear(Color.Black);
+                
+                _layerManager.Render(gameTimeInfo);
                 
                 _gameWindow.Update();
                 
@@ -95,16 +107,51 @@ namespace Thundershock
 
         private void PreInit()
         {
+            _layerManager = new LayerManager(this);
+            
             Logger.Log("PreInit reached. Setting up core components.");
             RegisterComponent<ConfigurationManager>();
 
+            // Bind input events to the layer manager.
+            _gameWindow.KeyDown += GameWindowOnKeyDown;
+            _gameWindow.KeyUp += GameWindowOnKeyUp;
+            _gameWindow.KeyChar += GameWindowOnKeyChar;
+            
             OnPreInit();
+        }
+
+        private void GameWindowOnKeyChar(object? sender, KeyCharEventArgs e)
+        {
+            _layerManager.FireKeyChar(e);
+        }
+
+        private void GameWindowOnKeyUp(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Keys.Tab)
+            {
+                if (!_layerManager.HasLayer<TempCommandLine>())
+                {
+                    var tcmd = new TempCommandLine();
+                    _layerManager.PushOverlay(tcmd);
+                }
+
+                return;
+            }
+            
+            _layerManager.FireKeyUp(e);
+        }
+
+        private void GameWindowOnKeyDown(object? sender, KeyEventArgs e)
+        {
+            _layerManager.FireKeyDown(e);
         }
 
         private void Init()
         {
-            _game = new GameLoop(this, _gameWindow);
-            
+            RegisterComponent<CheatManager>();
+
+            _gameLayer = new GameLayer();
+            _layerManager.PushLayer(_gameLayer);
             OnInit();
         }
 
@@ -142,7 +189,7 @@ namespace Thundershock
 
         protected void LoadScene<T>() where T : Scene, new()
         {
-            _game.LoadScene<T>();
+            _gameLayer.LoadScene<T>();
         }
     }
 }

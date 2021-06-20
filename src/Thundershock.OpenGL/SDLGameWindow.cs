@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using SDL2;
@@ -21,7 +22,7 @@ namespace Thundershock.OpenGL
         private IntPtr _glContext;
         private SDL.SDL_Event _event;
         private GlGraphicsProcessor _graphicsProcessor;
-        private SDLAudioBackend _audio;
+        private OpenAlAudioBackend _audio;
 
         public override AudioBackend AudioBackend => _audio;
         public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
@@ -50,7 +51,7 @@ namespace Thundershock.OpenGL
             CreateSdlWindow();
 
             App.Logger.Log("Initializing SDL_mixer audio backend...");
-            _audio = new SDLAudioBackend();
+            _audio = new OpenAlAudioBackend();
         }
 
         private void SetupGLRenderer()
@@ -95,13 +96,14 @@ namespace Thundershock.OpenGL
 
             var logLevel = severity switch
             {
-                GLEnum.DebugSeverityNotification => LogLevel.Info,
                 GLEnum.DebugSeverityLow => LogLevel.Warning,
                 GLEnum.DebugSeverityMedium => LogLevel.Error,
-                GLEnum.DebugSeverityHigh => LogLevel.Fatal
+                GLEnum.DebugSeverityHigh => LogLevel.Fatal,
+                _ => LogLevel.Trace
             };
 
-            App.Logger.Log(messageString, logLevel);
+            if (logLevel != LogLevel.Trace)
+                App.Logger.Log(messageString, logLevel);
         }
 
         private void PollEvents()

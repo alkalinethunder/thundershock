@@ -29,6 +29,21 @@ namespace Thundershock.OpenGL
         private GlTextureCollection _textures;
 
         public override TextureCollection Textures => _textures;
+
+        public override Rectangle ViewportBounds
+        {
+            get
+            {
+                var viewport = new int[4];
+                unsafe
+                {
+                    fixed (int* ptr = viewport)
+                        _gl.GetInteger(GLEnum.Viewport, ptr);
+                }
+
+                return new Rectangle(viewport[0], viewport[1], viewport[2], viewport[3]);
+            }
+        }
         
         internal GlGraphicsProcessor(GL glContext)
         {
@@ -60,6 +75,10 @@ namespace Thundershock.OpenGL
 
                 public override void DrawPrimitives(PrimitiveType primitiveType, ReadOnlySpan<int> indices, int primitiveCount)
                 {
+                    // TODO: Let the engine control blending.
+                    _gl.Enable(GLEnum.Blend);
+                    _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
                     _gl.UseProgram(_program);
                     _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
                     _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);

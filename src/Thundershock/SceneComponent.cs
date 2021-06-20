@@ -8,7 +8,6 @@ namespace Thundershock
     {
         private Scene _scene;
 
-        public GraphicalAppBase App => _scene.App;
         public Scene Scene => _scene;
 
         public bool Visible { get; set; } = true;
@@ -16,13 +15,12 @@ namespace Thundershock
         public void Load(Scene scene)
         {
             _scene = scene ?? throw new ArgumentNullException(nameof(scene));
-            App.Logger.Log("OnLoad reached.");
+            
             OnLoad();
         }
 
         public void Unload()
         {
-            App.Logger.Log("OnUnload reached.");
             OnUnload();
             _scene = null;
         }

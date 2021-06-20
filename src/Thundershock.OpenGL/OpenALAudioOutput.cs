@@ -5,11 +5,10 @@ using Thundershock.Core.Audio;
 
 namespace Thundershock.OpenGL
 {
-    public sealed class OpenALAudioOutput : AudioOutput
+    public sealed class OpenAlAudioOutput : AudioOutput
     {
         private AL _al;
         private uint _source;
-        private uint _buffer;
 
         public override int PendingBufferCount
         {
@@ -19,7 +18,7 @@ namespace Thundershock.OpenGL
             }
         }
 
-        public OpenALAudioOutput(AL al)
+        public OpenAlAudioOutput(AL al)
         {
             _al = al;
             _source = _al.GenSource();
