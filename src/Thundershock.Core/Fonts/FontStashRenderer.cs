@@ -25,7 +25,7 @@ namespace Thundershock.Core.Fonts
 
             var transform = translate * scaleMatrix * rotate;
             
-            var tsColor = new Color(color.R, color.G, color.B, color.A);
+            var tsColor = new Color(color.B, color.G, color.R, color.A);
 
             var tsRectangle = Rectangle.Unit;
             var tsDrawRect = new Rectangle(0, 0, tsTexture.Width, tsTexture.Height);

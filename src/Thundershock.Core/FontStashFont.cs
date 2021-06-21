@@ -41,7 +41,7 @@ namespace Thundershock.Core
         {
             _gpu = gpu ?? throw new ArgumentNullException(nameof(gpu));
             _texManager = new FontTextureManager(gpu);
-            _fontSystem = new FontSystem(_texManager, 1024, 1024);
+            _fontSystem = new FontSystem(_texManager, 1024, 1024, 0, 0, false);
 
             _fontSystem.UseKernings = true;
             

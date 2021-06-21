@@ -3,18 +3,28 @@ using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Numerics;
+using Gdk;
+using GLib;
+using Thundershock.Components;
 using Thundershock.Core;
+using Thundershock.Core.Ecs;
 using Thundershock.Core.Audio;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
+using Thundershock.GameFramework;
+using Thundershock.Gui;
+using Thundershock.Gui.Elements;
 using Thundershock.Input;
 using Thundershock.Rendering;
+using Rectangle = Thundershock.Core.Rectangle;
 
 namespace Thundershock
 {
     public abstract class Scene
     {
+        public const uint MaxEntityCount = 10000;
+        
         private bool _noClip;
         private CameraManager _cameraManager;
         private GameLayer _gameLoop;
@@ -22,7 +32,10 @@ namespace Thundershock
         private Font _debugFont;
         private Renderer2D _renderer;
         private InputSystem _input = new();
-
+        private Registry _registry;
+        private Font _deathFont;
+        private Renderer2D _renderer2D;
+        
         public GameLayer Game => _gameLoop;
         public InputSystem InputSystem => _input;
         
@@ -41,6 +54,7 @@ namespace Thundershock
         {
             // Create the camera manager for this scene.
             _cameraManager = new(this);
+            _registry = new Registry(MaxEntityCount);
         }
         
         public bool HasComponent<T>() where T : SceneComponent
@@ -86,6 +100,9 @@ namespace Thundershock
 
         internal void Load(GameLayer gameLoop)
         {
+            _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
+            _renderer = new Renderer2D(gameLoop.Graphics);
+            
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
             _debugFont = Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
@@ -210,12 +227,96 @@ namespace Thundershock
 
         public void Draw(GameTime gameTime)
         {
-            var projection = Camera.ProjectionMatrix;
+            var cameras = _registry.View<CameraComponent, Transform>();
+            if (cameras.Any() && !_noClip)
+            {
+                var lastCamera = cameras.Last();
 
-            _renderer.ProjectionMatrix = projection;
-            
-            foreach (var component in _components)
-                component.Draw(gameTime, _renderer);
+                ref var cameraComponent = ref _registry.GetComponent<CameraComponent>(lastCamera);
+                ref var cameraTransform = ref _registry.GetComponent<Transform>(lastCamera);
+
+                Camera.Transform.Position = cameraTransform.Position;
+                Camera.Transform.Rotation = cameraTransform.Rotation;
+                Camera.Transform.Scale = cameraTransform.Scale;
+
+                Camera.ProjectionType = cameraComponent.ProjectionType;
+            }
+
+            var renderables2D = _registry.View<Transform2D>();
+            foreach (var renderable in renderables2D)
+            {
+                ref var transform2D = ref _registry.GetComponent<Transform2D>(renderable);
+
+                var transformMatrix = transform2D.GetTransformMatrix();
+
+                var viewProjectionMatrix = Camera.ProjectionMatrix;
+
+                var mvp = transformMatrix * viewProjectionMatrix;
+
+                _renderer.ProjectionMatrix = mvp;
+
+                var sprite = default(Sprite);
+                if (_registry.TryGetComponent(renderable, ref sprite))
+                {
+                    var rect = new Rectangle(0, 0, sprite.Size.X, sprite.Size.Y);
+                    rect.X = -(rect.Width * sprite.Pivot.X);
+                    rect.Y = -(rect.Height * sprite.Pivot.Y);
+
+                    _renderer.Begin();
+
+                    _renderer.FillRectangle(rect, sprite.Color, sprite.Texture);
+                    
+                    _renderer.End();
+                }
+
+                var textComponent = default(TextComponent);
+                if (_registry.TryGetComponent(renderable, ref textComponent))
+                {
+                    var font = textComponent.Font ?? _deathFont;
+                    var text = textComponent.Text ?? string.Empty;
+
+                    if (string.IsNullOrWhiteSpace(text))
+                        continue;
+
+                    if (textComponent.WrapWidth > 0 && textComponent.WrapMode != TextWrapMode.None)
+                    {
+                        text = textComponent.WrapMode switch
+                        {
+                            TextWrapMode.WordWrap => TextBlock.WordWrap(font, text, textComponent.WrapWidth),
+                            TextWrapMode.LetterWrap => TextBlock.LetterWrap(font, text, textComponent.WrapWidth),
+                            _ => text
+                        };
+                    }
+
+                    var measure = font.MeasureString(text);
+
+                    var pos = -(measure * textComponent.Pivot);
+
+                    var lines = text.Split(Environment.NewLine);
+
+                    _renderer.Begin();
+                    
+                    foreach (var line in lines)
+                    {
+                        var lineMeasure = font.MeasureString(line);
+                        
+                        var y = pos.Y;
+                        var x = textComponent.TextAlign switch
+                        {
+                            TextAlign.Left => pos.X,
+                            TextAlign.Center => pos.X + ((measure.X - lineMeasure.X) / 2),
+                            TextAlign.Right => pos.X + (measure.X - lineMeasure.X),
+                            _ => pos.X
+                        };
+
+                        pos.Y += lineMeasure.Y;
+
+                        _renderer.DrawString(font, line, new Vector2(x, y), textComponent.Color);
+                    }
+
+                    _renderer.End();
+                }
+            }
         }
 
 
@@ -234,8 +335,32 @@ namespace Thundershock
         {
             return coordinates;
         }
-
-
+        
         #endregion
+
+        public SceneObject FindObjectByName(string name)
+        {
+            var nameView = _registry.View<string>();
+
+            if (nameView.Any())
+            {
+                var entity = nameView.First();
+                return new SceneObject(_registry, entity);
+            }
+
+            return null;
+        }
+        
+        public SceneObject SpawnObject()
+        {
+            var entity = _registry.Create();
+            var obj = new SceneObject(_registry, entity);
+
+            var guid = Guid.NewGuid().ToString();
+
+            obj.AddComponent(guid);
+            
+            return obj;
+        }
     }
 }
