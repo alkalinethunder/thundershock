@@ -1208,9 +1208,24 @@ namespace Thundershock.Gui.Elements.Console
                         _input = _input.Remove(_inputPos, 1);
                         _inputIsDirty = true;
                     }
+
                     break;
                 case Keys.Tab:
                     ApplyCompletion();
+                    break;
+                case Keys.Enter:
+                    var nl = Environment.NewLine;
+                    _input += nl;
+                    _inputIsDirty = true;
+                    MoveToEnd();
+                    break;
+                case Keys.Backspace:
+                    if (_inputPos > 0)
+                    {
+                        _inputPos--;
+                        _input = _input.Remove(_inputPos, 1);
+                        _inputIsDirty = true;
+                    }
                     break;
                 default:
                     result = base.OnKeyDown(e);
@@ -1226,27 +1241,7 @@ namespace Thundershock.Gui.Elements.Console
 
             ScrollToBottom();
 
-            if (e.Key == Keys.Enter)
-            {
-                var nl = Environment.NewLine;
-                _input += nl;
-                _inputIsDirty = true;
-                MoveToEnd();
-                return true;
-            }
             
-            if (e.Character == '\b')
-            {
-                if (_inputPos > 0)
-                {
-                    _inputPos--;
-                    _input = _input.Remove(_inputPos, 1);
-                    _inputIsDirty = true;
-                }
-
-                return true;
-            }
-
             _input = _input.Insert(_inputPos, e.Character.ToString());
             _inputPos += 1;
             _inputIsDirty = true;

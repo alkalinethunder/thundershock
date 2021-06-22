@@ -154,14 +154,6 @@ namespace Thundershock.OpenGL
 
                 // Dispatch the event to thundershock.
                 DispatchKeyEvent(key, '\0', isPressed, repeat, false);
-
-                // Dispatch a keychar event for the \r (carriage return) key for Enter.
-                // Higher-level areas of the engine use this for text editing, specifically
-                // ConsoleControl and a lot of things in RED TEAM.
-                if (key == Keys.Enter)
-                {
-                    DispatchKeyEvent(key, '\r', isPressed, repeat, true);
-                }
             }
 
             if (_event.type == SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN ||
