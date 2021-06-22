@@ -89,6 +89,8 @@ namespace Thundershock.Core.Rendering
         private Effect.EffectProgram _program;
         private GraphicsProcessor _gpu;
 
+        private Dictionary<string, EffectParameter> _cache = new Dictionary<string, EffectParameter>();
+        
         public EffectParameterList(GraphicsProcessor gpu, Effect.EffectProgram program)
         {
             _gpu = gpu ?? throw new ArgumentNullException(nameof(gpu));
@@ -97,7 +99,24 @@ namespace Thundershock.Core.Rendering
         
         public EffectParameter this[string name]
         {
-            get => _gpu.GetEffectParameter(_program, name);
+            get => GetParamInternal(name);
+        }
+
+        private EffectParameter GetParamInternal(string name)
+        {
+            if (_cache.ContainsKey(name))
+            {
+                // No need to hit the GPU for the effect parameter location.
+                return _cache[name];
+            }
+            
+            // Ask the GPU where the parameter is.
+            var param = _gpu.GetEffectParameter(_program, name);
+            
+            // Cache it.
+            _cache.Add(name, param);
+
+            return param;
         }
     }
 }
