@@ -11,6 +11,8 @@ namespace Thundershock.Core.Rendering
     /// </summary>
     public sealed class Renderer2D
     {
+        private int _vertexPointer = 0;
+        private Vertex[] _vertexArray = new Vertex[128];
         private Effect _effect;
         private bool _running;
         private List<RenderItem> _batch = new List<RenderItem>();
@@ -93,10 +95,13 @@ namespace Thundershock.Core.Rendering
                 _renderer.ProjectionMatrix = _projectionMatrix;
                 _renderer.Begin(_effect);
                 
+                // Submit the vertex buffer. All vertices for every single batch item are in here.
+                // This is a massive optimization since now we don't need to do this on every draw call.
+                _renderer.UploadVertices(_vertexArray.AsSpan(0, _vertexPointer));
+                
                 while (_batch.Count > 0)
                 {
                     var item = _batch[0];
-                    var vbo = item.Vertices;
                     var ibo = item.IndexBuffer;
                     var tex = item.Texture;
 
@@ -106,13 +111,17 @@ namespace Thundershock.Core.Rendering
                     {
                         _renderer.Textures[0] = tex;
 
-                        _renderer.Draw(PrimitiveType.TriangleList, vbo, ibo, 0, pCount);
+                        _renderer.Draw(PrimitiveType.TriangleList, ibo, 0, pCount);
                     }
 
                     _batch.RemoveAt(0);
                 }
 
                 _renderer.End();
+                
+                // Now that we've ended, we can go ahead and reset our vertex buffer.
+                _vertexPointer = 0;
+                Array.Resize(ref _vertexArray, 128);
             }
             else
             {
@@ -157,12 +166,12 @@ namespace Thundershock.Core.Rendering
 
         public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv, Matrix4x4 transform)
         {
-            var batch = MakeRenderItem(texture, transform);
+            var batch = MakeRenderItem(texture);
 
-            var tl = batch.AddVertex(rect.Location, color, uv.Location);
-            var tr = batch.AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top));
-            var bl = batch.AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom));
-            var br = batch.AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom));
+            var tl = AddVertex(rect.Location, color, uv.Location, transform);
+            var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top), transform);
+            var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom), transform);
+            var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom), transform);
             
             batch.AddIndex(tl);
             batch.AddIndex(tr);
@@ -184,10 +193,10 @@ namespace Thundershock.Core.Rendering
             var renderItem = MakeRenderItem(texture);
 
             // add the 4 vertices
-            var tl = renderItem.AddVertex(new Vector2(rect.Left, rect.Top), color, TextureCoords.TopLeft);
-            var tr = renderItem.AddVertex(new Vector2(rect.Right, rect.Top), color, TextureCoords.TopRight);
-            var bl = renderItem.AddVertex(new Vector2(rect.Left, rect.Bottom), color, TextureCoords.BottomLeft);
-            var br = renderItem.AddVertex(new Vector2(rect.Right, rect.Bottom), color, TextureCoords.BottomRight);
+            var tl = AddVertex(new Vector2(rect.Left, rect.Top), color, TextureCoords.TopLeft);
+            var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, TextureCoords.TopRight);
+            var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, TextureCoords.BottomLeft);
+            var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, TextureCoords.BottomRight);
 
             // firsst triangle
             renderItem.AddIndex(tl);
@@ -216,10 +225,10 @@ namespace Thundershock.Core.Rendering
             var d = Vector2.Normalize(p2 - p1);
             var dt = new Vector2(-d.Y, d.X) * (lineWidth / 2f);
 
-            v1 = renderItem.AddVertex(p1 + dt, color,TextureCoords.TopLeft);
-            v2 = renderItem.AddVertex(p1 - dt, color, TextureCoords.TopRight);
-            v3 = renderItem.AddVertex(p2 - dt, color, TextureCoords.BottomRight);
-            v4 = renderItem.AddVertex(p2 + dt, color, TextureCoords.BottomLeft);
+            v1 = AddVertex(p1 + dt, color,TextureCoords.TopLeft);
+            v2 = AddVertex(p1 - dt, color, TextureCoords.TopRight);
+            v3 = AddVertex(p2 - dt, color, TextureCoords.BottomRight);
+            v4 = AddVertex(p2 + dt, color, TextureCoords.BottomLeft);
         }
         
         private const float RightStartAngle = 0;
@@ -287,11 +296,11 @@ namespace Thundershock.Core.Rendering
 
             var renderItem = MakeRenderItem(null);
 
-            var centerIndex = renderItem.AddVertex(center, color, Vector2.Zero);
-            var v1 = renderItem.AddVertex(vs[0], color, Vector2.Zero);
+            var centerIndex = AddVertex(center, color, Vector2.Zero);
+            var v1 = AddVertex(vs[0], color, Vector2.Zero);
             for (var i = 1; i < c; i++)
             {
-                var v2 = renderItem.AddVertex(vs[i], color, Vector2.Zero);
+                var v2 = AddVertex(vs[i], color, Vector2.Zero);
                 renderItem.AddIndex(centerIndex);
                 renderItem.AddIndex(v1);
                 renderItem.AddIndex(v2);
@@ -343,21 +352,18 @@ namespace Thundershock.Core.Rendering
         {
             private int _vertexPointer;
             private int _indexPointer;
-            private Vertex[] _vbo;
             private int[] _ibo;
 
             public int Triangles => _indexPointer / 3;
         
             public Texture2D Texture { get; set; }
 
-            public Vertex[] Vertices => _vbo.AsSpan(0, _vertexPointer).ToArray();
             public int[] IndexBuffer => _ibo.AsSpan(0, _indexPointer).ToArray();
 
             public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
             
             public RenderItem()
             {
-                _vbo = new Vertex[128];
                 _ibo = new int[128];
             }
 
@@ -368,27 +374,28 @@ namespace Thundershock.Core.Rendering
                 if (_indexPointer >= _ibo.Length)
                     Array.Resize(ref _ibo, _ibo.Length * 2);
             }
-        
-            public int AddVertex(Vector2 position, Color color, Vector2 texCoord)
-            {
-                var i = _vertexPointer;
-
-                if (i >= _vbo.Length)
-                {
-                    Array.Resize(ref _vbo, _vbo.Length * 2);
-                }
-
-                var pos3D = new Vector3(position, 0);
-                pos3D = Vector3.Transform(pos3D, Transform);
-                var v = new Vertex(pos3D, color, texCoord);
-                _vbo[_vertexPointer] = v;
-                _vertexPointer++;
-                
-                return i;
-            }
-
         }
 
+        private int AddVertex(Vector2 position, Color color, Vector2 texCoord, Matrix4x4? transform = null)
+        {
+            var pos3D = new Vector3(position, 0);
+            if (transform != null)
+            {
+                pos3D = Vector3.Transform(pos3D, transform.GetValueOrDefault());
+            }
+            var vert = new Vertex(pos3D, color, texCoord);
+            var ptr = _vertexPointer;
+            _vertexArray[_vertexPointer] = vert;
+            _vertexPointer++;
+
+            if (_vertexPointer >= _vertexArray.Length)
+            {
+                Array.Resize(ref _vertexArray, _vertexArray.Length + 128);
+            }
+            
+            return ptr;
+        }
+        
         private static class TextureCoords
         {
             public static Vector2 TopLeft => Vector2.Zero;

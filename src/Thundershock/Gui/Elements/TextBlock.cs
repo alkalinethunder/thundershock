@@ -220,7 +220,7 @@ namespace Thundershock.Gui.Elements
                             break;
                     }
                     
-                    renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground), TextAlign);
+                    renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground));
                     pos.Y += m.Y;
                 }
             }

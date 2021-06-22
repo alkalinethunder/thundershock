@@ -65,7 +65,7 @@ namespace Thundershock.Gui
         }
 
         public void DrawString(Font font, string text, Vector2 position, Color color,
-            TextAlign textAlign = TextAlign.Left, int dropShadow = 0)
+            int dropShadow = 0)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return;
@@ -76,38 +76,10 @@ namespace Thundershock.Gui
             
             if (dropShadow != 0)
             {
-                DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black, textAlign);
+                DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black);
             }
 
-            if (textAlign == TextAlign.Left)
-            {
-                _spriteBatch.DrawString(font, text, position, tint);
-            }
-            else
-            {
-                var lines = text.Split(Environment.NewLine);
-                var width = font.MeasureString(text).X;
-                foreach (var line in lines)
-                {
-                    var m = font.MeasureString(line.Trim());
-
-                    var pos = position;
-
-                    if (textAlign == TextAlign.Right)
-                    {
-                        pos.X += (width - m.X);
-                    }
-                    else if (textAlign == TextAlign.Center)
-                    {
-                        pos.X += (width - m.X) / 2;
-                    }
-                    
-                    _spriteBatch.DrawString(font, line, pos, tint);
-                    
-                    position.Y += font.LineSpacing;
-                }
-            }
-            
+            _spriteBatch.DrawString(font, text, position, tint);
         }
     }
 }

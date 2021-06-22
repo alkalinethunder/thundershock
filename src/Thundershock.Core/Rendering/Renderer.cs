@@ -67,8 +67,15 @@ namespace Thundershock.Core.Rendering
 
             _gpu.SetRenderTarget(renderTarget);
         }
+
+        public void UploadVertices(ReadOnlySpan<Vertex> vertices)
+        {
+            ThrowIfNotBegun();
+
+            _vertexBuffer.SubmitVertices(vertices);
+        }
         
-        public void Draw(PrimitiveType primitive, Vertex[] vertices, int[] indexBuffer, int offset, int primitiveCount)
+        public void Draw(PrimitiveType primitive, int[] indexBuffer, int offset, int primitiveCount)
         {
             ThrowIfNotBegun();
             
@@ -83,9 +90,6 @@ namespace Thundershock.Core.Rendering
             
             // Create a span of the indexes we want to upload.
             var indexSpan = new ReadOnlySpan<int>(indexBuffer, offset, length);
-         
-            // Submit vertices to the vertex buffer
-            _vertexBuffer.SubmitVertices(vertices);
             
             // Shader parameters.
             _program.Parameters["projection"]?.SetValue(ProjectionMatrix);

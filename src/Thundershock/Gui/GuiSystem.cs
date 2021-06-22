@@ -343,7 +343,7 @@ namespace Thundershock.Gui
                     var pos = new Vector2((element.BoundingBox.Left + ((element.BoundingBox.Width - measure.X) / 2)),
                         element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
 
-                    debugRenderer.DrawString(_debugFont, text, pos, Color.White, TextAlign.Center, 2);
+                    debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
                     
                     
                     _renderer.End();
