@@ -86,6 +86,10 @@ namespace Thundershock.OpenGL
             // Set the viewport size.
             _graphicsProcessor.SetViewportArea(0, 0, Width, Height);
             
+            // Disable V-Sync for testing renderer optimizations.
+            // TODO: Allow the engine to do this.
+            SDL.SDL_GL_SetSwapInterval(0);
+            
             // Initialize the platform layer now that we have GL
             GamePlatform.Initialize(new SDLGamePlatform(_gl));
         }
