@@ -14,6 +14,7 @@ namespace Thundershock.OpenGL
 {
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
+        private bool _vaoReady = false;
         private uint _program;
         private GL _gl;
         private uint _fbo;
@@ -197,14 +198,6 @@ namespace Thundershock.OpenGL
                         _vertexData[i + 5] = current->Color.Z;
                         _vertexData[i + 6] = current->Color.W;
 
-                        // WORD OF WARNING:
-                        //
-                        // OpenGL expects texture coordinates to be (0-1) with (0, 0) being the bottom left.
-                        // However when working with Thundershock's 2D batcher, it'll use an off-center orthographic
-                        // projection matrix to transform pixel positions into vertex space.  That matrix will do
-                        // a bunch of math I don't understand that ultimately ends up meaning that the 2D renderer
-                        // will consider (0,0) to be the top-left texture coordinate. This is great for 2D as it's
-                        // more logical. But it may confuse you if you spend a lot of time in both renderers.
                         _vertexData[i + 7] = current->TextureCoordinates.X;
                         _vertexData[i + 8] = current->TextureCoordinates.Y;
 
@@ -215,14 +208,7 @@ namespace Thundershock.OpenGL
 
             _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
 
-            unsafe
-            {
-                fixed (void* ptr = _vertexData)
-                {
-                    _gl.BufferData(GLEnum.ArrayBuffer, new UIntPtr((uint) (_vertexData.Length * sizeof(float))), ptr,
-                        GLEnum.StaticDraw);
-                }
-            }
+            _gl.BufferData<float>(GLEnum.ArrayBuffer, _vertexData, GLEnum.StaticDraw);
 
             _gl.BindVertexArray(_vao);
 
@@ -244,6 +230,8 @@ namespace Thundershock.OpenGL
                 _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
                     tptr);
             }
+
+            
         }
 
         public override uint CreateTexture(int width, int height)
