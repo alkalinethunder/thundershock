@@ -85,6 +85,9 @@ namespace Thundershock.OpenGL
             
             // Set the viewport size.
             _graphicsProcessor.SetViewportArea(0, 0, Width, Height);
+            
+            // Initialize the platform layer now that we have GL
+            GamePlatform.Initialize(new SDLGamePlatform(_gl));
         }
 
         private void PrintGLError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
@@ -147,6 +150,14 @@ namespace Thundershock.OpenGL
 
                 // Dispatch the event to thundershock.
                 DispatchKeyEvent(key, '\0', isPressed, repeat, false);
+
+                // Dispatch a keychar event for the \r (carriage return) key for Enter.
+                // Higher-level areas of the engine use this for text editing, specifically
+                // ConsoleControl and a lot of things in RED TEAM.
+                if (key == Keys.Enter)
+                {
+                    DispatchKeyEvent(key, '\r', isPressed, repeat, true);
+                }
             }
 
             if (_event.type == SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN ||

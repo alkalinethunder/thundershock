@@ -1232,9 +1232,9 @@ namespace Thundershock.Gui.Elements.Console
                 _input += nl;
                 _inputIsDirty = true;
                 MoveToEnd();
-                result = true;
+                return true;
             }
-
+            
             if (e.Character == '\b')
             {
                 if (_inputPos > 0)

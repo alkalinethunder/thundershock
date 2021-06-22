@@ -40,6 +40,13 @@ namespace Thundershock
         public GameLayer Game => _gameLoop;
         public InputSystem InputSystem => _input;
 
+        public Rectangle Screen => new Rectangle(
+            0,
+            0,
+            _gameLoop.Window.Width,
+            _gameLoop.Window.Height
+        );
+        
         protected GuiSystem Gui => _sceneGui;
         
         public Camera Camera

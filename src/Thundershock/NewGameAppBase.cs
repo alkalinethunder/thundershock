@@ -14,9 +14,6 @@ namespace Thundershock
 
         protected override void OnPreInit()
         {
-            // Set up the game platform.
-            PlatformUtils.InitializeGame(new SDLGamePlatform());
-            
             GetComponent<ConfigurationManager>().ConfigurationLoaded += OnConfigurationLoaded;
             ApplyConfig();
             base.OnPreInit();
