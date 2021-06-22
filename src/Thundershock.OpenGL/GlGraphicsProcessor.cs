@@ -224,7 +224,8 @@ namespace Thundershock.OpenGL
                 var vertSize = posSize + colorSize + texCoordSize;
                 var arrSize = vertSize * vertices.Length;
 
-                if (_vertexData.Length != arrSize)
+                // Only resize if we need more space - this saves performance.
+                if (_vertexData.Length < arrSize)
                     Array.Resize(ref _vertexData, arrSize);
 
                 fixed (Vertex* vertex = vertices)
@@ -249,8 +250,8 @@ namespace Thundershock.OpenGL
                     }
                 }
 
-                _gl.NamedBufferData<float>(_vertexBuffer, UIntPtr.Zero + (arrSize * sizeof(float)), _vertexData,
-                    GLEnum.StaticDraw);
+                _gl.NamedBufferData<float>(_vertexBuffer, UIntPtr.Zero + (arrSize * sizeof(float)),
+                    _vertexData.AsSpan(0, arrSize), GLEnum.StaticDraw);
 
                 // Vertex attributes
                 /*void* pptr = (void*) IntPtr.Zero;
