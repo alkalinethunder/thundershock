@@ -121,14 +121,12 @@ namespace Thundershock.Core.Rendering
                 }
 
                 _renderer.End();
-                
-                // Now that we've ended, we can go ahead and reset our vertex buffer.
-                _vertexPointer = 0;
-                Array.Resize(ref _vertexArray, 128);
 
-                // Do the same for our index list.
+                // Reset the vertex and index pointers to give the impression that we've cleared
+                // the buffers.  We don't actually clear the buffers because resizing the arrays
+                // is a bit slow and unnecessary.
+                _vertexPointer = 0;
                 _indexPointer = 0;
-                Array.Resize(ref _ibo, 128);
             }
             else
             {
