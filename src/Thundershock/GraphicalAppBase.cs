@@ -175,6 +175,9 @@ namespace Thundershock
 
             _gameLayer = new GameLayer();
             _layerManager.PushLayer(_gameLayer);
+            
+            _layerManager.PushOverlay(new FpsCountLayer());
+            
             OnInit();
         }
 
