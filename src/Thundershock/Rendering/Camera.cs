@@ -70,8 +70,12 @@ namespace Thundershock.Rendering
             var result = Matrix4x4.Identity;
             var aspect = _manager.ViewportBounds.Width / _manager.ViewportBounds.Height;
 
-            result *= Matrix4x4.CreateLookAt(Transform.Position, Vector3.UnitZ, -Vector3.UnitY);
-            // result *= Transform.GetTransformMatrix();
+            var transform = Transform.Rotation.CreateMatrix();
+
+            var up = Vector3.Transform(-Vector3.UnitY, transform);
+            var forward = Vector3.Transform(Vector3.UnitZ, transform);
+            
+            result *= Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + forward, up);
             
             switch (ProjectionType)
             {

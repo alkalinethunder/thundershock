@@ -4,6 +4,7 @@ using Thundershock.Core.Rendering;
 
 namespace Thundershock
 {
+    [Obsolete("Good fucking God stop using this and use the damn ECS.")]
     public abstract class SceneComponent
     {
         private Scene _scene;

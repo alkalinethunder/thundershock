@@ -59,8 +59,6 @@ namespace Thundershock.Gui.Elements
             var m = f.MeasureString(mText);
             m.X += GuiSystem.Style.TextCursorWidth;
 
-            m.Y = Math.Max(m.Y, f.LineSpacing);
-
             return m;
         }
 
@@ -121,8 +119,13 @@ namespace Thundershock.Gui.Elements
         {
             var font = GetFont();
 
+            var m = _text;
+            if (string.IsNullOrEmpty(m))
+                m = _hint ?? string.Empty;
+            var measure = font.MeasureString(m);
+
             var pos = new Vector2(ContentRectangle.Left,
-                ContentRectangle.Top + ((ContentRectangle.Height - font.LineSpacing) / 2));
+                ContentRectangle.Top + ((ContentRectangle.Height - measure.Y) / 2));
 
             var textColor = ForeColor.GetColor(GuiSystem.Style.DefaultForeground);
             
@@ -136,8 +139,8 @@ namespace Thundershock.Gui.Elements
             if (HasAnyFocus)
             {
                 var cursorPos = pos;
-                var m = _text.Substring(0, _inputPos);
-                var measure = font.MeasureString(m);
+                m = _text.Substring(0, _inputPos);
+                measure = font.MeasureString(m);
                 cursorPos.X += measure.X;
 
                 GuiSystem.Style.DrawTextCursor(renderer, textColor, cursorPos, font.LineSpacing);

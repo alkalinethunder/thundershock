@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 namespace Thundershock.Core
@@ -11,6 +12,11 @@ namespace Thundershock.Core
             if (value < min)
                 return min;
             return value;
+        }
+
+        public static float ToRadians(float degrees)
+        {
+            return (MathF.PI / 180) * degrees;
         }
     }
 }

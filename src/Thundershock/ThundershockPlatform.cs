@@ -43,7 +43,7 @@ namespace Thundershock
             // GDI takes HTML colors in as #aarrggbb...
             // When IN REALITY it should be #rrggbbaa....
             // So this weird ordering fucks with us.
-            return new Color(gdiColor.A, gdiColor.R, gdiColor.G, gdiColor.B);
+            return new Color(gdiColor.R, gdiColor.G, gdiColor.B, gdiColor.A);
         }
 
         public static Platform GetCurrentPlatform()

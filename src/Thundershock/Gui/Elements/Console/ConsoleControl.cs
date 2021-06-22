@@ -319,6 +319,12 @@ namespace Thundershock.Gui.Elements.Console
 
         private Font GetFont(bool bold, bool italic)
         {
+            // load default fonts if we lack them
+            _regularFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+            _boldFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+            _boldItalicFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+            _italicFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+
             if (bold && italic)
                 return (BoldItalicFont ?? StyleFont.Default).GetFont(_boldItalicFont);
             else if (bold)
@@ -674,6 +680,7 @@ namespace Thundershock.Gui.Elements.Console
             // The next part of the process is positioning the now-processed elements.
             // This is where line wrapping happens, so do expect more elements to be created.
             var wrapPointAccount = 0f;
+            var lineHeight = 0f;
             for (int i = 0; i < elements.Count; i++)
             {
                 // Current element to process.
@@ -689,17 +696,6 @@ namespace Thundershock.Gui.Elements.Console
                     wrapPointAccount = 0;
                 }
                 
-                // Because we're doing text measurement with MG SpriteFonts, we need to filter any
-                // unrecognized text characters for this element's font. Otherwise, crash. This code
-                // does that.
-                for (int j = 0; j < elem.Text.Length; j++)
-                {
-                    if (char.IsWhiteSpace(elem.Text[j]))
-                        continue;
-
-                    elem.Text = elem.Text.Replace(elem.Text[j], '?');
-                }
-                
                 // Measure the element.
                 var measure = elem.Font.MeasureString(elem.Text);
 
@@ -707,10 +703,12 @@ namespace Thundershock.Gui.Elements.Console
                 if (attrs.Position.X + measure.X >= rect.Right)
                 {
                     attrs.Position.X = rect.Left + wrapPointAccount;
-                    attrs.Position.Y += elem.Font.LineSpacing;
+                    attrs.Position.Y += lineHeight;
+                    lineHeight = measure.Y;
                 }
 
                 // Set the position of the element from our attributes.
+                lineHeight = Math.Max(lineHeight, measure.Y);
                 elem.Position = attrs.Position;
                 
                 // is the element larger than a lie?
@@ -740,7 +738,8 @@ namespace Thundershock.Gui.Elements.Console
                         wtf.Text = line;
                         
                         // I wanna die
-                        wtf.Position.Y += wtf.Font.LineSpacing;
+                        var lineMeasure = wtf.Font.MeasureString(line);
+                        wtf.Position.Y += lineMeasure.Y;
                         
                         // fuck this
                         attrs.Position = wtf.Position;
@@ -766,7 +765,8 @@ namespace Thundershock.Gui.Elements.Console
                 if (elem.Text.EndsWith('\n'))
                 {
                     attrs.Position.X = rect.Left + wrapPointAccount;
-                    attrs.Position.Y += elem.Font.LineSpacing;
+                    attrs.Position.Y += lineHeight;
+                    lineHeight = 0;
                 }
                 else
                 {

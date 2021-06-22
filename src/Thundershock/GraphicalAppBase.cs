@@ -117,7 +117,31 @@ namespace Thundershock
             _gameWindow.KeyUp += GameWindowOnKeyUp;
             _gameWindow.KeyChar += GameWindowOnKeyChar;
             
+            _gameWindow.MouseDown += GameWindowOnMouseDown;
+            _gameWindow.MouseUp += GameWindowOnMouseUp;
+            _gameWindow.MouseMove += GameWindowOnMouseMove;
+            _gameWindow.MouseScroll += GameWindowOnMouseScroll;
             OnPreInit();
+        }
+
+        private void GameWindowOnMouseScroll(object? sender, MouseScrollEventArgs e)
+        {
+            _layerManager.FireMouseScroll(e);
+        }
+
+        private void GameWindowOnMouseMove(object? sender, MouseMoveEventArgs e)
+        {
+            _layerManager.FireMouseMove(e);
+        }
+
+        private void GameWindowOnMouseUp(object? sender, MouseButtonEventArgs e)
+        {
+            _layerManager.FireMouseUp(e);
+        }
+
+        private void GameWindowOnMouseDown(object? sender, MouseButtonEventArgs e)
+        {
+            _layerManager.FireMouseDown(e);
         }
 
         private void GameWindowOnKeyChar(object? sender, KeyCharEventArgs e)
@@ -127,15 +151,14 @@ namespace Thundershock
 
         private void GameWindowOnKeyUp(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Keys.Tab)
+            if (e.Key == Keys.BackQuote)
             {
-                if (!_layerManager.HasLayer<TempCommandLine>())
+                if (!_layerManager.HasLayer<DevConsole>())
                 {
-                    var tcmd = new TempCommandLine();
+                    var tcmd = new DevConsole();
                     _layerManager.PushOverlay(tcmd);
+                    return;
                 }
-
-                return;
             }
             
             _layerManager.FireKeyUp(e);

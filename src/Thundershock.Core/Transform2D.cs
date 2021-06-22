@@ -4,9 +4,9 @@ namespace Thundershock.Core
 {
     public sealed class Transform2D
     {
-        public Vector2 Position { get; set; } = Vector2.Zero;
-        public float Rotation { get; set; }
-        public Vector2 Scale { get; set; } = Vector2.One;
+        public Vector2 Position = Vector2.Zero;
+        public float Rotation;
+        public Vector2 Scale = Vector2.One;
 
         public Matrix4x4 GetTransformMatrix()
         {
@@ -18,15 +18,15 @@ namespace Thundershock.Core
 
     public sealed class Transform
     {
-        public Vector3 Position { get; set; }
-        public Rotation Rotation { get; set; }
-        public Vector3 Scale { get; set; } = Vector3.One;
+        public Vector3 Position = Vector3.Zero;
+        public Rotation Rotation;
+        public Vector3 Scale = Vector3.One;
 
         public Matrix4x4 GetTransformMatrix()
         {
             return Matrix4x4.CreateTranslation(Position.X, Position.Y, Position.Z) *
                    Matrix4x4.CreateScale(Scale.X, Scale.Y, Scale.Z) *
-                   Matrix4x4.CreateFromYawPitchRoll(Rotation.Yaw, Rotation.Pitch, Rotation.Roll);
+                   Rotation.CreateMatrix();
         }
     }
 
@@ -35,5 +35,14 @@ namespace Thundershock.Core
         public float Pitch;
         public float Yaw;
         public float Roll;
+
+        public Matrix4x4 CreateMatrix()
+        {
+            var yaw = MathHelper.ToRadians(Yaw);
+            var pitch = MathHelper.ToRadians(Pitch);
+            var roll = MathHelper.ToRadians(Roll);
+
+            return Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, roll);
+        }
     }
 }

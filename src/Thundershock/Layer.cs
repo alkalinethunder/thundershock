@@ -61,6 +61,26 @@ namespace Thundershock
             return false;
         }
 
+        public virtual bool MouseMove(MouseMoveEventArgs e)
+        {
+            return false;
+        }
+
+        public virtual bool MouseDown(MouseButtonEventArgs e)
+        {
+            return false;
+        }
+
+        public virtual bool MouseUp(MouseButtonEventArgs e)
+        {
+            return false;
+        }
+
+        public virtual bool MouseScroll(MouseScrollEventArgs e)
+        {
+            return false;
+        }
+        
         protected void Remove()
         {
             _app.LayerManager.RemoveLayer(this);

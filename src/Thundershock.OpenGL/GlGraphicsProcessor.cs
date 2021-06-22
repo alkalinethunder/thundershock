@@ -27,9 +27,23 @@ namespace Thundershock.OpenGL
         private uint _indexBuffer;
         private uint _vao;
         private GlTextureCollection _textures;
-
+        private bool _scissor;
+        private Rectangle _scissorRect;
+        
         public override TextureCollection Textures => _textures;
 
+        public override Rectangle ScissorRectangle
+        {
+            get => _scissorRect;
+            set => _scissorRect = value;
+        }
+
+        public override bool EnableScissoring
+        {
+            get => _scissor;
+            set => _scissor = value;
+        }
+        
         public override Rectangle ViewportBounds
         {
             get
@@ -73,44 +87,53 @@ namespace Thundershock.OpenGL
             _gl.Clear((uint) GLEnum.ColorBufferBit | (uint) GLEnum.DepthBufferBit);
         }
 
-                public override void DrawPrimitives(PrimitiveType primitiveType, ReadOnlySpan<int> indices, int primitiveCount)
-                {
-                    // TODO: Let the engine control blending.
-                    _gl.Enable(GLEnum.Blend);
-                    _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        public override void DrawPrimitives(PrimitiveType primitiveType, ReadOnlySpan<int> indices, int primitiveCount)
+        {
+            // TODO: Let the engine control blending.
+            _gl.Enable(GLEnum.Blend);
+            _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-                    _gl.UseProgram(_program);
-                    _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
-                    _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);
-                    
-                    var type = primitiveType switch
-                    {
-                        PrimitiveType.LineStrip => Silk.NET.OpenGL.PrimitiveType.LineStrip,
-                        PrimitiveType.TriangleStrip => Silk.NET.OpenGL.PrimitiveType.TriangleStrip,
-                        _ => throw new NotSupportedException()
-                    };
-        
-                    var name = "tex";
-                    ;
-                    
-                    for (var i = 0; i < 32; i++)
-                    {
-                        name = "tex" + i.ToString();
-        
-                        var location = _gl.GetUniformLocation(_program, name);
-        
-                        if (location > -1)
-                        {
-                            _gl.Uniform1(location, i);
-                        }
-                    }
-                    
-                    unsafe
-                    {
-                        void* nullptr = null;
-                        _gl.DrawElements(type, (uint) indices.Length, GLEnum.UnsignedInt, nullptr);
-                    }
+            _gl.UseProgram(_program);
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
+            _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);
+            
+            var type = primitiveType switch
+            {
+                PrimitiveType.LineStrip => Silk.NET.OpenGL.PrimitiveType.LineStrip,
+                PrimitiveType.TriangleStrip => Silk.NET.OpenGL.PrimitiveType.TriangleStrip,
+                _ => throw new NotSupportedException()
+            };
+
+            var name = "tex";
+            ;
+            
+            for (var i = 0; i < 32; i++)
+            {
+                name = "tex" + i.ToString();
+
+                var location = _gl.GetUniformLocation(_program, name);
+
+                if (location > -1)
+                {
+                    _gl.Uniform1(location, i);
                 }
+            }
+            
+            // Scissor testing
+            if (_scissor)
+                _gl.Enable(GLEnum.ScissorTest);
+            else
+                _gl.Disable(GLEnum.ScissorTest);
+
+            _gl.Scissor((int) _scissorRect.X, (int) _scissorRect.Y, (uint) _scissorRect.Width,
+                (uint) _scissorRect.Height);
+            
+            unsafe
+            {
+                void* nullptr = null;
+                _gl.DrawElements(type, (uint) indices.Length, GLEnum.UnsignedInt, nullptr);
+            }
+        }
 
         public override uint CreateVertexBuffer()
         {

@@ -24,6 +24,47 @@ namespace Thundershock
             return _layers.Any(x => x is T);
         }
         
+        public void FireMouseDown(MouseButtonEventArgs args)
+        {
+            for (var i = _layers.Count - 1; i >= 0; i--)
+            {
+                var layer = _layers[i];
+                if (layer.MouseDown(args))
+                    break;
+            }
+        }
+
+        public void FireMouseUp(MouseButtonEventArgs args)
+        {
+            for (var i = _layers.Count - 1; i >= 0; i--)
+            {
+                var layer = _layers[i];
+                if (layer.MouseUp(args))
+                    break;
+            }
+        }
+        
+        public void FireMouseMove(MouseMoveEventArgs args)
+        {
+            for (var i = _layers.Count - 1; i >= 0; i--)
+            {
+                var layer = _layers[i];
+                if (layer.MouseMove(args))
+                    break;
+            }
+        }
+        
+        public void FireMouseScroll(MouseScrollEventArgs args)
+        {
+            for (var i = _layers.Count - 1; i >= 0; i--)
+            {
+                var layer = _layers[i];
+                if (layer.MouseScroll(args))
+                    break;
+            }
+        }
+
+        
         public void FireKeyDown(KeyEventArgs args)
         {
             for (var i = _layers.Count - 1; i >= 0; i--)

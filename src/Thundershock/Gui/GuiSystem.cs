@@ -11,10 +11,13 @@ using MgRect = Microsoft.Xna.Framework.Rectangle;
 
 namespace Thundershock.Gui
 {
-    public sealed class GuiSystem : SceneComponent
+    public sealed class GuiSystem
     {
         private static Type _defaultStyleType;
-        
+
+        private float _viewWidth = 1600;
+        private float _viewHeight = 900;
+        private GraphicsProcessor _gpu;
         private GuiStyle _activeStyle;
         private RootElement _rootElement;
         private bool _debugShowBounds = false;
@@ -24,7 +27,8 @@ namespace Thundershock.Gui
         private Element _down;
         private string _tooltip;
         private Vector2 _tooltipPosition;
-
+        private Renderer2D _renderer;
+        
         public Font FallbackFont => _debugFont;
         
         public Element FocusedElement => _focused;
@@ -32,27 +36,21 @@ namespace Thundershock.Gui
         public GuiStyle Style => _activeStyle;
 
         public Rectangle BoundingBox => _rootElement.BoundingBox;
-        
+
+        public GraphicsProcessor Graphics => _gpu;
+
         public bool ShowBoundingRects
         {
             get => _debugShowBounds;
             set => _debugShowBounds = value;
         }
-        
-        protected override void OnLoad()
-        {
-            base.OnLoad();
-            _rootElement = new RootElement(this);
 
-            _debugFont = Font.GetDefaultFont(Scene.Graphics);
+        public GuiSystem(GraphicsProcessor gpu)
+        {
+            _gpu = gpu;
             
-            //_input.MouseMove += HandleMouseMove;
-            //_input.MouseDown += HandleMouseDown;
-            //_input.MouseUp += HandleMouseUp;
-            //_input.KeyChar += HandleKeyChar;
-            //_input.MouseScroll += HandleMouseScroll;
-            //_input.KeyDown += HandleKeyDown;
-            //_input.KeyUp += HandleKeyUp;
+            _debugFont = Font.GetDefaultFont(_gpu);
+            _rootElement = new RootElement(this);
 
             if (_defaultStyleType != null)
             {
@@ -62,19 +60,10 @@ namespace Thundershock.Gui
             {
                 LoadStyle<BasicStyle>();
             }
-        }
 
-        protected override void OnUnload()
-        {
-            //_input.MouseMove -= HandleMouseMove;
-            //_input.MouseDown -= HandleMouseDown;
-            //_input.MouseUp -= HandleMouseUp;
-            //_input.KeyChar -= HandleKeyChar;
-            //_input.MouseScroll -= HandleMouseScroll;
-            //_input.KeyDown -= HandleKeyDown;
-            //_input.KeyUp -= HandleKeyUp;
+            _renderer = new Renderer2D(_gpu);
         }
-
+        
         private void LoadStyle(Type styleType)
         {
             var style = (GuiStyle) Activator.CreateInstance(styleType, null);
@@ -85,6 +74,12 @@ namespace Thundershock.Gui
             _activeStyle = style;
 
             _activeStyle.Load(this);
+        }
+
+        public void SetViewportSize(float width, float height)
+        {
+            _viewWidth = width;
+            _viewHeight = height;
         }
         
         public void LoadStyle<T>() where T : GuiStyle, new()
@@ -97,37 +92,39 @@ namespace Thundershock.Gui
             _activeStyle.Load(this);
         }
         
-        private void HandleKeyUp(object sender, KeyEventArgs e)
+        public bool KeyUp(KeyEventArgs e)
         {
-            Bubble(_focused, x => x.FireKeyUp(e));
+            return Bubble(_focused, x => x.FireKeyUp(e));
         }
 
-        private void HandleKeyDown(object sender, KeyEventArgs e)
+        public bool KeyDown(KeyEventArgs e)
         {
-            Bubble(_focused, x => x.FireKeyDown(e));
+            return Bubble(_focused, x => x.FireKeyDown(e));
         }
 
-        private void HandleMouseScroll(object sender, MouseScrollEventArgs e)
+        public bool MouseScroll(MouseScrollEventArgs e)
         {
-            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
+            var pos = ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
-            Bubble(hovered, x => x.FireMouseScroll(e));
+            return Bubble(hovered, x => x.FireMouseScroll(e));
         }
 
-        private void HandleKeyChar(object sender, KeyCharEventArgs e)
+        public bool KeyChar(KeyCharEventArgs e)
         {
-            Bubble(_focused, x => x.FireKeyChar(e));
+            return Bubble(_focused, x => x.FireKeyChar(e));
         }
 
-        private void Bubble(Element element, Func<Element, bool> predicate)
+        private bool Bubble(Element element, Func<Element, bool> predicate)
         {
             var e = element;
             while (e != null)
             {
                 if (e.IsInteractable && predicate(e))
-                    break;
+                    return true;
                 e = e.Parent;
             }
+
+            return false;
         }
 
         
@@ -152,42 +149,35 @@ namespace Thundershock.Gui
             }
         }
         
-        private void HandleMouseUp(object sender, MouseButtonEventArgs e)
+        public bool MouseUp(MouseButtonEventArgs e)
         {
-            if (Scene == null)
-                return;
-            
-            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
+            var pos = ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
-
-            Bubble(_down, x => x.FireMouseUp(e));
             
+            var result = Bubble(_down, x => x.FireMouseUp(e));
+
             if (_down == hovered)
             {
                 if (hovered == null || hovered.CanFocus)
                     SetFocus(hovered);
                 _down = null;
             }
+
+            return result;
         }
 
-        private void HandleMouseDown(object sender, MouseButtonEventArgs e)
+        public bool MouseDown(MouseButtonEventArgs e)
         {
-            if (Scene == null)
-                return;
-
-            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
+            var pos = ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
             
             _down = hovered;
-            Bubble(_down, x => x.FireMouseDown(e));
+            return Bubble(_down, x => x.FireMouseDown(e));
         }
 
-        private void HandleMouseMove(object sender, MouseMoveEventArgs e)
+        public bool MouseMove(MouseMoveEventArgs e)
         {
-            if (Scene == null)
-                return;
-
-            var pos = Scene.ScreenToViewport(new Vector2(e.X, e.Y));
+            var pos = ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 
             // MouseEnter and MouseLeave.
@@ -203,9 +193,7 @@ namespace Thundershock.Gui
                 if (_hovered != null)
                     _hovered.FireMouseEnter(e);
             }
-
-            Bubble(_hovered, x => x.FireMouseMove(e));
-
+            
             _tooltip = null;
 
             // Tool-tips.
@@ -215,9 +203,11 @@ namespace Thundershock.Gui
                 if (!string.IsNullOrWhiteSpace(tooltip))
                 {
                     _tooltip = tooltip;
-                    _tooltipPosition = Scene.ScreenToViewport( new Vector2(e.X, e.Y));
+                    _tooltipPosition = ScreenToViewport( new Vector2(e.X, e.Y));
                 }
             }
+            
+            return Bubble(_hovered, x => x.FireMouseMove(e));
         }
 
         public void AddToViewport(Element element)
@@ -225,10 +215,8 @@ namespace Thundershock.Gui
             _rootElement.Children.Add(element);
         }
         
-        protected override void OnUpdate(GameTime gameTime)
+        public void Update(GameTime gameTime)
         {
-            base.OnUpdate(gameTime);
-            
             PerformLayout();
 
             _rootElement.Update(gameTime);
@@ -249,7 +237,7 @@ namespace Thundershock.Gui
 
         private void PerformLayout()
         {
-            var screenRectangle = Scene.ViewportBounds;
+            var screenRectangle = new Rectangle(0, 0, _viewWidth, _viewHeight);
 
             var rootLayout = _rootElement.RootLayoutManager;
 
@@ -291,8 +279,8 @@ namespace Thundershock.Gui
             }
 
             // Translate the vectors into screen space.
-            var pos = Scene.ViewportToScreen(rect.Location);
-            var size = Scene.ViewportToScreen(rect.Size + Vector2.One);
+            var pos = ViewportToScreen(rect.Location);
+            var size = ViewportToScreen(rect.Size + Vector2.One);
 
             rect.X = (int) pos.X;
             rect.Y = (int) pos.Y;
@@ -314,10 +302,12 @@ namespace Thundershock.Gui
             return true;
         }
         
-        protected override void OnDraw(GameTime gameTime, Renderer2D batch)
+        public void Render(GameTime gameTime)
         {
-            base.OnDraw(gameTime, batch);
+            var projection = Matrix4x4.CreateOrthographicOffCenter(0, _viewWidth, _viewHeight, 0, -1, 1);
 
+            _renderer.ProjectionMatrix = projection;
+            
             foreach (var element in _rootElement.CollapseElements())
             {
                 var opacity = ComputeElementOpacity(element);
@@ -327,23 +317,24 @@ namespace Thundershock.Gui
                 // Save precious render time if the clipping rectangle is empty - the element isn't visible on-screen.
                 if (clip.IsEmpty || !IsVisible(element))
                     continue;
-
-                // batch.SetScissorRectangle(clip);
-                batch.Begin();
                 
-                var renderer = new GuiRenderer(batch, opacity, masterTint);
+                // _gpu.EnableScissoring = true;
+                _gpu.ScissorRectangle = clip;
+                _renderer.Begin();
+                
+                var renderer = new GuiRenderer(_renderer, opacity, masterTint);
 
                 element.Paint(gameTime, renderer);
 
-                batch.End();
+                _renderer.End();
 
-                // batch.SetScissorRectangle(ComputeClippingRect(_rootElement));
+                _gpu.EnableScissoring = false;
                 
                 if (_debugShowBounds)
                 {
-                    var debugRenderer = new GuiRenderer(batch, 1, Color.White);
+                    var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
 
-                    batch.Begin();
+                    _renderer.Begin();
 
                     debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
 
@@ -355,7 +346,7 @@ namespace Thundershock.Gui
                     debugRenderer.DrawString(_debugFont, text, pos, Color.White, TextAlign.Center, 2);
                     
                     
-                    batch.End();
+                    _renderer.End();
                 }
             }
 
@@ -378,13 +369,13 @@ namespace Thundershock.Gui
                     _tooltipPosition.Y -= bottomLeft.Y - BoundingBox.Bottom;
                 }
 
-                batch.Begin();
+                _renderer.Begin();
 
-                batch.FillRectangle(new Rectangle((int)_tooltipPosition.X, (int)_tooltipPosition.Y, (int)measure.X, (int)measure.Y), Color.Black);
+                _renderer.FillRectangle(new Rectangle((int)_tooltipPosition.X, (int)_tooltipPosition.Y, (int)measure.X, (int)measure.Y), Color.Black);
 
-                batch.DrawString(font, wrapped, _tooltipPosition + new Vector2(5, 5), Color.White);
+                _renderer.DrawString(font, wrapped, _tooltipPosition + new Vector2(5, 5), Color.White);
 
-                batch.End();
+                _renderer.End();
             }
         }
 
@@ -432,5 +423,31 @@ namespace Thundershock.Gui
         {
             _defaultStyleType = typeof(T);
         }
+
+        public Vector2 ScreenToViewport(Vector2 pos)
+        {
+            pos.X /= _gpu.ViewportBounds.Width;
+            pos.Y /= _gpu.ViewportBounds.Height;
+            pos.X *= _viewWidth;
+            pos.Y *= _viewHeight;
+
+            return pos;
+        }
+
+        public Vector2 ViewportToScreen(Vector2 pos)
+        {
+            pos.X /= _viewWidth;
+            pos.Y /= _viewHeight;
+            pos.X *= _gpu.ViewportBounds.Width;
+            pos.Y *= _gpu.ViewportBounds.Height;
+
+            return pos;
+        }
+        
+        public Vector2 ScreenToViewport(float x, float y)
+            => ScreenToViewport(new Vector2(x, y));
+
+        public Vector2 ViewportToScreen(float x, float y)
+            => ViewportToScreen(new Vector2(x, y));
     }
 }

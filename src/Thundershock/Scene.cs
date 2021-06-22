@@ -35,9 +35,12 @@ namespace Thundershock
         private Registry _registry;
         private Font _deathFont;
         private Renderer2D _renderer2D;
+        private GuiSystem _sceneGui;
         
         public GameLayer Game => _gameLoop;
         public InputSystem InputSystem => _input;
+
+        protected GuiSystem Gui => _sceneGui;
         
         public Camera Camera
         {
@@ -102,10 +105,11 @@ namespace Thundershock
         {
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
             _renderer = new Renderer2D(gameLoop.Graphics);
-            
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
             _debugFont = Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
+            _sceneGui = new GuiSystem(_gameLoop.Graphics);
+            
             OnLoad();
             
             Game.GetComponent<CheatManager>().AddCheat("cam.setPersp", () => Camera.ProjectionType = CameraProjectionType.Perspective);
@@ -132,35 +136,58 @@ namespace Thundershock
                 () => _noClip = !_noClip);
         }
 
-        internal void MouseDown(MouseButtonEventArgs e)
+        internal bool MouseDown(MouseButtonEventArgs e)
         {
-            _input.FireMouseDown(e);
+            if (!_sceneGui.MouseDown(e))
+                _input.FireMouseDown(e);
+            return true;
         }
 
-        internal void MouseUp(MouseButtonEventArgs e)
+        internal bool MouseUp(MouseButtonEventArgs e)
         {
-            _input.FireMouseUp(e);
+            if (!_sceneGui.MouseUp(e))
+                _input.FireMouseUp(e);
+            return true;
         }
 
-        internal void MouseMove(MouseMoveEventArgs e)
+        internal bool MouseMove(MouseMoveEventArgs e)
         {
-            _input.FireMouseMove(e);
+            if (_noClip)
+            {
+                var deltaX = 0.5f * e.DeltaX;
+                var deltaY = 0.5f * -e.DeltaY;
+
+                Camera.Transform.Rotation.Yaw += deltaX;
+                Camera.Transform.Rotation.Pitch += deltaY;
+                
+            }
+            else
+            {
+                if (!_sceneGui.MouseMove(e))
+                    _input.FireMouseMove(e);
+            }
+
+            return true;
         }
 
-        internal void MouseScroll(MouseScrollEventArgs e)
+        internal bool MouseScroll(MouseScrollEventArgs e)
         {
-            _input.FireMouseScroll(e);
+            if (!_sceneGui.MouseScroll(e))
+                _input.FireMouseScroll(e);
+            return true;
         }
         
         internal bool KeyChar(KeyCharEventArgs e)
         {
-            _input.FireKeyChar(e);
+            if (!_sceneGui.KeyChar(e))
+                _input.FireKeyChar(e);
             return true;
         }
         
         internal bool KeyUp(KeyEventArgs e)
         {
-            _input.FireKeyUp(e);
+            if (!_sceneGui.KeyUp(e))
+                _input.FireKeyUp(e);
             return true;
         }
         
@@ -201,7 +228,8 @@ namespace Thundershock
             }
             else
             {
-                _input.FireKeyDown(e);
+                if (!_sceneGui.KeyDown(e))
+                    _input.FireKeyDown(e);
                 return true;
             }
         }
@@ -219,10 +247,8 @@ namespace Thundershock
         {
             OnUpdate(gameTime);
 
-            foreach (var component in _components.ToArray())
-            {
-                component.Update(gameTime);
-            }
+            // Update the scene's GUI
+            _sceneGui.Update(gameTime);
         }
 
         public void Draw(GameTime gameTime)
@@ -317,6 +343,9 @@ namespace Thundershock
                     _renderer.End();
                 }
             }
+            
+            // BEGIN GUI RENDER PASS
+            _sceneGui.Render(gameTime);
         }
 
 

@@ -53,7 +53,7 @@ namespace Thundershock.Core
         {
             var fontRenderer = new FontStashRenderer(renderer);
 
-            var gdiColor = System.Drawing.Color.FromArgb(color.R, color.G, color.B, color.A);
+            var gdiColor = System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
 
             var font = _fontSystem.GetFont(_fontSize);
             font.DrawText(fontRenderer, text, location, gdiColor);
