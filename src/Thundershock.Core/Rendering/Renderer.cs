@@ -118,26 +118,22 @@ namespace Thundershock.Core.Rendering
     public sealed class VertexBuffer : IDisposable
     {
         private GraphicsProcessor _gpu;
-        private uint _gpuID;
-        
+
         public VertexBuffer(GraphicsProcessor gpu)
         {
             _gpu = gpu ?? throw new ArgumentNullException(nameof(gpu));
-            _gpuID = _gpu.CreateVertexBuffer();
         }
 
         public void SubmitVertices(ReadOnlySpan<Vertex> vertices)
         {
-            _gpu.SubmitVertices(_gpuID, vertices);
+            _gpu.SubmitVertices(vertices);
         }
 
         public void Dispose()
         {
             if (_gpu != null)
             {
-                _gpu.DeleteVertexBuffer(_gpuID);
                 _gpu = null;
-                _gpuID = 0;
             }
         }
     }

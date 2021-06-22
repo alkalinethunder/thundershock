@@ -68,16 +68,14 @@ namespace Thundershock.OpenGL
             _textures = new GlTextureCollection(this, _gl);
             
             // Vertex array object.
-            _vao = _gl.GenVertexArray();
-            _gl.BindVertexArray(_vao);
-
+            CreateVertexArray();
+            
             // generate the vertex buffer and index buffer objects.
-            _vertexBuffer = _gl.GenBuffer();
-            _indexBuffer = _gl.GenBuffer();
+            _vertexBuffer = this.CreateVertexBuffer();
+            _indexBuffer = _gl.CreateBuffer();
             
             // bind the index buffer
-            _gl.BindBuffer(GLEnum.ArrayBuffer, _vertexBuffer);
-            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
+            _gl.VertexArrayElementBuffer(_vao, _indexBuffer);
         }
 
 
@@ -90,22 +88,20 @@ namespace Thundershock.OpenGL
 
         public override void SubmitIndices(ReadOnlySpan<int> indices)
         {
-            // Bind to the element array buffer and upload the indices there.
-            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
-            _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);
-            
-            // Unbind from the element array buffer.
-            _gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
+            // Yay for direct state access!
+            _gl.NamedBufferData(_indexBuffer, UIntPtr.Zero + (sizeof(int) * indices.Length), indices,
+                GLEnum.StaticDraw);
         }
 
         public override void DrawPrimitives(PrimitiveType primitiveType, int primitiveStart, int primitiveCount)
         {
+            _gl.BindVertexArray(_vao);
+            
             // TODO: Let the engine control blending.
             _gl.Enable(GLEnum.Blend);
             _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             _gl.UseProgram(_program);
-            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
             
             var type = primitiveType switch
             {
@@ -156,11 +152,39 @@ namespace Thundershock.OpenGL
                 _gl.DrawElements(type, (uint) (primitiveCount * primitiveSize), GLEnum.UnsignedInt,
                     (void*) (nullptr + (uint) (int) (primitiveStart * sizeof(uint))));
             }
+            
+            _gl.BindVertexArray(0);
         }
 
         public override uint CreateVertexBuffer()
         {
-            var vbo = _gl.GenBuffer();
+            var vbo = _gl.CreateBuffer();
+
+            // Set up attribute bindings.
+            _gl.VertexArrayAttribBinding(_vao, 0, 0);
+            _gl.VertexArrayAttribBinding(_vao, 1, 1);
+            _gl.VertexArrayAttribBinding(_vao, 2, 2);
+
+            var posSize = sizeof(float) * 3;
+            var colorSize = sizeof(float) * 4;
+            var texSize = sizeof(float) * 2;
+
+            var vertSize = (uint) (posSize + colorSize + texSize);
+            
+            _gl.VertexArrayAttribFormat(_vao, 0, 3, GLEnum.Float, false, 0);
+            _gl.VertexArrayAttribFormat(_vao, 1, 4, GLEnum.Float, false, (uint) 0);
+            _gl.VertexArrayAttribFormat(_vao, 2, 2, GLEnum.Float, false, (uint) 0);
+
+            // Set up the vertex array attributes.
+            _gl.VertexArrayVertexBuffer(_vao, 0, vbo, IntPtr.Zero, vertSize);
+            _gl.VertexArrayVertexBuffer(_vao, 1, vbo, IntPtr.Zero + posSize, vertSize);
+            _gl.VertexArrayVertexBuffer(_vao, 2, vbo, IntPtr.Zero + posSize + colorSize, vertSize);
+
+            // Enable the attributes.
+            _gl.EnableVertexArrayAttrib(_vao, 0);
+            _gl.EnableVertexArrayAttrib(_vao, 1);
+            _gl.EnableVertexArrayAttrib(_vao, 2);
+            
             return vbo;
         }
 
@@ -169,7 +193,7 @@ namespace Thundershock.OpenGL
             _gl.DeleteBuffer(vbo);
         }
 
-        public override void SubmitVertices(uint vbo, ReadOnlySpan<Vertex> vertices)
+        public override void SubmitVertices(ReadOnlySpan<Vertex> vertices)
         {
             unsafe
             {
@@ -205,13 +229,11 @@ namespace Thundershock.OpenGL
                     }
                 }
 
-
-                _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
-
-                _gl.BufferData<float>(GLEnum.ArrayBuffer, _vertexData, GLEnum.StaticDraw);
+                _gl.NamedBufferData<float>(_vertexBuffer, UIntPtr.Zero + (arrSize * sizeof(float)), _vertexData,
+                    GLEnum.StaticDraw);
 
                 // Vertex attributes
-                void* pptr = (void*) IntPtr.Zero;
+                /*void* pptr = (void*) IntPtr.Zero;
                 void* cptr = (void*) new IntPtr(sizeof(float) * 3);
                 void* tptr = (void*) new IntPtr(sizeof(float) * 7);
 
@@ -225,7 +247,7 @@ namespace Thundershock.OpenGL
                 _gl.EnableVertexAttribArray(2);
                 _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
                     tptr);
-
+                */
             }
         }
 
@@ -291,30 +313,7 @@ namespace Thundershock.OpenGL
                 _gl.Viewport(x, y, (uint) width, (uint) height);
             }
         }
-
-        private void SubmitMatrix(Matrix4x4 matrix)
-        {
-            _matrixBuffer[0] = matrix.M11;
-            _matrixBuffer[1] = matrix.M21;
-            _matrixBuffer[2] = matrix.M31;
-            _matrixBuffer[3] = matrix.M41;
-            
-            _matrixBuffer[4] = matrix.M12;
-            _matrixBuffer[5] = matrix.M22;
-            _matrixBuffer[6] = matrix.M32;
-            _matrixBuffer[7] = matrix.M42;
-            
-            _matrixBuffer[8] = matrix.M13;
-            _matrixBuffer[9] = matrix.M23;
-            _matrixBuffer[10] = matrix.M33;
-            _matrixBuffer[11] = matrix.M43;
-            
-            _matrixBuffer[12] = matrix.M14;
-            _matrixBuffer[13] = matrix.M24;
-            _matrixBuffer[14] = matrix.M34;
-            _matrixBuffer[15] = matrix.M44;
-        }
-
+        
         public override uint CreateRenderTarget(uint texture)
         {
             // Create a framebuffer.
@@ -410,6 +409,17 @@ namespace Thundershock.OpenGL
             if (location > -1)
                 return new GLEffectParameter(program.Id, name, location, _gl);
             return null;
+        }
+
+        private void CreateVertexArray()
+        {
+            // Create the actual vertex array.
+            _vao = _gl.CreateVertexArray();
+            
+            // Attribute formats.
+            var posSize = sizeof(float) * 3;
+            var colorSize = sizeof(float) * 4;
+            var texSize = sizeof(float) * 2;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Thundershock.Core.Rendering
 
         public abstract uint CreateVertexBuffer();
         public abstract void DeleteVertexBuffer(uint vbo);
-        public abstract void SubmitVertices(uint vbo, ReadOnlySpan<Vertex> vertices);
+        public abstract void SubmitVertices(ReadOnlySpan<Vertex> vertices);
 
         public abstract uint CreateTexture(int width, int height);
 
