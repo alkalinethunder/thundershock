@@ -777,14 +777,14 @@ namespace Thundershock.Gui.Elements.Console
             // Now everything is positioned on screen so we're going to calculate
             // the height of everything. This will be factored into the terminal's scroll height.
             var lineY = -1f;
-            var height = 0;
+            var height = 0f;
             foreach (var elem in elements)
             {
                 var y = elem.Position.Y;
                 if (MathF.Abs(lineY - y) >= 0.00001f)
                 {
                     lineY = y;
-                    height += elem.Font.LineSpacing;
+                    height += elem.MouseBounds.Height;
                 }
             }
 
@@ -859,8 +859,8 @@ namespace Thundershock.Gui.Elements.Console
                     _completionY = cursor.Position;
                 }
             }
-            
-            _completionY.Y += _regularFont.LineSpacing;
+
+            _completionY.Y += cursor.MouseBounds.Y;
             _paintCompletions = _relevantCompletions.Any();
             _completionPageStart = 0;
             
