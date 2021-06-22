@@ -101,6 +101,7 @@ namespace Thundershock.OpenGL
             {
                 PrimitiveType.LineStrip => Silk.NET.OpenGL.PrimitiveType.LineStrip,
                 PrimitiveType.TriangleStrip => Silk.NET.OpenGL.PrimitiveType.TriangleStrip,
+                PrimitiveType.TriangleList => Silk.NET.OpenGL.PrimitiveType.Triangles,
                 _ => throw new NotSupportedException()
             };
 

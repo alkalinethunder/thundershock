@@ -106,7 +106,7 @@ namespace Thundershock.Core.Rendering
                     {
                         _renderer.Textures[0] = tex;
 
-                        _renderer.Draw(PrimitiveType.TriangleStrip, vbo, ibo, 0, pCount);
+                        _renderer.Draw(PrimitiveType.TriangleList, vbo, ibo, 0, pCount);
                     }
 
                     _batch.RemoveAt(0);

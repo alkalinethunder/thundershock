@@ -77,6 +77,7 @@ namespace Thundershock.Core.Rendering
             {
                 PrimitiveType.LineStrip => primitiveCount * 2,
                 PrimitiveType.TriangleStrip => primitiveCount * 3,
+                PrimitiveType.TriangleList => primitiveCount * 3,
                 _ => primitiveCount
             };
             
