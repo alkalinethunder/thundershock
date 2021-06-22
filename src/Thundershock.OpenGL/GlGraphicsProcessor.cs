@@ -171,18 +171,18 @@ namespace Thundershock.OpenGL
 
         public override void SubmitVertices(uint vbo, ReadOnlySpan<Vertex> vertices)
         {
-            var posSize = 3;
-            var colorSize = 4;
-            var texCoordSize = 2;
-
-            var vertSize = posSize + colorSize + texCoordSize;
-            var arrSize = vertSize * vertices.Length;
-
-            if (_vertexData.Length != arrSize)
-                Array.Resize(ref _vertexData, arrSize);
-
             unsafe
             {
+                var posSize = 3;
+                var colorSize = 4;
+                var texCoordSize = 2;
+
+                var vertSize = posSize + colorSize + texCoordSize;
+                var arrSize = vertSize * vertices.Length;
+
+                if (_vertexData.Length != arrSize)
+                    Array.Resize(ref _vertexData, arrSize);
+
                 fixed (Vertex* vertex = vertices)
                 {
                     var current = vertex;
@@ -204,17 +204,13 @@ namespace Thundershock.OpenGL
                         current++;
                     }
                 }
-            }
 
-            _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
 
-            _gl.BufferData<float>(GLEnum.ArrayBuffer, _vertexData, GLEnum.StaticDraw);
+                _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
 
-            _gl.BindVertexArray(_vao);
+                _gl.BufferData<float>(GLEnum.ArrayBuffer, _vertexData, GLEnum.StaticDraw);
 
-            // Vertex attributes
-            unsafe
-            {
+                // Vertex attributes
                 void* pptr = (void*) IntPtr.Zero;
                 void* cptr = (void*) new IntPtr(sizeof(float) * 3);
                 void* tptr = (void*) new IntPtr(sizeof(float) * 7);
@@ -229,9 +225,8 @@ namespace Thundershock.OpenGL
                 _gl.EnableVertexAttribArray(2);
                 _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
                     tptr);
-            }
 
-            
+            }
         }
 
         public override uint CreateTexture(int width, int height)
