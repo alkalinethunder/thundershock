@@ -74,8 +74,15 @@ namespace Thundershock.Core.Rendering
 
             _vertexBuffer.SubmitVertices(vertices);
         }
+
+        public void UploadIndices(ReadOnlySpan<int> indices)
+        {
+            ThrowIfNotBegun();
+
+            _gpu.SubmitIndices(indices);
+        }
         
-        public void Draw(PrimitiveType primitive, int[] indexBuffer, int offset, int primitiveCount)
+        public void Draw(PrimitiveType primitive, int offset, int primitiveCount)
         {
             ThrowIfNotBegun();
             
@@ -88,14 +95,11 @@ namespace Thundershock.Core.Rendering
                 _ => primitiveCount
             };
             
-            // Create a span of the indexes we want to upload.
-            var indexSpan = new ReadOnlySpan<int>(indexBuffer, offset, length);
-            
             // Shader parameters.
             _program.Parameters["projection"]?.SetValue(ProjectionMatrix);
             
             // Tell the GPU to draw the primitives.
-            _gpu.DrawPrimitives(primitive, indexSpan, primitiveCount);
+            _gpu.DrawPrimitives(primitive, offset, primitiveCount);
         }
 
         private void ThrowIfNotEnded()

@@ -11,6 +11,8 @@ namespace Thundershock.Core.Rendering
     /// </summary>
     public sealed class Renderer2D
     {
+        private int[] _ibo = new int[128];
+        private int _indexPointer;
         private int _vertexPointer = 0;
         private Vertex[] _vertexArray = new Vertex[128];
         private Effect _effect;
@@ -59,22 +61,20 @@ namespace Thundershock.Core.Rendering
             _effect = effect;
         }
 
-        private RenderItem MakeRenderItem(Texture2D texture, Matrix4x4? transform = null)
+        private RenderItem MakeRenderItem(Texture2D texture)
         {
             if (_running)
             {
                 var tex = texture ?? _blankTexture;
-                var mat = transform ?? Matrix4x4.Identity;
                 
                 if (_batch.Count > 0)
                 {
                     var last = _batch[_batch.Count - 1];
-                    if (last.Texture == tex && last.Transform == mat) return last;
+                    if (last.Texture == tex) return last;
                 }
 
-                var newBatchItem = new RenderItem();
+                var newBatchItem = new RenderItem(this);
                 newBatchItem.Texture = tex;
-                newBatchItem.Transform = mat;
                 _batch.Add(newBatchItem);
                 return newBatchItem;
             }
@@ -99,10 +99,13 @@ namespace Thundershock.Core.Rendering
                 // This is a massive optimization since now we don't need to do this on every draw call.
                 _renderer.UploadVertices(_vertexArray.AsSpan(0, _vertexPointer));
                 
+                // Another optimization is to upload all batch indices right now. Each batch item will
+                // contain the information needed to only render the relevant triangles.
+                _renderer.UploadIndices(_ibo.AsSpan(0, _indexPointer));
+                
                 while (_batch.Count > 0)
                 {
                     var item = _batch[0];
-                    var ibo = item.IndexBuffer;
                     var tex = item.Texture;
 
                     var pCount = item.Triangles;
@@ -111,7 +114,7 @@ namespace Thundershock.Core.Rendering
                     {
                         _renderer.Textures[0] = tex;
 
-                        _renderer.Draw(PrimitiveType.TriangleList, ibo, 0, pCount);
+                        _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
                     }
 
                     _batch.RemoveAt(0);
@@ -122,6 +125,10 @@ namespace Thundershock.Core.Rendering
                 // Now that we've ended, we can go ahead and reset our vertex buffer.
                 _vertexPointer = 0;
                 Array.Resize(ref _vertexArray, 128);
+
+                // Do the same for our index list.
+                _indexPointer = 0;
+                Array.Resize(ref _ibo, 128);
             }
             else
             {
@@ -350,29 +357,30 @@ namespace Thundershock.Core.Rendering
         
         private class RenderItem
         {
-            private int _vertexPointer;
-            private int _indexPointer;
-            private int[] _ibo;
+            private Renderer2D _renderer;
+            private int _batchStart;
+            private int _batchLength;
 
-            public int Triangles => _indexPointer / 3;
-        
-            public Texture2D Texture { get; set; }
+            public int Triangles => _batchLength / 3;
 
-            public int[] IndexBuffer => _ibo.AsSpan(0, _indexPointer).ToArray();
-
-            public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
+            public int Start => _batchStart;
+            public int Length => _batchLength;
             
-            public RenderItem()
+            public Texture2D Texture { get; set; }
+            
+            public RenderItem(Renderer2D renderer)
             {
-                _ibo = new int[128];
+                _renderer = renderer;
+                _batchStart = _renderer._indexPointer;
             }
 
             public void AddIndex(int index)
             {
-                _ibo[_indexPointer] = index;
-                _indexPointer++;
-                if (_indexPointer >= _ibo.Length)
-                    Array.Resize(ref _ibo, _ibo.Length * 2);
+                _renderer._ibo[_renderer._indexPointer] = index;
+                _renderer._indexPointer++;
+                if (_renderer._indexPointer >= _renderer._ibo.Length)
+                    Array.Resize(ref _renderer._ibo, _renderer._ibo.Length + 128);
+                _batchLength++;
             }
         }
 

@@ -87,7 +87,17 @@ namespace Thundershock.OpenGL
             _gl.Clear((uint) GLEnum.ColorBufferBit | (uint) GLEnum.DepthBufferBit);
         }
 
-        public override void DrawPrimitives(PrimitiveType primitiveType, ReadOnlySpan<int> indices, int primitiveCount)
+        public override void SubmitIndices(ReadOnlySpan<int> indices)
+        {
+            // Bind to the element array buffer and upload the indices there.
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
+            _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);
+            
+            // Unbind from the element array buffer.
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
+        }
+
+        public override void DrawPrimitives(PrimitiveType primitiveType, int primitiveStart, int primitiveCount)
         {
             // TODO: Let the engine control blending.
             _gl.Enable(GLEnum.Blend);
@@ -95,7 +105,6 @@ namespace Thundershock.OpenGL
 
             _gl.UseProgram(_program);
             _gl.BindBuffer(GLEnum.ElementArrayBuffer, _indexBuffer);
-            _gl.BufferData(GLEnum.ElementArrayBuffer, indices, GLEnum.StaticDraw);
             
             var type = primitiveType switch
             {
@@ -105,6 +114,15 @@ namespace Thundershock.OpenGL
                 _ => throw new NotSupportedException()
             };
 
+            var primitiveSize = primitiveType switch
+            {
+                PrimitiveType.LineStrip => 1,
+                PrimitiveType.TriangleStrip => 3,
+                PrimitiveType.TriangleList => 3,
+                _ => throw new NotSupportedException()
+            };
+
+            
             var name = "tex";
             ;
             
@@ -129,10 +147,13 @@ namespace Thundershock.OpenGL
             _gl.Scissor((int) _scissorRect.X, (int) _scissorRect.Y, (uint) _scissorRect.Width,
                 (uint) _scissorRect.Height);
             
+            
+            
             unsafe
             {
-                void* nullptr = null;
-                _gl.DrawElements(type, (uint) indices.Length, GLEnum.UnsignedInt, nullptr);
+                nuint nullptr = UIntPtr.Zero;
+                _gl.DrawElements(type, (uint) (primitiveCount * primitiveSize), GLEnum.UnsignedInt,
+                    (void*) (nullptr + (uint) (int) (primitiveStart * sizeof(uint))));
             }
         }
 
