@@ -180,13 +180,13 @@ namespace Thundershock.Core.Rendering
             var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom), transform);
             var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom), transform);
             
-            batch.AddIndex(tl);
             batch.AddIndex(tr);
             batch.AddIndex(bl);
+            batch.AddIndex(tl);
             
-            batch.AddIndex(bl);
             batch.AddIndex(tr);
             batch.AddIndex(br);
+            batch.AddIndex(bl);
         }
         
         /// <summary>
@@ -206,14 +206,14 @@ namespace Thundershock.Core.Rendering
             var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, TextureCoords.BottomRight);
 
             // firsst triangle
-            renderItem.AddIndex(tl);
             renderItem.AddIndex(tr);
             renderItem.AddIndex(bl);
+            renderItem.AddIndex(tl);
 
             // second triangle
             renderItem.AddIndex(tr);
-            renderItem.AddIndex(bl);
             renderItem.AddIndex(br);
+            renderItem.AddIndex(bl);
 
             // And that's how you draw a rectangle with two triangles!
         }

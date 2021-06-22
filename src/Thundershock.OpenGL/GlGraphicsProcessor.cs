@@ -14,6 +14,9 @@ namespace Thundershock.OpenGL
 {
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
+        private int[] _programTextureUnits;
+        private bool _programChangedSinceLastDrawCall = false;
+        
         private bool _vaoReady = false;
         private uint _program;
         private GL _gl;
@@ -63,7 +66,10 @@ namespace Thundershock.OpenGL
         internal GlGraphicsProcessor(GL glContext)
         {
             _gl = glContext;
-            
+         
+            // Number of texture units a shader can access.
+            _programTextureUnits = new int[_gl.GetInteger(GLEnum.MaxTextureImageUnits)];
+
             // Texture colllection
             _textures = new GlTextureCollection(this, _gl);
             
@@ -95,6 +101,12 @@ namespace Thundershock.OpenGL
 
         public override void DrawPrimitives(PrimitiveType primitiveType, int primitiveStart, int primitiveCount)
         {
+            // Back-face culling - improves performance because we only need to render what we can
+            // actually see.
+            // TODO: fix this so that the engine can enable/disable/configure it.
+            _gl.CullFace(GLEnum.Front);
+            _gl.Enable(GLEnum.CullFace);
+            
             _gl.BindVertexArray(_vao);
             
             // TODO: Let the engine control blending.
@@ -119,22 +131,30 @@ namespace Thundershock.OpenGL
                 _ => throw new NotSupportedException()
             };
 
-            
-            var name = "tex";
-            ;
-            
-            for (var i = 0; i < 32; i++)
+
+            if (_programChangedSinceLastDrawCall)
             {
-                name = "tex" + i.ToString();
-
-                var location = _gl.GetUniformLocation(_program, name);
-
-                if (location > -1)
+                for (var i = 0; i < _programTextureUnits.Length; i++)
                 {
-                    _gl.Uniform1(location, i);
+                    var name = "tex" + i.ToString();
+                    var location = _gl.GetUniformLocation(_program, name);
+
+                    _programTextureUnits[i] = location;
                 }
+
+                _programChangedSinceLastDrawCall = false;
             }
             
+            // Set up texture units for the program
+            for (var i = 0; i < _programTextureUnits.Length; i++)
+            {
+                var location = _programTextureUnits[i];
+                if (location < 0)
+                    continue;
+                
+                _gl.Uniform1(location, i);
+            }
+
             // Scissor testing
             if (_scissor)
                 _gl.Enable(GLEnum.ScissorTest);
@@ -399,6 +419,11 @@ namespace Thundershock.OpenGL
 
         public override void SetActiveShaderProgram(uint program)
         {
+            if (_program != program)
+            {
+                _programChangedSinceLastDrawCall = true;
+            }
+            
             _gl.UseProgram(program);
             _program = program;
         }
