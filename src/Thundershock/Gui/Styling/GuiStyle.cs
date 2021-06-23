@@ -3,8 +3,6 @@ using System.Numerics;
 using Thundershock.Gui.Elements;
 using Thundershock.Core;
 
-using GdiColor = Microsoft.Xna.Framework.Color;
-
 namespace Thundershock.Gui.Styling
 {
     public abstract class GuiStyle

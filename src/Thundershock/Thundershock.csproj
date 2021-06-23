@@ -14,8 +14,7 @@
     <PackageReference Include="docopt.net" Version="0.6.1.11" />
     <PackageReference Include="GtkSharp" Version="3.24.24.34" />
     <PackageReference Include="MimeTypeMap.Core" Version="1.0.0" />
-    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.0.1641" />
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.0.1641" />
+    <PackageReference Include="NVorbis" Version="0.10.3" />
   </ItemGroup>
 
   <ItemGroup>

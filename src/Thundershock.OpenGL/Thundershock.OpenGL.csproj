@@ -22,9 +22,13 @@
     <EmbeddedResource Include="Resources\Shaders\BasicShader.frag" />
     <None Remove="Resources\Shaders\BasicShader.vert" />
     <EmbeddedResource Include="Resources\Shaders\BasicShader.vert" />
+    <None Update="SDL2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="sdl2.nuget" Version="2.0.14" />
     <PackageReference Include="Silk.NET.Core" Version="2.5.0" />
     <PackageReference Include="Silk.NET.OpenAL" Version="2.5.0" />
     <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.21.1" />

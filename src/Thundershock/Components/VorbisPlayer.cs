@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using NVorbis;
 using Thundershock.Core.Audio;
 using GameTime = Thundershock.Core.GameTime;
@@ -27,7 +24,6 @@ namespace Thundershock.Components
         private TimeSpan _playTime;
         private bool _isPlaying = false;
         private VorbisReader _reader;
-        private DynamicSoundEffectInstance _output;
         private bool _isLooped = false;
         private ConcurrentQueue<byte[]> _queue = new ConcurrentQueue<byte[]>();
         private Task _decoder;
@@ -47,19 +43,10 @@ namespace Thundershock.Components
         private void Cleanup()
         {
             // this hell stops the audio output and makes sure it's cleaned up.
-            if (_output != null)
+            if (_audioOutput != null)
             {
-                if (!_output.IsDisposed)
-                {
-                    if (_output.State != SoundState.Stopped)
-                    {
-                        _output.Stop();
-                    }
-
-                    _output.Dispose();
-                }
-
-                _output = null;
+                _audioOutput.Dispose();
+                _audioOutput = null;
             }
 
             // this kills the vorbis stream

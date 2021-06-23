@@ -7,8 +7,6 @@ using Thundershock.Gui.Styling;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 
-using MgRect = Microsoft.Xna.Framework.Rectangle;
-
 namespace Thundershock.Gui
 {
     public sealed class GuiSystem
