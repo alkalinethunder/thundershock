@@ -78,8 +78,21 @@ namespace Thundershock.Gui
 
         public void SetViewportSize(float width, float height)
         {
-            _viewWidth = width;
-            _viewHeight = height;
+            var shouldPerformLayout = false;
+            if (MathF.Abs(_viewWidth - width) >= 0.1f)
+            {
+                _viewWidth = width;
+                shouldPerformLayout = true;
+            }
+
+            if (MathF.Abs(_viewHeight - height) > 0.1f)
+            {
+                _viewHeight = height;
+                shouldPerformLayout = true;
+            }
+
+            if (shouldPerformLayout)
+                PerformLayout();
         }
         
         public void LoadStyle<T>() where T : GuiStyle, new()
@@ -218,23 +231,10 @@ namespace Thundershock.Gui
         public void Update(GameTime gameTime)
         {
             PerformLayout();
-
+            
             _rootElement.Update(gameTime);
         }
-
-        private float ComputeElementOpacity(Element element)
-        {
-            var opacity = element.Opacity;
-            var parent = element.Parent;
-            while (parent != null)
-            {
-                opacity = opacity * parent.Opacity;
-                parent = parent.Parent;
-            }
-
-            return opacity;
-        }
-
+        
         private void PerformLayout()
         {
             var screenRectangle = new Rectangle(0, 0, _viewWidth, _viewHeight);
@@ -244,52 +244,6 @@ namespace Thundershock.Gui
             rootLayout.SetBounds(screenRectangle);
         }
         
-        private Color ComputeElementTint(Element element)
-        {
-            var color = element.Enabled ? Color.White : Color.Gray;
-            var parent = element.Parent;
-            while (parent != null)
-            {
-                var pColor = parent.Enabled ? Color.White : Color.Gray;
-
-                var r = (float) pColor.R / 255f;
-                var g = (float) pColor.G / 255f;
-                var b = (float) pColor.B / 255f;
-
-                var br = (byte) (color.R * r);
-                var bg = (byte) (color.G * g);
-                var bb = (byte) (color.B * b);
-
-                color = new Color(br, bg, bb);
-                
-                parent = parent.Parent;
-            }
-
-            return color;
-        }
-
-        private Rectangle ComputeClippingRect(Element elem)
-        {
-            var rect = elem.Visibility == Visibility.Visible ? elem.BoundingBox : Rectangle.Empty;
-            var p = elem.Parent;
-            while (p != null)
-            {
-                rect = Rectangle.Intersect(rect, p.Visibility == Visibility.Visible ? p.BoundingBox : Rectangle.Empty);
-                p = p.Parent;
-            }
-
-            // Translate the vectors into screen space.
-            var pos = ViewportToScreen(rect.Location);
-            var size = ViewportToScreen(rect.Size + Vector2.One);
-
-            rect.X = (int) pos.X;
-            rect.Y = (int) pos.Y;
-            rect.Width = (int) size.X;
-            rect.Height = (int) size.Y;
-            
-            return rect;
-        }
-
         private bool IsVisible(Element elem)
         {
             while (elem != null)
@@ -310,32 +264,30 @@ namespace Thundershock.Gui
             
             foreach (var element in _rootElement.CollapseElements())
             {
-                var opacity = ComputeElementOpacity(element);
-                var masterTint = ComputeElementTint(element);
-                var clip = ComputeClippingRect(element);
+                // This will recompute the element's tint and opacity if it is currently invalid.
+                element.RecomputeRenderData();
+
+                var opacity = element.ComputedOpacity;
+                var masterTint = element.ComputedTint;
+                var clip = element.ClipBounds;
                 
                 // Save precious render time if the clipping rectangle is empty - the element isn't visible on-screen.
                 if (clip.IsEmpty || !IsVisible(element))
                     continue;
                 
-                _gpu.EnableScissoring = true;
-                _gpu.ScissorRectangle = clip;
-                _renderer.Begin();
-                
                 var renderer = new GuiRenderer(_renderer, opacity, masterTint);
 
+                _gpu.ScissorRectangle = clip;
+                _gpu.EnableScissoring = true;
+                
+                _renderer.Begin();
+
                 element.Paint(gameTime, renderer);
-
-                _renderer.End();
-
-                _gpu.EnableScissoring = false;
                 
                 if (_debugShowBounds)
                 {
                     var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
-
-                    _renderer.Begin();
-
+                    
                     debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
 
                     var text = $"{element.Name}{Environment.NewLine}BoundingBox={element.BoundingBox}";
@@ -344,12 +296,13 @@ namespace Thundershock.Gui
                         element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
 
                     debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
-                    
-                    
-                    _renderer.End();
                 }
-            }
 
+                _renderer.End();
+
+                _gpu.EnableScissoring = false;
+            }
+            
             if (!string.IsNullOrWhiteSpace(_tooltip))
             {
                 var font = _activeStyle.DefaultFont;

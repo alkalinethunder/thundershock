@@ -9,8 +9,20 @@ namespace Thundershock.Gui.Elements
     public class Stacker : Element
     {
         public static readonly string FillProperty = "Fill";
+
+        private StackDirection _direction = StackDirection.Vertical;
         
-        public StackDirection Direction { get; set; } = StackDirection.Vertical;
+        public StackDirection Direction
+        {
+            get => _direction;
+            set
+            {
+                if (_direction != value)
+                {
+                    _direction = value;
+                }
+            }
+        }
 
         private float GetFillPercentage(Element elem)
         {

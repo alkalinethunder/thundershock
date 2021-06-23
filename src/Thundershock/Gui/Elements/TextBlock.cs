@@ -12,13 +12,47 @@ namespace Thundershock.Gui.Elements
     public class TextBlock : Element
     {
         private string _wrappedText;
-
+        private string _text = string.Empty;
+        private TextAlign _textAlign = Gui.TextAlign.Left;
+        private TextWrapMode _wrapMode = TextWrapMode.WordWrap;
+        
         public StyleColor Color { get; set; } = StyleColor.Default;
-        public string Text { get; set; } = "Text Block";
 
-        public TextAlign TextAlign { get; set; }
+        public string Text
+        {
+            get => _text;
+            set
+            {
+                if (_text != value)
+                {
+                    _text = value;
+                }
+            }
+        }
 
-        public TextWrapMode WrapMode { get; set; } = TextWrapMode.WordWrap;
+        public TextAlign TextAlign
+        {
+            get => _textAlign;
+            set
+            {
+                if (_textAlign != value)
+                {
+                    _textAlign = value;
+                }
+            }
+        }
+
+        public TextWrapMode WrapMode
+        {
+            get => _wrapMode;
+            set
+            {
+                if (_wrapMode != value)
+                {
+                    _wrapMode = value;
+                }
+            }
+        }
         
         private Font GetFont()
         {
@@ -173,16 +207,10 @@ namespace Thundershock.Gui.Elements
             var size = Vector2.Zero;
             foreach (var line in _wrappedText.Split('\n'))
             {
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    size.Y += f.LineSpacing;
-                    continue;
-                }
-                
                 var m = f.MeasureString(line);
 
                 size.X = Math.Max(size.X, m.X);
-                size.Y += m.Y;
+                size.Y += f.LineHeight;
             }
 
             return size;
@@ -199,12 +227,6 @@ namespace Thundershock.Gui.Elements
 
                 foreach (var line in lines)
                 {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        pos.Y += f.LineSpacing;
-                        continue;
-                    }
-                    
                     var m = f.MeasureString(line);
                     
                     switch (this.TextAlign)
@@ -221,7 +243,7 @@ namespace Thundershock.Gui.Elements
                     }
                     
                     renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground));
-                    pos.Y += m.Y;
+                    pos.Y += f.LineHeight;
                 }
             }
         }

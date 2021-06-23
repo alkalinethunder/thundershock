@@ -12,6 +12,7 @@ namespace Thundershock.Core
 
         public abstract int Size { get; set; }
         public abstract int LineSpacing { get; set; }
+        public int LineHeight => Size + LineSpacing;
         public abstract int CharacterSpacing { get; set; }
         public abstract char DefaultCharacter { get; set; }
         

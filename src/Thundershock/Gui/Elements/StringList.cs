@@ -29,7 +29,7 @@ namespace Thundershock.Gui.Elements
 
             var m = font.MeasureString(longest);
 
-            m.Y = font.LineSpacing * Count;
+            m.Y = font.LineHeight * Count;
 
             return m;
         }
@@ -39,8 +39,8 @@ namespace Thundershock.Gui.Elements
             var font = GetFont();
             
             var rect = ContentRectangle;
-            rect.Height = font.LineSpacing;
-            rect.Y += font.LineSpacing * index;
+            rect.Height = font.LineHeight;
+            rect.Y += font.LineHeight * index;
 
             return rect;
         }
@@ -59,8 +59,8 @@ namespace Thundershock.Gui.Elements
                 var bounds = GetItemBounds(i, item);
 
                 GuiSystem.Style.DrawListItem(renderer, this, bounds, i == SelectedIndex, i == HotIndex, item);
-                
-                pos.Y += font.LineSpacing;
+
+                pos.Y += bounds.Height;
             }
         }
     }

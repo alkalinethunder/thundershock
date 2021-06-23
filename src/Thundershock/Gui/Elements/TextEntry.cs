@@ -59,6 +59,8 @@ namespace Thundershock.Gui.Elements
             var m = f.MeasureString(mText);
             m.X += GuiSystem.Style.TextCursorWidth;
 
+            m.Y = f.LineHeight;
+            
             return m;
         }
 
@@ -118,14 +120,9 @@ namespace Thundershock.Gui.Elements
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
             var font = GetFont();
-
-            var m = _text;
-            if (string.IsNullOrEmpty(m))
-                m = _hint ?? string.Empty;
-            var measure = font.MeasureString(m);
-
+            
             var pos = new Vector2(ContentRectangle.Left,
-                ContentRectangle.Top + ((ContentRectangle.Height - measure.Y) / 2));
+                ContentRectangle.Top + ((ContentRectangle.Height - font.LineHeight) / 2));
 
             var textColor = ForeColor.GetColor(GuiSystem.Style.DefaultForeground);
             
@@ -139,11 +136,11 @@ namespace Thundershock.Gui.Elements
             if (HasAnyFocus)
             {
                 var cursorPos = pos;
-                m = _text.Substring(0, _inputPos);
-                measure = font.MeasureString(m);
+                var m = _text.Substring(0, _inputPos);
+                var measure = font.MeasureString(m);
                 cursorPos.X += measure.X;
 
-                GuiSystem.Style.DrawTextCursor(renderer, textColor, cursorPos, font.LineSpacing);
+                GuiSystem.Style.DrawTextCursor(renderer, textColor, cursorPos, font.LineHeight);
             }
         }
     }

@@ -10,7 +10,8 @@ namespace Thundershock.Gui
         private float _opacity;
         private Color _masterTint;
         private Renderer2D _spriteBatch;
-
+        private Rectangle _clipRect;
+        
         private Color GetProperTint(Color tint)
         {
             var r = (float) tint.R;
@@ -34,9 +35,11 @@ namespace Thundershock.Gui
             _opacity = opacity;
             _masterTint = tint;
         }
-
+        
         public void FillRectangle(Rectangle rect, Color color)
-            => _spriteBatch.FillRectangle(rect, GetProperTint(color));
+        {
+            _spriteBatch.FillRectangle(rect, GetProperTint(color));
+        }
 
         public void FillRectangle(Rectangle rect, Texture2D texture, Color color)
         {
@@ -45,23 +48,7 @@ namespace Thundershock.Gui
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
         {
-            var half = Math.Min(rect.Width, rect.Height) / 2;
-            
-            if (thickness >= half)
-            {
-                FillRectangle(rect, color);
-                return;
-            }
-            
-            var left = new Rectangle(rect.Left, rect.Top, thickness, rect.Height);
-            var right = new Rectangle(rect.Right - thickness, rect.Top, thickness, rect.Height);
-            var top = new Rectangle(left.Right, left.Top, rect.Width - (thickness * 2), thickness);
-            var bottom = new Rectangle(top.Left, rect.Bottom - thickness, top.Width, top.Height);
-
-            FillRectangle(left, color);
-            FillRectangle(top, color);
-            FillRectangle(right, color);
-            FillRectangle(bottom, color);
+            _spriteBatch.DrawRectangle(rect, color, thickness);
         }
 
         public void DrawString(Font font, string text, Vector2 position, Color color,

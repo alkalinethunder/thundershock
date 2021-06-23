@@ -680,7 +680,6 @@ namespace Thundershock.Gui.Elements.Console
             // The next part of the process is positioning the now-processed elements.
             // This is where line wrapping happens, so do expect more elements to be created.
             var wrapPointAccount = 0f;
-            var lineHeight = 0f;
             for (int i = 0; i < elements.Count; i++)
             {
                 // Current element to process.
@@ -703,12 +702,10 @@ namespace Thundershock.Gui.Elements.Console
                 if (attrs.Position.X + measure.X >= rect.Right)
                 {
                     attrs.Position.X = rect.Left + wrapPointAccount;
-                    attrs.Position.Y += lineHeight;
-                    lineHeight = measure.Y;
+                    attrs.Position.Y += elem.Font.LineHeight;
                 }
 
                 // Set the position of the element from our attributes.
-                lineHeight = Math.Max(lineHeight, measure.Y);
                 elem.Position = attrs.Position;
                 
                 // is the element larger than a lie?
@@ -725,7 +722,7 @@ namespace Thundershock.Gui.Elements.Console
                     
                     // OH FUCKING JESUS FUCK FUCK
                     elem.MouseBounds = new Rectangle((int) elem.Position.X, (int) elem.Position.Y, (int) measure.X,
-                        (int) measure.Y);
+                        elem.Font.LineHeight);
 
                     // this is some seriously fucked shit
                     foreach (var line in lines.Skip(1))
@@ -738,8 +735,7 @@ namespace Thundershock.Gui.Elements.Console
                         wtf.Text = line;
                         
                         // I wanna die
-                        var lineMeasure = wtf.Font.MeasureString(line);
-                        wtf.Position.Y += lineMeasure.Y;
+                        wtf.Position.Y += elem.Font.LineHeight;
                         
                         // fuck this
                         attrs.Position = wtf.Position;
@@ -753,20 +749,19 @@ namespace Thundershock.Gui.Elements.Console
                         
                         // OH FUCKING JESUS FUCK FUCK
                         elem.MouseBounds = new Rectangle((int) elem.Position.X, (int) elem.Position.Y, (int) measure.X,
-                            (int) measure.Y);
+                            elem.Font.LineHeight);
                     }
                 }
 
                 // store a rectangle for mouse hit detection
                 elem.MouseBounds = new Rectangle((int) elem.Position.X, (int) elem.Position.Y, (int) measure.X,
-                    (int) measure.Y);
+                    elem.Font.LineHeight);
                 
                 // Go to a new line if the element ends with a new line.
                 if (elem.Text.EndsWith('\n'))
                 {
                     attrs.Position.X = rect.Left + wrapPointAccount;
-                    attrs.Position.Y += lineHeight;
-                    lineHeight = 0;
+                    attrs.Position.Y += elem.Font.LineHeight;
                 }
                 else
                 {
@@ -860,7 +855,7 @@ namespace Thundershock.Gui.Elements.Console
                 }
             }
 
-            _completionY.Y += cursor.MouseBounds.Y;
+            _completionY.Y += cursor.Font.LineHeight;
             _paintCompletions = _relevantCompletions.Any();
             _completionPageStart = 0;
             
