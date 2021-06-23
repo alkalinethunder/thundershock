@@ -114,7 +114,14 @@ namespace Thundershock.OpenGL
             _gl.Enable(GLEnum.Blend);
             _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             
-            
+            // Scissor testing
+            if (_scissor)
+                _gl.Enable(GLEnum.ScissorTest);
+            else
+                _gl.Disable(GLEnum.ScissorTest);
+
+            _gl.Scissor((int) _scissorRect.Left, (int) (_viewportH - _scissorRect.Height - _scissorRect.Y), (uint) _scissorRect.Width,
+                (uint) _scissorRect.Height);
         }
         
         public override void DrawPrimitives(PrimitiveType primitiveType, int primitiveStart, int primitiveCount)
@@ -161,17 +168,6 @@ namespace Thundershock.OpenGL
                 _gl.Uniform1(location, i);
             }
 
-            // Scissor testing
-            if (_scissor)
-                _gl.Enable(GLEnum.ScissorTest);
-            else
-                _gl.Disable(GLEnum.ScissorTest);
-
-            _gl.Scissor((int) _scissorRect.Left, (int) (_viewportH - _scissorRect.Height - _scissorRect.Y), (uint) _scissorRect.Width,
-                (uint) _scissorRect.Height);
-            
-            
-            
             unsafe
             {
                 nuint nullptr = UIntPtr.Zero;

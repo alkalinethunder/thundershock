@@ -14,11 +14,12 @@ namespace Thundershock.Core.Rendering
     {
         private int[] _ibo = new int[128];
         private int _indexPointer;
+        private int _batchPointer;
         private int _vertexPointer = 0;
         private Vertex[] _vertexArray = new Vertex[128];
         private Effect _effect;
         private bool _running;
-        private List<RenderItem> _batch = new List<RenderItem>();
+        private RenderItem[] _batch = new RenderItem[128];
         private Texture2D _blankTexture;
         private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
         private Renderer _renderer;
@@ -46,9 +47,9 @@ namespace Thundershock.Core.Rendering
             }
             
             _running = true;
-            
-            _batch.Clear();
-
+            _batchPointer = 0;
+            _indexPointer = 0;
+            _vertexPointer = 0;
             _effect = null;
         }
         
@@ -68,15 +69,20 @@ namespace Thundershock.Core.Rendering
             {
                 var tex = texture ?? _blankTexture;
                 
-                if (_batch.Count > 0)
+                if (_batchPointer > 0)
                 {
-                    var last = _batch[_batch.Count - 1];
+                    var last = _batch[_batchPointer - 1];
                     if (last.Texture == tex) return last;
                 }
 
                 var newBatchItem = new RenderItem(this);
                 newBatchItem.Texture = tex;
-                _batch.Add(newBatchItem);
+                _batch[_batchPointer] = newBatchItem;
+
+                _batchPointer++;
+                if (_batchPointer >= _batch.Length)
+                    Array.Resize(ref _batch, _batch.Length + 128);
+
                 return newBatchItem;
             }
             else
@@ -93,42 +99,44 @@ namespace Thundershock.Core.Rendering
         {
             if (_running)
             {
-                _renderer.ProjectionMatrix = _projectionMatrix;
-                _renderer.Begin(_effect);
-                
-                // Submit the vertex buffer. All vertices for every single batch item are in here.
-                // This is a massive optimization since now we don't need to do this on every draw call.
-                _renderer.UploadVertices(_vertexArray.AsSpan(0, _vertexPointer));
-                
-                // Another optimization is to upload all batch indices right now. Each batch item will
-                // contain the information needed to only render the relevant triangles.
-                _renderer.UploadIndices(_ibo.AsSpan(0, _indexPointer));
-                
-                while (_batch.Count > 0)
+                if (_batchPointer > 0)
                 {
-                    var item = _batch[0];
-                    var tex = item.Texture;
+                    _renderer.ProjectionMatrix = _projectionMatrix;
+                    _renderer.Begin(_effect);
 
-                    var pCount = item.Triangles;
+                    // Submit the vertex buffer. All vertices for every single batch item are in here.
+                    // This is a massive optimization since now we don't need to do this on every draw call.
+                    _renderer.UploadVertices(_vertexArray.AsSpan(0, _vertexPointer));
 
-                    if (pCount >= 1)
+                    // Another optimization is to upload all batch indices right now. Each batch item will
+                    // contain the information needed to only render the relevant triangles.
+                    _renderer.UploadIndices(_ibo.AsSpan(0, _indexPointer));
+
+                    for (var i = 0; i < _batchPointer; i++)
                     {
-                        _renderer.Textures[0] = tex;
+                        var item = _batch[i];
+                        var tex = item.Texture;
 
-                        _renderer.ProjectionMatrix = this.ProjectionMatrix;
-                        _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
+                        var pCount = item.Triangles;
+
+                        if (pCount >= 1)
+                        {
+                            _renderer.Textures[0] = tex;
+
+                            _renderer.ProjectionMatrix = this.ProjectionMatrix;
+                            _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
+                        }
                     }
 
-                    _batch.RemoveAt(0);
+                    _renderer.End();
+
+                    // Reset the vertex and index pointers to give the impression that we've cleared
+                    // the buffers.  We don't actually clear the buffers because resizing the arrays
+                    // is a bit slow and unnecessary.
+                    _vertexPointer = 0;
+                    _indexPointer = 0;
+                    _batchPointer = 0;
                 }
-
-                _renderer.End();
-
-                // Reset the vertex and index pointers to give the impression that we've cleared
-                // the buffers.  We don't actually clear the buffers because resizing the arrays
-                // is a bit slow and unnecessary.
-                _vertexPointer = 0;
-                _indexPointer = 0;
             }
             else
             {

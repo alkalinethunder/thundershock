@@ -261,47 +261,8 @@ namespace Thundershock.Gui
             var projection = Matrix4x4.CreateOrthographicOffCenter(0, _viewWidth, _viewHeight, 0, -1, 1);
 
             _renderer.ProjectionMatrix = projection;
-            
-            foreach (var element in _rootElement.CollapseElements())
-            {
-                // This will recompute the element's tint and opacity if it is currently invalid.
-                element.RecomputeRenderData();
 
-                var opacity = element.ComputedOpacity;
-                var masterTint = element.ComputedTint;
-                var clip = element.ClipBounds;
-                
-                // Save precious render time if the clipping rectangle is empty - the element isn't visible on-screen.
-                if (clip.IsEmpty || !IsVisible(element))
-                    continue;
-                
-                var renderer = new GuiRenderer(_renderer, opacity, masterTint);
-
-                _gpu.ScissorRectangle = clip;
-                _gpu.EnableScissoring = true;
-                
-                _renderer.Begin();
-
-                element.Paint(gameTime, renderer);
-                
-                if (_debugShowBounds)
-                {
-                    var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
-                    
-                    debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
-
-                    var text = $"{element.Name}{Environment.NewLine}BoundingBox={element.BoundingBox}";
-                    var measure = _debugFont.MeasureString(text);
-                    var pos = new Vector2((element.BoundingBox.Left + ((element.BoundingBox.Width - measure.X) / 2)),
-                        element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
-
-                    debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
-                }
-
-                _renderer.End();
-
-                _gpu.EnableScissoring = false;
-            }
+            PaintElements(gameTime, _rootElement);
             
             if (!string.IsNullOrWhiteSpace(_tooltip))
             {
@@ -402,5 +363,70 @@ namespace Thundershock.Gui
 
         public Vector2 ViewportToScreen(float x, float y)
             => ViewportToScreen(new Vector2(x, y));
+
+        private void PaintElements(GameTime gameTime, Element element)
+        {
+            // Skip rendering if the element is explicitly invisible.
+            if (element.Visibility != Visibility.Visible)
+                return;
+            
+            // Re-compute render data for the element if it is dirty.
+            element.RecomputeRenderData();
+
+            // Skip rendering if the element is fully transparent.
+            if (element.ComputedOpacity <= 0)
+                return;
+
+            var clip = element.ClipBounds;
+            
+            // Skip rendering if the clipping rectangle for the element is empty
+            // (the element is either off-screen or outside the bounds of its parent.)
+            if (clip.IsEmpty)
+                return;
+            
+            // Get the computed tint value.
+            var tint = element.ComputedTint;
+            
+            // Set up the GUI renderer.
+            var gRenderer = new GuiRenderer(_renderer, element.ComputedOpacity, tint);
+            
+            // Set up the scissor testing for the element.
+            _gpu.EnableScissoring = true;
+            _gpu.ScissorRectangle = clip;
+            
+            // Begin the render batch.
+            _renderer.Begin();
+            
+            // Paint, damn you.
+            element.Paint(gameTime, gRenderer);
+            
+            // Debug rects if they're enabled.
+            if (_debugShowBounds)
+            {
+                var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
+                    
+                debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
+
+                var text = $"{element.Name}{Environment.NewLine}BoundingBox={element.BoundingBox}";
+                var measure = _debugFont.MeasureString(text);
+                var pos = new Vector2((element.BoundingBox.Left + ((element.BoundingBox.Width - measure.X) / 2)),
+                    element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
+
+                debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
+            }
+
+            // End the batch.
+            _renderer.End();
+            
+            // Disable scissoring.
+            _gpu.EnableScissoring = false;
+
+            // Recurse through the element's children.
+            foreach (var child in element.Children)
+            {
+                // Paint the child.
+                PaintElements(gameTime, child);
+            }
+        }
     }
 }

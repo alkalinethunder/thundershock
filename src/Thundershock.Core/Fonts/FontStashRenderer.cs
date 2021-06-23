@@ -19,13 +19,12 @@ namespace Thundershock.Core.Fonts
         {
             var tsTexture = texture as Texture2D;
 
-            var translate = Matrix4x4.CreateTranslation(-origin.X, -origin.Y, depth);
-            var rotate = Matrix4x4.CreateRotationZ(rotation);
-            var scaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1);
+            // var rotate = Matrix4x4.CreateRotationZ(rotation);
+            // var scaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1);
 
-            var transform = translate * scaleMatrix * rotate;
+            // var transform = scaleMatrix * rotate;
 
-            pos = Vector2.Transform(pos, transform);
+            pos -= origin;
             
             var tsColor = new Color(color.R, color.G, color.B, color.A);
 

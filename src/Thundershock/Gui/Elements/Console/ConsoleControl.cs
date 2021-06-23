@@ -912,10 +912,8 @@ namespace Thundershock.Gui.Elements.Console
             return result;
         }
 
-        private bool PaintTextElement(GameTime gameTime, GuiRenderer renderer, TextElement elem)
+        private bool PaintTextElementBackground(GameTime gameTime, GuiRenderer renderer, TextElement elem)
         {
-            var continuePaint = true;
-
             // use the mouse rect to speed things up.
             var rect = elem.MouseBounds;
             
@@ -926,62 +924,98 @@ namespace Thundershock.Gui.Elements.Console
                 rect.Y += (int)_scrollback;
             }
 
+            if (rect.Bottom <= ContentRectangle.Top)
+                return false;
+            
             // only paint this element if it's above the bottom of the terminal bounds.
             if (rect.Top <= ContentRectangle.Bottom)
             {
-                // If the element is above the terminal bounds then we'll instruct the OnPaint routine to stop
-                // painting elements. This is a major perf boost.
-                if (rect.Bottom <= ContentRectangle.Top)
+                // Get the colors for the element.
+                var bg = elem.Background;
+                var fg = elem.Foreground;
+
+                // Handle background images.
+                if (bg.A < 255 && ColorPalette.BackgroundImage != null)
+                    bg = Color.Transparent;
+
+                // is this the cursor?
+                if (elem.IsCursor)
                 {
-                    continuePaint = false;
+                    // is the cursor blinked off?
+                    if (!_cursorShow)
+                    {
+                        // swap the colors of the cursor.
+                        var s = bg;
+                        bg = fg;
+                        fg = s;
+                    }
                 }
 
-                // Otherwise, THIS DAY WE FIGHT.
-                else
+                // if this is a blinking element, and the blinker is off, set foreground to transparent.
+                if (elem.Blinking && !_blinkShow)
                 {
-                    // Get the colors for the element.
-                    var bg = elem.Background;
-                    var fg = elem.Foreground;
+                    fg = Color.Transparent;
+                }
 
-                    // Handle background images.
-                    if (bg.A < 255 && ColorPalette.BackgroundImage != null)
-                        bg = Color.Transparent;
-                    
-                    // is this the cursor?
-                    if (elem.IsCursor)
-                    {
-                        // is the cursor blinked off?
-                        if (!_cursorShow)
-                        {
-                            // swap the colors of the cursor.
-                            var s = bg;
-                            bg = fg;
-                            fg = s;
-                        }
-                    }
+                // render the background rect followed by the text.
+                renderer.FillRectangle(rect, bg);
 
-                    // if this is a blinking element, and the blinker is off, set foreground to transparent.
-                    if (elem.Blinking && !_blinkShow)
-                    {
-                        fg = Color.Transparent;
-                    }
-
-                    // render the background rect followed by the text.
-                    renderer.FillRectangle(rect, bg);
-                    renderer.DrawString(elem.Font, elem.Text, rect.Location, fg);
-
-                    // Render a nice text underline if that attribute is set.
-                    if (elem.Underline)
-                    {
-                        var h = rect.Height - 2;
-                        rect.Y += h;
-                        rect.Height = 2;
-                        renderer.FillRectangle(rect, fg);
-                    }
+                // Render a nice text underline if that attribute is set.
+                if (elem.Underline)
+                {
+                    var h = rect.Height - 2;
+                    rect.Y += h;
+                    rect.Height = 2;
+                    renderer.FillRectangle(rect, fg);
                 }
             }
 
-            return continuePaint;
+            return true;
+        }
+
+        private bool PaintTextElementText(GameTime gameTime, GuiRenderer renderer, TextElement elem)
+        {
+            // use the mouse rect to speed things up.
+            var rect = elem.MouseBounds;
+            
+            // Account for scrollback.
+            rect.Y -= (int)_scrollbackMax;
+            if (_height > ContentRectangle.Height)
+            {
+                rect.Y += (int)_scrollback;
+            }
+
+            if (rect.Bottom <= ContentRectangle.Top)
+                return false;
+            
+            // only paint this element if it's above the bottom of the terminal bounds.
+            if (rect.Top <= ContentRectangle.Bottom)
+            {
+                // Get the colors for the element.
+                var fg = elem.Foreground;
+                
+                // is this the cursor?
+                if (elem.IsCursor)
+                {
+                    // is the cursor blinked off?
+                    if (!_cursorShow)
+                    {
+                        // swap the colors of the cursor.
+                        fg = elem.Background;
+                    }
+                }
+
+                // if this is a blinking element, and the blinker is off, set foreground to transparent.
+                if (elem.Blinking && !_blinkShow)
+                {
+                    return true;
+                }
+
+                // render the background rect followed by the text.
+                renderer.DrawString(elem.Font, elem.Text, rect.Location, fg);
+            }
+
+            return true;
         }
 
         private void TryOpenUrl(string text)
@@ -1029,31 +1063,55 @@ namespace Thundershock.Gui.Elements.Console
             
             renderer.FillRectangle(BoundingBox, GetColor(ConsoleColor.Black));
             
-            var continuePaint = true;
             var paintCompletionsThisTime = true;
+            
+            // PASS #1: Draw text element backgrounds.
+            for (var i = _elements.Count - 1; i >= 0; i--)
+            {
+                var elem = _elements[i];
+                if (!PaintTextElementBackground(gameTime, renderer, elem))
+                    break;
+            }
             
             for(var i = _inputElements.Count - 1; i >= 0; i--)
             {
                 var elem = _inputElements[i];
-                if (!PaintTextElement(gameTime, renderer, elem))
-                {
-                    continuePaint = false;
-                    paintCompletionsThisTime = false;
+                if (!PaintTextElementBackground(gameTime, renderer, elem))
                     break;
-                }
+            }
+            
+            // paint the scroollbar.
+            if (_scrollbarWidth > 0 && _height > BoundingBox.Height)
+            {
+                var sRect = BoundingBox;
+                sRect.X = sRect.Right - _scrollbarWidth;
+                sRect.Width = _scrollbarWidth;
+
+                renderer.FillRectangle(sRect, _scrollBG);
+
+                var height = BoundingBox.Height / _height;
+
+                var pos = _height - BoundingBox.Height;
+                pos -= _scrollback;
+
+                sRect.Y = BoundingBox.Top + (int) ((pos / _height) * BoundingBox.Height);
+                sRect.Height = (int) (BoundingBox.Height * height);
+                renderer.FillRectangle(sRect, _scrollFG);
             }
 
-            if (continuePaint)
+            // PASS #2: Draw the actual text.
+            for (var i = _elements.Count - 1; i >= 0; i--)
             {
-                for (var i = _elements.Count - 1; i >= 0; i--)
-                {
-                    var elem = _elements[i];
-                    if (!PaintTextElement(gameTime, renderer, elem))
-                    {
-                        continuePaint = false;
-                        break;
-                    }
-                }
+                var elem = _elements[i];
+                if (!PaintTextElementText(gameTime, renderer, elem))
+                    break;
+            }
+            
+            for(var i = _inputElements.Count - 1; i >= 0; i--)
+            {
+                var elem = _inputElements[i];
+                if (!PaintTextElementText(gameTime, renderer, elem))
+                    break;
             }
 
             if (paintCompletionsThisTime)
@@ -1115,25 +1173,6 @@ namespace Thundershock.Gui.Elements.Console
                         bgRect.Y += _regularFont.LineSpacing;
                     }
                 }
-            }
-
-            // paint the scroollbar.
-            if (_scrollbarWidth > 0 && _height > BoundingBox.Height)
-            {
-                var sRect = BoundingBox;
-                sRect.X = sRect.Right - _scrollbarWidth;
-                sRect.Width = _scrollbarWidth;
-
-                renderer.FillRectangle(sRect, _scrollBG);
-
-                var height = BoundingBox.Height / _height;
-
-                var pos = _height - BoundingBox.Height;
-                pos -= _scrollback;
-
-                sRect.Y = BoundingBox.Top + (int) ((pos / _height) * BoundingBox.Height);
-                sRect.Height = (int) (BoundingBox.Height * height);
-                renderer.FillRectangle(sRect, _scrollFG);
             }
         }
 
