@@ -36,6 +36,7 @@ namespace Thundershock
         private Font _deathFont;
         private Renderer2D _renderer2D;
         private GuiSystem _sceneGui;
+        private PostProcessor _postProcessSystem;
         
         public GameLayer Game => _gameLoop;
         public InputSystem InputSystem => _input;
@@ -116,6 +117,8 @@ namespace Thundershock
             _debugFont = Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
             _sceneGui = new GuiSystem(_gameLoop.Graphics);
+            _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
+            _postProcessSystem.LoadContent();
             
             OnLoad();
             
@@ -247,6 +250,7 @@ namespace Thundershock
                 RemoveComponent(_components.First());
 
             OnUnload();
+            _postProcessSystem.UnloadContent();
             _gameLoop = null;
         }
 

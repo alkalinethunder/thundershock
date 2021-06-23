@@ -10,7 +10,7 @@ namespace Thundershock
     public sealed class GameLayer : Layer
     {
         private Scene _currentScene = null;
-
+        
         public GameWindow Window => App.Window;
         
         public AudioBackend Audio => Window.AudioBackend;

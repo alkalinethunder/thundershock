@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Threading;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock
 {
@@ -16,8 +15,7 @@ namespace Thundershock
         
         #region State
 
-        private GraphicsDevice _gfx;
-        private SpriteBatch _batch;
+        private GraphicsProcessor _gpu;
         private RenderTarget2D _effectBuffer1;
         private RenderTarget2D _effectBuffer2;
         private RenderTarget2D _intermediate;
@@ -99,69 +97,58 @@ namespace Thundershock
 
         #endregion
         
-        public PostProcessor(GraphicsDevice gfx)
+        public PostProcessor(GraphicsProcessor gpu)
         {
             Settings = new PostProcessSettings(this);
-            _gfx = gfx;
-            _batch = new SpriteBatch(_gfx);
+            _gpu = gpu;
         }
 
         public void UnloadContent()
         {
             // shaders
-            _bloom.Dispose();
-            _shadowmask.Dispose();
-            _glitch.Dispose();
+            // _bloom.Dispose();
+            // _shadowmask.Dispose();
+            // _glitch.Dispose();
             
             // effect buffers
             _intermediate.Dispose();
             _effectBuffer1.Dispose();
             _effectBuffer2.Dispose();
             
-            // batcher
-            _batch.Dispose();
-            
             // null
             _bloom = null;
             _shadowmask = null;
             _glitch = null;
-            _batch = null;
             _intermediate = null;
             _effectBuffer1 = null;
             _effectBuffer2 = null;
         }
 
-        public void LoadContent(ContentManager content)
+        public void LoadContent()
         {
-            _brightnessThreshold = content.Load<Effect>("Effects/BrightnessThreshold");
-            _gaussian = content.Load<Effect>("Effects/Gaussian");
-            _bloom = content.Load<Effect>("Effects/Bloom");
-            _shadowmask = content.Load<Effect>("Effects/ShadowMask");
-            _glitch = content.Load<Effect>("Effects/GlitchEffect");
-            
-            _brightnessThreshold.Parameters["Threshold"].SetValue(_bloomThreshold);
-            _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
+            /* _brightnessThreshold.Parameters["Threshold"].SetValue(_bloomThreshold);
+            // _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
 
-            _bloom.Parameters["BaseIntensity"].SetValue(_baseIntensity);
-            _bloom.Parameters["BloomIntensity"].SetValue(_bloomIntensity);
+            // _bloom.Parameters["BaseIntensity"].SetValue(_baseIntensity);
+            // _bloom.Parameters["BloomIntensity"].SetValue(_bloomIntensity);
 
-            _bloom.Parameters["BloomSaturation"].SetValue(_bloomSaturation);
-            _bloom.Parameters["BaseSaturation"].SetValue(_baseSaturation);
+            // _bloom.Parameters["BloomSaturation"].SetValue(_bloomSaturation);
+            // _bloom.Parameters["BaseSaturation"].SetValue(_baseSaturation); */
         }
-        
+
         public void ReallocateEffectBuffers()
         {
             _effectBuffer1?.Dispose();
             _effectBuffer2?.Dispose();
             _intermediate?.Dispose();
-            
-            _effectBuffer1 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-                _gfx.PresentationParameters.BackBufferHeight);
-            _effectBuffer2 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-                _gfx.PresentationParameters.BackBufferHeight);
-            _intermediate = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-                _gfx.PresentationParameters.BackBufferHeight);
-            
+
+            // _effectBuffer1 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
+//                _gfx.PresentationParameters.BackBufferHeight);
+            //          _effectBuffer2 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
+            //            _gfx.PresentationParameters.BackBufferHeight);
+            //      _intermediate = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
+            //        _gfx.PresentationParameters.BackBufferHeight);
+
         }
 
         private void SetBlurOffsets(float dx, float dy)
@@ -191,8 +178,8 @@ namespace Thundershock
                 _gaussianKernel[i] /= totalWeight;
             }
 
-            _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
-            _gaussian.Parameters["Offsets"].SetValue(_offsets);
+            // _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
+            // _gaussian.Parameters["Offsets"].SetValue(_offsets);
         }
 
         private float ComputeGaussian(float n)
@@ -205,7 +192,7 @@ namespace Thundershock
         
         private void SetBloomTexture(Texture2D texture)
         {
-            _bloom.Parameters["BloomTexture"].SetValue(texture);
+            // _bloom.Parameters["BloomTexture"].SetValue(texture);
         }
 
         private void PerformBloom(RenderTarget2D frame, Rectangle rect)
@@ -213,66 +200,65 @@ namespace Thundershock
             var hWidth = (float) rect.Width;
             var hHeight = (float) rect.Height;
 
-            _gfx.SetRenderTarget(_effectBuffer1);
+            // _gfx.SetRenderTarget(_effectBuffer1);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _brightnessThreshold.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(frame, rect, Color.White);
-            _batch.End();
+            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+            // _brightnessThreshold.CurrentTechnique.Passes[0].Apply();
+            // _batch.Draw(frame, rect, Color.White);
+            // _batch.End();
 
-            _gfx.SetRenderTarget(_effectBuffer2);
+            // _gfx.SetRenderTarget(_effectBuffer2);
 
             SetBlurOffsets(1.0f / hWidth, 0f);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _gaussian.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(_effectBuffer1, rect, Color.White);
-            _batch.End();
+            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+            // _gaussian.CurrentTechnique.Passes[0].Apply();
+            // _batch.Draw(_effectBuffer1, rect, Color.White);
+            // _batch.End();
 
-            _gfx.SetRenderTarget(_effectBuffer1);
+            // _gfx.SetRenderTarget(_effectBuffer1);
 
             SetBlurOffsets(0f, 1f / hHeight);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _gaussian.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(_effectBuffer2, rect, Color.White);
-            _batch.End();
+            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+            // _gaussian.CurrentTechnique.Passes[0].Apply();
+            // _batch.Draw(_effectBuffer2, rect, Color.White);
+            // _batch.End();
 
-            _gfx.SetRenderTarget(_effectBuffer2);
+            // _gfx.SetRenderTarget(_effectBuffer2);
 
-            SetBloomTexture(_effectBuffer1);
+            // SetBloomTexture(_effectBuffer1);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _bloom.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(frame, rect, Color.White);
-            _batch.End();
+            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+            // _bloom.CurrentTechnique.Passes[0].Apply();
+            // _batch.Draw(frame, rect, Color.White);
+            // _batch.End();
 
-            _gfx.SetRenderTarget(_intermediate);
+            // _gfx.SetRenderTarget(_intermediate);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _batch.Draw(_effectBuffer2, rect, Color.White);
-            _batch.End();
-
+            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+            // _batch.Draw(_effectBuffer2, rect, Color.White);
+            // _batch.End();
         }
 
         private void NoEffect(RenderTarget2D renderTarget, Rectangle rect)
         {
-            _gfx.SetRenderTarget(_intermediate);
+            // _gfx.SetRenderTarget(_intermediate);
 
-            _batch.Begin();
-            _batch.Draw(renderTarget, rect, Color.White);
-            _batch.End();
+            // _batch.Begin();
+            // _batch.Draw(renderTarget, rect, Color.White);
+            // _batch.End();
         }
 
         private void SetShadowMaskParams()
         {
-            _shadowmask.Parameters["TextureSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
+            /*_shadowmask.Parameters["TextureSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
             _shadowmask.Parameters["OutputSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
             _shadowmask.Parameters["HardPix"].SetValue(_hardPix);
             _shadowmask.Parameters["HardScan"].SetValue(_hardScan);
             _shadowmask.Parameters["BrightnessBoost"].SetValue(_shadowmaskBrightness);
             _shadowmask.Parameters["MaskDark"].SetValue(_maskDark);
-            _shadowmask.Parameters["MaskLight"].SetValue(_maskLight);
+            _shadowmask.Parameters["MaskLight"].SetValue(_maskLight);*/
         }
         
         public void Process(RenderTarget2D renderTarget)
@@ -291,23 +277,23 @@ namespace Thundershock
             if (Settings.EnableGlitch && _glitchIntensity > 0)
             {
                 // update glitch settings.
-                _glitch.Parameters["Intensity"].SetValue(_glitchIntensity);
-                _glitch.Parameters["TextureSize"].SetValue(rect.Size.ToVector2());
-                _glitch.Parameters["Skew"].SetValue(_glitchSkew);
+                // _glitch.Parameters["Intensity"].SetValue(_glitchIntensity);
+                // _glitch.Parameters["TextureSize"].SetValue(rect.Size.ToVector2());
+                // _glitch.Parameters["Skew"].SetValue(_glitchSkew);
                 
                 // copy intermediate to effect buffer 1.
                 // using the glitch effect.
-                _gfx.SetRenderTarget(_effectBuffer1);
-                _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
-                _glitch.CurrentTechnique.Passes[0].Apply();
-                _batch.Draw(_intermediate, rect, Color.White);
-                _batch.End();
+                // _gfx.SetRenderTarget(_effectBuffer1);
+                // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
+                // _glitch.CurrentTechnique.Passes[0].Apply();
+                // _batch.Draw(_intermediate, rect, Color.White);
+                // _batch.End();
                 
                 // render effect buffer 1 to intermediate
-                _gfx.SetRenderTarget(_intermediate);
-                _batch.Begin();
-                _batch.Draw(_effectBuffer1, rect, Color.White);
-                _batch.End();
+                // _gfx.SetRenderTarget(_intermediate);
+                // _batch.Begin();
+                // _batch.Draw(_effectBuffer1, rect, Color.White);
+                // _batch.End();
             }
 
             if (EnableShadowMask && Settings.EnableShadowMask)
@@ -316,24 +302,24 @@ namespace Thundershock
                 
                 // copy the intermediate RT to effect buffer 1
                 // with the shadowmask effect applied
-                _gfx.SetRenderTarget(_effectBuffer1);
-                _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                _shadowmask.CurrentTechnique.Passes[0].Apply();
-                _batch.Draw(_intermediate, rect, Color.White);
-                _batch.End();
+                // _gfx.SetRenderTarget(_effectBuffer1);
+                // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                // _shadowmask.CurrentTechnique.Passes[0].Apply();
+                // _batch.Draw(_intermediate, rect, Color.White);
+                // _batch.End();
                 
                 // copy effect buffer 1 back into the intermediate buffer
-                _gfx.SetRenderTarget(_intermediate);
-                _batch.Begin();
-                _batch.Draw(_effectBuffer1, rect, Color.White);
-                _batch.End();
+                // _gfx.SetRenderTarget(_intermediate);
+                // _batch.Begin();
+                // _batch.Draw(_effectBuffer1, rect, Color.White);
+                // _batch.End();
             }
             
-            _gfx.SetRenderTarget(null);
+            // _gfx.SetRenderTarget(null);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
-            _batch.Draw(_intermediate, rect, Color.White);
-            _batch.End();
+            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
+            // _batch.Draw(_intermediate, rect, Color.White);
+            // _batch.End();
         }
 
         public class PostProcessSettings

@@ -140,10 +140,7 @@ namespace Thundershock
             // HACK: I don't like that we need to do this. But whatever.
             _white = new Texture2D(GraphicsDevice, 1, 1);
             _white.SetData<uint>(new[] {0xFFFFFFFF});
-
-            // Initialize the post-processor.
-            _postProcessor = new PostProcessor(GraphicsDevice);
-
+            
             // Set up the minimal configuration.
             VSync = false;
             IsFullScreen = false;
@@ -163,11 +160,7 @@ namespace Thundershock
             // Create our SpriteBatch object.
             _app.Logger.Log("Setting up the SpriteBatch...");
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // Load the shaders used by the post-processor.
-            _app.Logger.Log("Loading shaders for post-processor...");
-            _postProcessor.LoadContent(_thundershockContent);
-
+            
             // Allow the app to do post-initialization.
             _app.Logger.Log("Engine content ready. Telling the app to load...");
             _app.Load();
@@ -213,7 +206,7 @@ namespace Thundershock
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(Color.Black);
 
-            _postProcessor.Process(_renderTarget);
+            // _postProcessor.Process(_renderTarget);
 
             base.Draw(gameTime);
         }
