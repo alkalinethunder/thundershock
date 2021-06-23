@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Numerics;
-using Gdk;
-using GLib;
 using Thundershock.Components;
 using Thundershock.Core;
 using Thundershock.Core.Ecs;
@@ -17,7 +14,6 @@ using Thundershock.Gui;
 using Thundershock.Gui.Elements;
 using Thundershock.Input;
 using Thundershock.Rendering;
-using Rectangle = Thundershock.Core.Rectangle;
 
 namespace Thundershock
 {
@@ -277,6 +273,9 @@ namespace Thundershock
             // draw all scene elements.
             _gameLoop.Graphics.SetRenderTarget(_sceneRenderTarget);
             
+            // Clear the screen. Because our RT implementation doesn't fucking do that. FIXME
+            _gameLoop.Graphics.Clear(Color.Black);
+
             var cameras = _registry.View<CameraComponent, Transform>();
             if (cameras.Any() && !_noClip)
             {
@@ -373,6 +372,9 @@ namespace Thundershock
             
             // End render pass, let's switch to the normal draw buffer.
             _gameLoop.Graphics.SetRenderTarget(null);
+            
+            // Now let's let the post-process system kick in. This gets the scene onto the screen.
+            _postProcessSystem.Process(_sceneRenderTarget);
         }
 
 
@@ -425,6 +427,9 @@ namespace Thundershock
             {
                 _sceneRenderTarget =
                     new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                
+                // Tell the post-processor to resize its buffers.
+                _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
             }
             else
             {
@@ -434,6 +439,9 @@ namespace Thundershock
                     _sceneRenderTarget.Dispose();
                     _sceneRenderTarget =
                         new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                    
+                    // Tell the post-processor to resize its buffers.
+                    _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
                 }
             }
         }

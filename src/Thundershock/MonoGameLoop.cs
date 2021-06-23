@@ -101,10 +101,6 @@ namespace Thundershock
                 GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None, 0,
                 RenderTargetUsage.PreserveContents);
             _app.Logger.Log($"Allocated game render target ({_renderTarget.Width}x{_renderTarget.Height})");
-
-            // re-allocate post-process effect buffers
-            _app.Logger.Log("Telling the post-processor to re-allocate effect buffers.");
-            _postProcessor.ReallocateEffectBuffers();
         }
 
         public void ApplyDisplayChanges()

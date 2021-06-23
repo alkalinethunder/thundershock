@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Rendering;
@@ -7,6 +8,24 @@ namespace Thundershock
 {
     public class PostProcessor
     {
+        #region Post-Processor Quad
+
+        private readonly Vertex[] _verts = new Vertex[]
+        {
+            new Vertex(new Vector3(0, 0, 0), Color.White, new Vector2(0, 1)),
+            new Vertex(new Vector3(1, 0, 0), Color.White, new Vector2(1, 1)),
+            new Vertex(new Vector3(0, 1, 0), Color.White, new Vector2(0, 0)),
+            new Vertex(new Vector3(1, 1, 0), Color.White, new Vector2(1, 0)),
+        };
+
+        private readonly int[] _indices = new int[]
+        {
+            1, 2, 0,
+            1, 3, 2
+        };
+
+        #endregion
+        
         #region Scene Settings
 
         public PostProcessSettings Settings { get; }
@@ -16,6 +35,7 @@ namespace Thundershock
         #region State
 
         private GraphicsProcessor _gpu;
+        private BasicEffect _basicEffect;
         private RenderTarget2D _effectBuffer1;
         private RenderTarget2D _effectBuffer2;
         private RenderTarget2D _intermediate;
@@ -101,6 +121,10 @@ namespace Thundershock
         {
             Settings = new PostProcessSettings(this);
             _gpu = gpu;
+            _basicEffect = new(_gpu);
+            _basicEffect.Programs.First().Parameters["projection"].SetValue(
+                    Matrix4x4.CreateOrthographicOffCenter(0, 1, 1, 0, -1, 1)
+                );
         }
 
         public void UnloadContent()
@@ -136,19 +160,15 @@ namespace Thundershock
             // _bloom.Parameters["BaseSaturation"].SetValue(_baseSaturation); */
         }
 
-        public void ReallocateEffectBuffers()
+        public void ReallocateEffectBuffers(int width, int height)
         {
             _effectBuffer1?.Dispose();
             _effectBuffer2?.Dispose();
             _intermediate?.Dispose();
 
-            // _effectBuffer1 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-//                _gfx.PresentationParameters.BackBufferHeight);
-            //          _effectBuffer2 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-            //            _gfx.PresentationParameters.BackBufferHeight);
-            //      _intermediate = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-            //        _gfx.PresentationParameters.BackBufferHeight);
-
+            _effectBuffer1 = new RenderTarget2D(_gpu, width, height);
+            _effectBuffer2 = new RenderTarget2D(_gpu, width, height);
+            _intermediate = new RenderTarget2D(_gpu, width, height);
         }
 
         private void SetBlurOffsets(float dx, float dy)
@@ -263,6 +283,10 @@ namespace Thundershock
         
         public void Process(RenderTarget2D renderTarget)
         {
+            // First step in all this is submitting our quad to the GPU.
+            _gpu.SubmitVertices(_verts);
+            _gpu.SubmitIndices(_indices);
+            
             var rect = renderTarget.Bounds;
 
             if (EnableBloom && Settings.EnableBloom)
@@ -315,11 +339,15 @@ namespace Thundershock
                 // _batch.End();
             }
             
-            // _gfx.SetRenderTarget(null);
-
-            // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
-            // _batch.Draw(_intermediate, rect, Color.White);
-            // _batch.End();
+            // Render the intermediate buffer to the screen.
+            _basicEffect.Programs.First().Apply();
+            _gpu.SetRenderTarget(null);
+            
+            // Get the GPU ready for some rendering :P
+            _gpu.PrepareRender();
+            _gpu.Textures[0] = renderTarget;
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            _gpu.EndRender();
         }
 
         public class PostProcessSettings
