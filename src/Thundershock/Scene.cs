@@ -37,6 +37,7 @@ namespace Thundershock
         private Renderer2D _renderer2D;
         private GuiSystem _sceneGui;
         private PostProcessor _postProcessSystem;
+        private RenderTarget2D _sceneRenderTarget;
         
         public GameLayer Game => _gameLoop;
         public InputSystem InputSystem => _input;
@@ -250,12 +251,17 @@ namespace Thundershock
                 RemoveComponent(_components.First());
 
             OnUnload();
+            _sceneRenderTarget.Dispose();
             _postProcessSystem.UnloadContent();
             _gameLoop = null;
+            _sceneRenderTarget = null;
         }
 
         internal void Update(GameTime gameTime)
         {
+            // Ensure that the scene render target matches the viewport size.
+            EnsureSceneRenderTargetSize();
+            
             // Set the scene GUI viewport to match ours.
             _sceneGui.SetViewportSize(_gameLoop.Window.Width, _gameLoop.Window.Height);
             
@@ -267,6 +273,10 @@ namespace Thundershock
 
         public void Draw(GameTime gameTime)
         {
+            // Switch the GPU to our scene render target for the first render pass where we
+            // draw all scene elements.
+            _gameLoop.Graphics.SetRenderTarget(_sceneRenderTarget);
+            
             var cameras = _registry.View<CameraComponent, Transform>();
             if (cameras.Any() && !_noClip)
             {
@@ -360,6 +370,9 @@ namespace Thundershock
             
             // BEGIN GUI RENDER PASS
             _sceneGui.Render(gameTime);
+            
+            // End render pass, let's switch to the normal draw buffer.
+            _gameLoop.Graphics.SetRenderTarget(null);
         }
 
 
@@ -404,6 +417,25 @@ namespace Thundershock
             obj.AddComponent(guid);
             
             return obj;
+        }
+
+        private void EnsureSceneRenderTargetSize()
+        {
+            if (_sceneRenderTarget == null)
+            {
+                _sceneRenderTarget =
+                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+            }
+            else
+            {
+                if (_sceneRenderTarget.Width != _gameLoop.Window.Width ||
+                    _sceneRenderTarget.Height != _gameLoop.Window.Height)
+                {
+                    _sceneRenderTarget.Dispose();
+                    _sceneRenderTarget =
+                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                }
+            }
         }
     }
 }
