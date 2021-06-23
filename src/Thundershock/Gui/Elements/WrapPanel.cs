@@ -6,7 +6,20 @@ namespace Thundershock.Gui.Elements
 {
     public class WrapPanel : Element
     {
-        public StackDirection Orientation { get; set; } = StackDirection.Horizontal;
+        private StackDirection _orientation = StackDirection.Horizontal;
+        
+        public StackDirection Orientation
+        {
+            get => _orientation;
+            set
+            {
+                if (_orientation != value)
+                {
+                    _orientation = value;
+                    InvalidateMeasure();
+                }
+            }
+        }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {

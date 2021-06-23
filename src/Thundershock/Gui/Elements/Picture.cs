@@ -6,8 +6,22 @@ namespace Thundershock.Gui.Elements
 {
     public class Picture : Element
     {
+        private Texture2D _image;
+        
         public Color Tint { get; set; } = Color.White;
-        public Texture2D Image { get; set; }
+
+        public Texture2D Image
+        {
+            get => _image;
+            set
+            {
+                if (_image != value)
+                {
+                    _image = value;
+                    InvalidateMeasure();
+                }
+            }
+        }
         
         public bool Tile { get; set; }
         

@@ -79,8 +79,10 @@ namespace Thundershock.OpenGL
 
             // Glue OpenGL and SDL2 together.
             _gl = Silk.NET.OpenGL.GL.GetApi(SDL.SDL_GL_GetProcAddress);
+#if DEBUG
             _gl.Enable(EnableCap.DebugOutput);
             _gl.DebugMessageCallback(PrintGLError, 0);
+#endif
             _graphicsProcessor = new GlGraphicsProcessor(_gl);
             
             // Set the viewport size.
@@ -94,6 +96,7 @@ namespace Thundershock.OpenGL
             GamePlatform.Initialize(new SDLGamePlatform(_gl));
         }
 
+#if DEBUG
         private void PrintGLError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
         {
             var buf = new byte[length];
@@ -112,7 +115,8 @@ namespace Thundershock.OpenGL
             if (logLevel != LogLevel.Trace)
                 App.Logger.Log(messageString, logLevel);
         }
-
+#endif
+        
         private void PollEvents()
         {
             while (SDL.SDL_PollEvent(out _event) != 0)

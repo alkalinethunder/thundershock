@@ -14,19 +14,19 @@ namespace Thundershock.Gui
         
         private Color GetProperTint(Color tint)
         {
-            var r = (float) tint.R;
-            var g = (float) tint.G;
-            var b = (float) tint.B;
+            var r = tint.R;
+            var g = tint.G;
+            var b = tint.B;
 
-            var mr = (float) _masterTint.R / 255f;
-            var mg = (float) _masterTint.G / 255f;
-            var mb = (float) _masterTint.B / 255f;
+            var mr = _masterTint.R;
+            var mg = _masterTint.G;
+            var mb = _masterTint.B;
 
             r *= mr;
             g *= mg;
             b *= mb;
 
-            return new Color((byte) r, (byte) g, (byte) b, tint.A) * _opacity;
+            return new Color(r, g, b, tint.A) * _opacity;
         }
         
         public GuiRenderer(Renderer2D batch, float opacity, Color tint)

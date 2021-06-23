@@ -20,6 +20,7 @@ namespace Thundershock.Gui.Elements
                 if (_text != value)
                 {
                     _text = value ?? string.Empty;
+                    InvalidateMeasure();
                 }
             }
         }

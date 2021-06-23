@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using Thundershock.Core;
@@ -87,8 +88,7 @@ namespace Thundershock.OpenGL
 
         public override void Clear(Color color)
         {
-            var vec4 = color.ToVector4();
-            _gl.ClearColor(vec4.X, vec4.Y, vec4.Z, vec4.W);
+            _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.Clear((uint) GLEnum.ColorBufferBit | (uint) GLEnum.DepthBufferBit);
         }
 
@@ -242,11 +242,11 @@ namespace Thundershock.OpenGL
                         _vertexData[i] = current->Position.X;
                         _vertexData[i + 1] = current->Position.Y;
                         _vertexData[i + 2] = current->Position.Z;
-
-                        _vertexData[i + 3] = current->Color.X;
-                        _vertexData[i + 4] = current->Color.Y;
-                        _vertexData[i + 5] = current->Color.Z;
-                        _vertexData[i + 6] = current->Color.W;
+                        
+                        _vertexData[i + 3] = current->Color.R;
+                        _vertexData[i + 4] = current->Color.G;
+                        _vertexData[i + 5] = current->Color.B;
+                        _vertexData[i + 6] = current->Color.A;
 
                         _vertexData[i + 7] = current->TextureCoordinates.X;
                         _vertexData[i + 8] = current->TextureCoordinates.Y;

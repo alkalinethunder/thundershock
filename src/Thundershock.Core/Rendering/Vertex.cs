@@ -7,13 +7,13 @@ namespace Thundershock.Core.Rendering
     public struct Vertex
     {
         public Vector3 Position;
-        public Vector4 Color;
+        public Color Color;
         public Vector2 TextureCoordinates;
 
         public Vertex(Vector3 position, Color color, Vector2 texCoords)
         {
             Position = position;
-            Color = color.ToVector4();
+            Color = color;
             TextureCoordinates = texCoords;
         }
     }

@@ -52,11 +52,9 @@ namespace Thundershock.Core
         public override void Draw(Renderer2D renderer, string text, Vector2 location, Color color)
         {
             var fontRenderer = new FontStashRenderer(renderer);
-
-            var gdiColor = System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
-
+            
             var font = _fontSystem.GetFont(_fontSize);
-            font.DrawText(fontRenderer, text, location, gdiColor);
+            font.DrawText(fontRenderer, text, location, color);
         }
 
         public override Vector2 MeasureString(string text)
