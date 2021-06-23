@@ -3,17 +3,28 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Thundershock.Debugging;
 
 namespace Thundershock.Core.Debugging
 {
     public class Logger
     {
+        [DllImport("kernel32.dll")]
+        private static extern bool AttachConsole(int console);
+        
         private static Logger _instance;
         
         private List<ILogOutput> _outputs = new List<ILogOutput>();
 
-        private Logger() {}
+        private Logger()
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                // workaround for windows mental retardation.
+                AttachConsole(-1);
+            }
+        }
 
         public static Logger GetLogger()
         {

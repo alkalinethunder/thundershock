@@ -24,5 +24,8 @@ namespace Thundershock.Core.Rendering
         public abstract Vector3 GetVector3();
         public abstract Vector4 GetVector4();
         public abstract Matrix4x4 GetMatric4x4();
+
+        public abstract void SetValue(float[] array);
+        public abstract void SetValue(Vector2[] array);
     }
 }

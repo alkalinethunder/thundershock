@@ -117,6 +117,9 @@ namespace Thundershock
             _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
             _postProcessSystem.LoadContent();
             
+            // Ensure that the scene render target matches the viewport size.
+            EnsureSceneRenderTargetSize();
+
             OnLoad();
             
             Game.GetComponent<CheatManager>().AddCheat("cam.setPersp", () => Camera.ProjectionType = CameraProjectionType.Perspective);
@@ -289,6 +292,8 @@ namespace Thundershock
                 Camera.Transform.Scale = cameraTransform.Scale;
 
                 Camera.ProjectionType = cameraComponent.ProjectionType;
+
+                _postProcessSystem.SettingsFromCameraComponent(cameraComponent);
             }
 
             var renderables2D = _registry.View<Transform2D>();

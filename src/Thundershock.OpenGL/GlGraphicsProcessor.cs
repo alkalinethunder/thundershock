@@ -99,7 +99,7 @@ namespace Thundershock.OpenGL
                 GLEnum.StaticDraw);
         }
 
-        public override void PrepareRender()
+        public override void PrepareRender(BlendMode blendMode = BlendMode.Alpha)
         {
             // Back-face culling - improves performance because we only need to render what we can
             // actually see.
@@ -112,8 +112,17 @@ namespace Thundershock.OpenGL
             
             // TODO: Let the engine control blending.
             _gl.Enable(GLEnum.Blend);
-            _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            
+
+            switch (blendMode)
+            {
+                case BlendMode.Alpha:
+                    _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                    break;
+                case BlendMode.Additive:
+                    _gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.One);
+                    break;
+            }
+
             // Scissor testing
             if (_scissor)
                 _gl.Enable(GLEnum.ScissorTest);
@@ -143,30 +152,6 @@ namespace Thundershock.OpenGL
                 PrimitiveType.TriangleList => 3,
                 _ => throw new NotSupportedException()
             };
-
-
-            if (_programChangedSinceLastDrawCall)
-            {
-                for (var i = 0; i < _programTextureUnits.Length; i++)
-                {
-                    var name = "tex" + i.ToString();
-                    var location = _gl.GetUniformLocation(_program, name);
-
-                    _programTextureUnits[i] = location;
-                }
-
-                _programChangedSinceLastDrawCall = false;
-            }
-            
-            // Set up texture units for the program
-            for (var i = 0; i < _programTextureUnits.Length; i++)
-            {
-                var location = _programTextureUnits[i];
-                if (location < 0)
-                    continue;
-                
-                _gl.Uniform1(location, i);
-            }
 
             unsafe
             {
@@ -333,6 +318,13 @@ namespace Thundershock.OpenGL
         {
             // Create a framebuffer.
             var fbo = _gl.GenFramebuffer();
+
+            // Attach it to the texture.
+            _gl.BindFramebuffer(GLEnum.Framebuffer, fbo);
+            _gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, texture, 0);
+            _gl.DrawBuffer(GLEnum.ColorAttachment0);
+            _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
+
             
             // Return it.
             return fbo;
@@ -348,10 +340,6 @@ namespace Thundershock.OpenGL
             _fbo = target.RenderTargetId;
             _gl.BindFramebuffer(GLEnum.Framebuffer, target.RenderTargetId);
             
-            // Attach it to the texture.
-            _gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, target.Id, 0);
-            
-            _gl.DrawBuffer(GLEnum.ColorAttachment0);
             var result = _gl.CheckFramebufferStatus(GLEnum.Framebuffer);
             if (result != GLEnum.FramebufferComplete)
             {
@@ -410,13 +398,30 @@ namespace Thundershock.OpenGL
         {
             _gl.LinkProgram(program);
             _gl.ValidateProgram(program);
+            
+            for (var i = 0; i < _programTextureUnits.Length; i++)
+            {
+                var name = "tex" + i.ToString();
+                var location = _gl.GetUniformLocation(program, name);
+
+                _programTextureUnits[i] = location;
+            }
+                
+            // Set up texture units for the program
+            for (var i = 0; i < _programTextureUnits.Length; i++)
+            {
+                var location = _programTextureUnits[i];
+                if (location < 0)
+                    continue;
+
+                _gl.ProgramUniform1(program, location, i);
+            }
         }
 
         public override void SetActiveShaderProgram(uint program)
         {
             if (_program != program)
             {
-                _programChangedSinceLastDrawCall = true;
             }
             
             _gl.UseProgram(program);

@@ -8,7 +8,7 @@ namespace Thundershock.Core.Rendering
     {
         public Matrix4x4 ProjectionMatrix { get; set; } = Matrix4x4.Identity;
 
-        public abstract void PrepareRender();
+        public abstract void PrepareRender(BlendMode blendMode = BlendMode.Alpha);
         public abstract void EndRender();
         public abstract void SubmitIndices(ReadOnlySpan<int> indices);
         public abstract Rectangle ViewportBounds { get; }
@@ -50,5 +50,11 @@ namespace Thundershock.Core.Rendering
         public abstract void VerifyShaderProgram(uint program);
 
         public abstract EffectParameter GetEffectParameter(Effect.EffectProgram program, string name);
+    }
+
+    public enum BlendMode
+    {
+        Alpha,
+        Additive
     }
 }

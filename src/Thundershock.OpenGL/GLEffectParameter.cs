@@ -1,3 +1,5 @@
+using System;
+using System.Buffers;
 using System.Numerics;
 using Thundershock.Core.Rendering;
 
@@ -76,6 +78,28 @@ namespace Thundershock.OpenGL
             _gl.ProgramUniformMatrix4(_program, _location, 1, false, data);
         }
 
+        public override void SetValue(float[] array)
+        {
+            _gl.ProgramUniform1(_program, _location, array);
+        }
+
+        public override void SetValue(Vector2[] array)
+        {
+            unsafe
+            {
+                var j = 0;
+                Span<float> floats = stackalloc float[array.Length * 2];
+                for (var i = 0; i < floats.Length; i += 2)
+                {
+                    floats[i] = array[j].X;
+                    floats[i + 1] = array[j].Y;
+                    j++;
+                }
+
+                _gl.ProgramUniform2(_program, _location, floats);
+            }
+        }
+        
         public override byte GetValueByte()
         {
             throw new System.NotImplementedException();
