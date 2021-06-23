@@ -133,94 +133,93 @@ namespace Thundershock.OpenGL
 
         private void HandleSdlEvent()
         {
-            if (_event.type == SDL.SDL_EventType.SDL_WINDOWEVENT)
+            switch (_event.type)
             {
-                if (_event.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
-                {
-                    ReportClientSize(_event.window.data1, _event.window.data2);
-                }
-            }
-            
-            if (_event.type == SDL.SDL_EventType.SDL_QUIT)
-            {
-                App.Logger.Log("SDL just told us to quit... Letting thundershock know about that.");
-                if (!App.Exit())
-                {
-                    App.Logger.Log("Thundershock app cancelled the exit request.");
-                }
-            }
-
-            if (_event.type == SDL.SDL_EventType.SDL_KEYDOWN || _event.type == SDL.SDL_EventType.SDL_KEYUP)
-            {
-                var key = (Keys) _event.key.keysym.sym;
-                var repeat = _event.key.repeat != 0;
-                var isPressed = _event.key.state == SDL.SDL_PRESSED;
-
-                // Dispatch the event to thundershock.
-                DispatchKeyEvent(key, '\0', isPressed, repeat, false);
-            }
-
-            if (_event.type == SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN ||
-                _event.type == SDL.SDL_EventType.SDL_MOUSEBUTTONUP)
-            {
-                var button = MapSdlMouseButton(_event.button.button);
-                var state = _event.button.state == SDL.SDL_PRESSED ? ButtonState.Pressed : ButtonState.Released;
-
-                DispatchMouseButton(button, state);
-            }
-
-            if (_event.type == SDL.SDL_EventType.SDL_MOUSEWHEEL)
-            {
-                var xDelta = _event.wheel.x;
-                var yDelta = _event.wheel.y;
-                
-                if (_event.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
-                {
-                    xDelta = xDelta * -1;
-                    yDelta = yDelta * -1;
-                }
-
-                if (yDelta != 0)
-                {
-                    _wheelY += yDelta;
-                    ReportMouseScroll(_wheelY, yDelta, ScrollDirection.Vertical);
-                }
-
-                if (xDelta != 0)
-                {
-                    _wheelX += xDelta;
-                    ReportMouseScroll(_wheelX, xDelta, ScrollDirection.Horizontal);
-                }
-            }
-            
-            if (_event.type == SDL.SDL_EventType.SDL_TEXTINPUT)
-            {
-                var text = string.Empty;
-
-                unsafe
-                {
-                    var count = SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE;
-                    var end = 0;
-                    while (end < count && _event.text.text[end] > 0)
-                        end++;
-
-                    fixed (byte* bytes = _event.text.text)
+                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                    if (_event.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                     {
-                        var span = new ReadOnlySpan<byte>(bytes, end);
-                        text = Encoding.UTF8.GetString(span);
+                        ReportClientSize(_event.window.data1, _event.window.data2);
                     }
-                }
-                
-                foreach (var character in text)
-                {
-                    var key = (Keys) character;
-                    DispatchKeyEvent(key, character, false, false, true);
-                }
-            }
 
-            if (_event.type == SDL.SDL_EventType.SDL_MOUSEMOTION)
-            {
-                ReportMousePosition(_event.motion.x, _event.motion.y);
+                    break;
+                case SDL.SDL_EventType.SDL_QUIT:
+
+                    App.Logger.Log("SDL just told us to quit... Letting thundershock know about that.");
+                    if (!App.Exit())
+                    {
+                        App.Logger.Log("Thundershock app cancelled the exit request.");
+                    }
+
+                    break;
+                case SDL.SDL_EventType.SDL_KEYDOWN:
+                case SDL.SDL_EventType.SDL_KEYUP:
+                    var key = (Keys) _event.key.keysym.sym;
+                    var repeat = _event.key.repeat != 0;
+                    var isPressed = _event.key.state == SDL.SDL_PRESSED;
+
+                    // Dispatch the event to thundershock.
+                    DispatchKeyEvent(key, '\0', isPressed, repeat, false);
+                    break;
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+
+                    var button = MapSdlMouseButton(_event.button.button);
+                    var state = _event.button.state == SDL.SDL_PRESSED ? ButtonState.Pressed : ButtonState.Released;
+
+                    DispatchMouseButton(button, state);
+                    break;
+
+                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+
+                    var xDelta = _event.wheel.x;
+                    var yDelta = _event.wheel.y;
+
+                    if (_event.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                    {
+                        xDelta = xDelta * -1;
+                        yDelta = yDelta * -1;
+                    }
+
+                    if (yDelta != 0)
+                    {
+                        _wheelY += yDelta;
+                        ReportMouseScroll(_wheelY, yDelta, ScrollDirection.Vertical);
+                    }
+
+                    if (xDelta != 0)
+                    {
+                        _wheelX += xDelta;
+                        ReportMouseScroll(_wheelX, xDelta, ScrollDirection.Horizontal);
+                    }
+
+                    break;
+                case SDL.SDL_EventType.SDL_TEXTINPUT:
+                    var text = string.Empty;
+
+                    unsafe
+                    {
+                        var count = SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE;
+                        var end = 0;
+                        while (end < count && _event.text.text[end] > 0)
+                            end++;
+
+                        fixed (byte* bytes = _event.text.text)
+                        {
+                            var span = new ReadOnlySpan<byte>(bytes, end);
+                            text = Encoding.UTF8.GetString(span);
+                        }
+                    }
+
+                    foreach (var character in text)
+                    {
+                        var ckey = (Keys) character;
+                        DispatchKeyEvent(ckey, character, false, false, true);
+                    }
+
+                    break;
+                case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                    ReportMousePosition(_event.motion.x, _event.motion.y);
+                    break;
             }
         }
 

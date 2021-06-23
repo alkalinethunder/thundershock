@@ -94,20 +94,12 @@ namespace Thundershock.Gui.Elements
             var textColor = GuiSystem.Style.GetButtonTextColor(this);
             
             this.GuiSystem.Style.DrawButton(renderer, this);
-
-            var lines = _wrapped.Split('\n');
-
+            
             var y = ContentRectangle.Y;
 
-            foreach (var line in lines)
-            {
-                var m = font.MeasureString(line);
-                var x = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
-
-                renderer.DrawString(font, line, new Vector2(x, y), textColor);
-                
-                y += font.LineSpacing;
-            }
+            var pos = new Vector2(ContentRectangle.Left,
+                ContentRectangle.Top + ((ContentRectangle.Height - font.LineHeight) / 2));
+            renderer.DrawString(font, Text, pos, textColor);
         }
     }
 }

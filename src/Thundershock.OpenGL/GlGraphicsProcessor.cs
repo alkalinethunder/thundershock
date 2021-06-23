@@ -220,61 +220,50 @@ namespace Thundershock.OpenGL
 
         public override void SubmitVertices(ReadOnlySpan<Vertex> vertices)
         {
+            /* fixed (Vertex* vertex = vertices)
+            {
+                var current = vertex;
+
+                for (var i = 0; i < arrSize; i += vertSize)
+                {
+                    _vertexData[i] = current->Position.X;
+                    _vertexData[i + 1] = current->Position.Y;
+                    _vertexData[i + 2] = current->Position.Z;
+                    
+                    _vertexData[i + 3] = current->Color.R;
+                    _vertexData[i + 4] = current->Color.G;
+                    _vertexData[i + 5] = current->Color.B;
+                    _vertexData[i + 6] = current->Color.A;
+
+                    _vertexData[i + 7] = current->TextureCoordinates.X;
+                    _vertexData[i + 8] = current->TextureCoordinates.Y;
+
+                    current++;
+                }
+            } */
+            
             unsafe
             {
-                var posSize = 3;
-                var colorSize = 4;
-                var texCoordSize = 2;
-
-                var vertSize = posSize + colorSize + texCoordSize;
-                var arrSize = vertSize * vertices.Length;
-
-                // Only resize if we need more space - this saves performance.
-                if (_vertexData.Length < arrSize)
-                    Array.Resize(ref _vertexData, arrSize);
-
-                fixed (Vertex* vertex = vertices)
-                {
-                    var current = vertex;
-
-                    for (var i = 0; i < arrSize; i += vertSize)
-                    {
-                        _vertexData[i] = current->Position.X;
-                        _vertexData[i + 1] = current->Position.Y;
-                        _vertexData[i + 2] = current->Position.Z;
-                        
-                        _vertexData[i + 3] = current->Color.R;
-                        _vertexData[i + 4] = current->Color.G;
-                        _vertexData[i + 5] = current->Color.B;
-                        _vertexData[i + 6] = current->Color.A;
-
-                        _vertexData[i + 7] = current->TextureCoordinates.X;
-                        _vertexData[i + 8] = current->TextureCoordinates.Y;
-
-                        current++;
-                    }
-                }
-
-                _gl.NamedBufferData<float>(_vertexBuffer, UIntPtr.Zero + (arrSize * sizeof(float)),
-                    _vertexData.AsSpan(0, arrSize), GLEnum.StaticDraw);
-
-                // Vertex attributes
-                /*void* pptr = (void*) IntPtr.Zero;
-                void* cptr = (void*) new IntPtr(sizeof(float) * 3);
-                void* tptr = (void*) new IntPtr(sizeof(float) * 7);
-
-                _gl.EnableVertexAttribArray(0);
-                _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, (uint) vertSize * sizeof(float), pptr);
-
-                _gl.EnableVertexAttribArray(1);
-                _gl.VertexAttribPointer(1, 4, GLEnum.Float, false, (uint) vertSize * sizeof(float),
-                    cptr);
-
-                _gl.EnableVertexAttribArray(2);
-                _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
-                    tptr);
-                */
+                _gl.NamedBufferData<Vertex>(_vertexBuffer, UIntPtr.Zero + (vertices.Length * sizeof(Vertex)),
+                    vertices, GLEnum.StaticDraw);
             }
+
+            // Vertex attributes
+            /*void* pptr = (void*) IntPtr.Zero;
+            void* cptr = (void*) new IntPtr(sizeof(float) * 3);
+            void* tptr = (void*) new IntPtr(sizeof(float) * 7);
+
+            _gl.EnableVertexAttribArray(0);
+            _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, (uint) vertSize * sizeof(float), pptr);
+
+            _gl.EnableVertexAttribArray(1);
+            _gl.VertexAttribPointer(1, 4, GLEnum.Float, false, (uint) vertSize * sizeof(float),
+                cptr);
+
+            _gl.EnableVertexAttribArray(2);
+            _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
+                tptr);
+            */
         }
 
         public override uint CreateTexture(int width, int height)

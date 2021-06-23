@@ -125,13 +125,13 @@ namespace Thundershock.Gui.Elements
 
                 position += GetPosition(elem);
 
-                var rect = new Rectangle((int) position.X, (int) position.Y, 0, 0);
+                var rect = new Rectangle(position.X, position.Y, 0, 0);
 
-                rect.Width = (int) (contentRectangle.Width * anchor.Right);
-                rect.Height = (int) (contentRectangle.Height * anchor.Bottom);
+                rect.Width = (contentRectangle.Width * anchor.Right);
+                rect.Height = (contentRectangle.Height * anchor.Bottom);
 
-                if (rect.Width <= 0) rect.Width = (int) size.X;
-                if (rect.Height <= 0) rect.Height = (int) size.Y;
+                if (rect.Width <= 0) rect.Width = size.X;
+                if (rect.Height <= 0) rect.Height = size.Y;
                 
                 GetLayoutManager().SetChildBounds(elem, rect);
             }

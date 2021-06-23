@@ -223,30 +223,34 @@ namespace Thundershock.Gui.Elements
         {
             if (!string.IsNullOrWhiteSpace(_wrappedText))
             {
-                var lines = _wrappedText.Split(Environment.NewLine);
-                var pos = ContentRectangle.Location;
-                
                 var f = GetFont();
 
-                foreach (var line in lines)
+                if (TextAlign == TextAlign.Left)
                 {
-                    var m = f.MeasureString(line);
-                    
-                    switch (this.TextAlign)
+                    renderer.DrawString(f, Text, ContentRectangle.Location, Color.GetColor(GuiSystem.Style.DefaultForeground));
+                }
+                else
+                {
+                    var lines = _wrappedText.Split(Environment.NewLine);
+                    var pos = ContentRectangle.Location;
+
+                    foreach (var line in lines)
                     {
-                        case Gui.TextAlign.Left:
-                            pos.X = ContentRectangle.Left;
-                            break;
-                        case Gui.TextAlign.Right:
-                            pos.X = ContentRectangle.Right - m.X;
-                            break;
-                        case Gui.TextAlign.Center:
-                            pos.X = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
-                            break;
+                        var m = f.MeasureString(line);
+
+                        switch (this.TextAlign)
+                        {
+                            case Gui.TextAlign.Right:
+                                pos.X = ContentRectangle.Right - m.X;
+                                break;
+                            case Gui.TextAlign.Center:
+                                pos.X = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
+                                break;
+                        }
+
+                        renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground));
+                        pos.Y += f.LineHeight;
                     }
-                    
-                    renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground));
-                    pos.Y += f.LineHeight;
                 }
             }
         }
