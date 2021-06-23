@@ -24,6 +24,8 @@ namespace Thundershock.Core.Fonts
             var scaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1);
 
             var transform = translate * scaleMatrix * rotate;
+
+            pos = Vector2.Transform(pos, transform);
             
             var tsColor = new Color(color.R, color.G, color.B, color.A);
 
@@ -45,7 +47,7 @@ namespace Thundershock.Core.Fonts
             tsDrawRect.X = pos.X;
             tsDrawRect.Y = pos.Y;
             
-            _renderer.FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle, transform);
+            _renderer.FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle);
         }
     }
 }

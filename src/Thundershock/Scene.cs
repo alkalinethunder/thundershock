@@ -252,10 +252,13 @@ namespace Thundershock
 
         internal void Update(GameTime gameTime)
         {
-            OnUpdate(gameTime);
-
+            // Set the scene GUI viewport to match ours.
+            _sceneGui.SetViewportSize(_gameLoop.Window.Width, _gameLoop.Window.Height);
+            
             // Update the scene's GUI
             _sceneGui.Update(gameTime);
+            
+            OnUpdate(gameTime);
         }
 
         public void Draw(GameTime gameTime)

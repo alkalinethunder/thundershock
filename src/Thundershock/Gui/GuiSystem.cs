@@ -318,7 +318,7 @@ namespace Thundershock.Gui
                 if (clip.IsEmpty || !IsVisible(element))
                     continue;
                 
-                // _gpu.EnableScissoring = true;
+                _gpu.EnableScissoring = true;
                 _gpu.ScissorRectangle = clip;
                 _renderer.Begin();
                 

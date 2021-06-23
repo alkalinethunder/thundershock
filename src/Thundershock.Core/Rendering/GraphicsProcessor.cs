@@ -8,6 +8,8 @@ namespace Thundershock.Core.Rendering
     {
         public Matrix4x4 ProjectionMatrix { get; set; } = Matrix4x4.Identity;
 
+        public abstract void PrepareRender();
+        public abstract void EndRender();
         public abstract void SubmitIndices(ReadOnlySpan<int> indices);
         public abstract Rectangle ViewportBounds { get; }
         public abstract Rectangle ScissorRectangle { get; set; }

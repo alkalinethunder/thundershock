@@ -50,6 +50,8 @@ namespace Thundershock.Core.Rendering
             }
 
             _program.Apply();
+
+            _gpu.PrepareRender();
             
             _isRendering = true;
         }
@@ -57,6 +59,8 @@ namespace Thundershock.Core.Rendering
         public void End()
         {
             ThrowIfNotBegun();
+
+            _gpu.EndRender();
 
             _isRendering = false;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.Numerics;
 
@@ -114,6 +115,7 @@ namespace Thundershock.Core.Rendering
                     {
                         _renderer.Textures[0] = tex;
 
+                        _renderer.ProjectionMatrix = this.ProjectionMatrix;
                         _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
                     }
 
@@ -169,14 +171,14 @@ namespace Thundershock.Core.Rendering
             FillRectangle(bottom, color);
         }
 
-        public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv, Matrix4x4 transform)
+        public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv)
         {
             var batch = MakeRenderItem(texture);
 
-            var tl = AddVertex(rect.Location, color, uv.Location, transform);
-            var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top), transform);
-            var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom), transform);
-            var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom), transform);
+            var tl = AddVertex(rect.Location, color, uv.Location);
+            var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top));
+            var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom));
+            var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom));
             
             batch.AddIndex(tr);
             batch.AddIndex(bl);
@@ -382,14 +384,9 @@ namespace Thundershock.Core.Rendering
             }
         }
 
-        private int AddVertex(Vector2 position, Color color, Vector2 texCoord, Matrix4x4? transform = null)
+        private int AddVertex(Vector2 position, Color color, Vector2 texCoord)
         {
-            var pos3D = new Vector3(position, 0);
-            if (transform != null)
-            {
-                pos3D = Vector3.Transform(pos3D, transform.GetValueOrDefault());
-            }
-            var vert = new Vertex(pos3D, color, texCoord);
+            var vert = new Vertex(new Vector3(position, 0), color, texCoord);
             var ptr = _vertexPointer;
             _vertexArray[_vertexPointer] = vert;
             _vertexPointer++;

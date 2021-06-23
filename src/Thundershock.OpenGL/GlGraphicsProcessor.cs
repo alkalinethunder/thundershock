@@ -99,20 +99,26 @@ namespace Thundershock.OpenGL
                 GLEnum.StaticDraw);
         }
 
-        public override void DrawPrimitives(PrimitiveType primitiveType, int primitiveStart, int primitiveCount)
+        public override void PrepareRender()
         {
             // Back-face culling - improves performance because we only need to render what we can
             // actually see.
             // TODO: fix this so that the engine can enable/disable/configure it.
             _gl.CullFace(GLEnum.Front);
             _gl.Enable(GLEnum.CullFace);
-            
+
+            // Bind to the vertex array object.
             _gl.BindVertexArray(_vao);
             
             // TODO: Let the engine control blending.
             _gl.Enable(GLEnum.Blend);
             _gl.BlendFunc(GLEnum.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
+            
+            
+        }
+        
+        public override void DrawPrimitives(PrimitiveType primitiveType, int primitiveStart, int primitiveCount)
+        {
             _gl.UseProgram(_program);
             
             var type = primitiveType switch
@@ -161,7 +167,7 @@ namespace Thundershock.OpenGL
             else
                 _gl.Disable(GLEnum.ScissorTest);
 
-            _gl.Scissor((int) _scissorRect.X, (int) _scissorRect.Y, (uint) _scissorRect.Width,
+            _gl.Scissor((int) _scissorRect.Left, (int) (_viewportH - _scissorRect.Height - _scissorRect.Y), (uint) _scissorRect.Width,
                 (uint) _scissorRect.Height);
             
             
@@ -172,10 +178,13 @@ namespace Thundershock.OpenGL
                 _gl.DrawElements(type, (uint) (primitiveCount * primitiveSize), GLEnum.UnsignedInt,
                     (void*) (nullptr + (uint) (int) (primitiveStart * sizeof(uint))));
             }
-            
-            _gl.BindVertexArray(0);
         }
 
+        public override void EndRender()
+        {
+            _gl.BindVertexArray(0);
+        }
+        
         public override uint CreateVertexBuffer()
         {
             var vbo = _gl.CreateBuffer();
