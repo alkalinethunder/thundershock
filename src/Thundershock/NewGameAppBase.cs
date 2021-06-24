@@ -36,7 +36,7 @@ namespace Thundershock
             var config = GetComponent<ConfigurationManager>();
 
             // the configured screen resolution
-            var displayMode = config.GetNewDisplayMode();
+            var displayMode = config.GetDisplayMode();
             Logger.Log($"Display mode: {displayMode.Width}x{displayMode.Height} on monitor {displayMode.Monitor}");
             Logger.Log($"Full-screen: {config.ActiveConfig.IsFullscreen}");
             Logger.Log($"V-sync: {config.ActiveConfig.VSync}");

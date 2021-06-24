@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Thundershock.IO;
 using System.Text.Json;
@@ -15,7 +16,12 @@ namespace Thundershock.Config
         
         public GameConfiguration ActiveConfig => _gameConfig;
 
-        public Thundershock.Core.DisplayMode GetNewDisplayMode()
+        public IEnumerable<DisplayMode> GetAvailableDisplayModes()
+        {
+            return GamePlatform.GetAvailableDisplayModes(ActiveConfig.Monitor);
+        }
+        
+        public DisplayMode GetDisplayMode()
         {
             return GamePlatform.GetDisplayMode(this.ActiveConfig.Resolution, ActiveConfig.Monitor);
         }
