@@ -118,7 +118,7 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnUpdate(GameTime gameTime)
         {
-            _text.Color = GuiSystem.Style.GetButtonTextColor(_activator);
+            _text.ForeColor = GuiSystem.Style.GetButtonTextColor(_activator);
             
             if (_itemList.SelectedIndex > -1)
             {

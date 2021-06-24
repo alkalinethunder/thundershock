@@ -3,21 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Cairo;
+using FontStashSharp;
 using Thundershock.Core;
 using Thundershock.Gui.Styling;
+using Rectangle = Thundershock.Core.Rectangle;
 
 
 namespace Thundershock.Gui.Elements
 {
     public class TextBlock : Element
     {
+        private Font _lastFont;
+        private bool _textIsDirty = true;
+        private List<Line> _lines = new();
         private string _wrappedText;
         private string _text = string.Empty;
         private TextAlign _textAlign = Gui.TextAlign.Left;
         private TextWrapMode _wrapMode = TextWrapMode.WordWrap;
+        private float _lastWidth;
         
-        public StyleColor Color { get; set; } = StyleColor.Default;
-
         public string Text
         {
             get => _text;
@@ -26,6 +31,7 @@ namespace Thundershock.Gui.Elements
                 if (_text != value)
                 {
                     _text = value;
+                    _textIsDirty = true;
                 }
             }
         }
@@ -38,6 +44,7 @@ namespace Thundershock.Gui.Elements
                 if (_textAlign != value)
                 {
                     _textAlign = value;
+                    _textIsDirty = true;
                 }
             }
         }
@@ -50,6 +57,7 @@ namespace Thundershock.Gui.Elements
                 if (_wrapMode != value)
                 {
                     _wrapMode = value;
+                    _textIsDirty = true;
                 }
             }
         }
@@ -165,91 +173,104 @@ namespace Thundershock.Gui.Elements
 
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
-            var f = GetFont();
-
-            switch (WrapMode)
+            var pos = contentRectangle.Location;
+            var height = _lastFont.LineHeight;
+            
+            foreach (var line in _lines)
             {
-                case TextWrapMode.None:
-                    _wrappedText = Text;
-                    break;
-                case TextWrapMode.LetterWrap:
-                    _wrappedText = LetterWrap(f, Text, contentRectangle.Width);
-                    break;
-                case TextWrapMode.WordWrap:
-                    _wrappedText = WordWrap(f, Text, contentRectangle.Width);
-                    break;
+                pos.X = _textAlign switch
+                {
+                    Gui.TextAlign.Right => contentRectangle.Right - line.Measure.X,
+                    Gui.TextAlign.Center => contentRectangle.Left + ((contentRectangle.Width - line.Measure.X) / 2),
+                    _ => contentRectangle.Left
+                };
+
+                line.Position = pos;
+                
+                pos.Y += height;
             }
 
-            
             base.ArrangeOverride(contentRectangle);
         }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
-            if (string.IsNullOrWhiteSpace(Text))
-                return Vector2.Zero;
-            
-            var f = GetFont();
-
-            switch (WrapMode)
+            if (Math.Abs(_lastWidth - alottedSize.X) >= 0.001f)
             {
-                case TextWrapMode.None:
-                    _wrappedText = Text;
-                    break;
-                case TextWrapMode.LetterWrap:
-                    _wrappedText = LetterWrap(f, Text, alottedSize.X);
-                    break;
-                case TextWrapMode.WordWrap:
-                    _wrappedText = WordWrap(f, Text, alottedSize.X);
-                    break;
+                _textIsDirty = true;
             }
 
-            var size = Vector2.Zero;
-            foreach (var line in _wrappedText.Split('\n'))
+            if (_textIsDirty)
             {
-                var m = f.MeasureString(line);
+                _lastFont = GetFont();
+                
+                var wrapped = _wrapMode switch
+                {
+                    TextWrapMode.WordWrap => WordWrap(_lastFont, _text, alottedSize.X),
+                    TextWrapMode.LetterWrap => LetterWrap(_lastFont, _text, alottedSize.X),
+                    _ => _text
+                };
+
+                _lines.Clear();
+
+                foreach (var line in wrapped.Split(Environment.NewLine))
+                {
+                    var ln = new Line
+                    {
+                        Text = line,
+                        Measure = _lastFont.MeasureString(line)
+                    };
+
+                    _lines.Add(ln);
+                }
+                
+                _textIsDirty = false;
+            }
+            
+            var size = Vector2.Zero;
+            foreach (var line in _lines)
+            {
+                var m = line.Measure;
 
                 size.X = Math.Max(size.X, m.X);
-                size.Y += f.LineHeight;
+                size.Y += _lastFont.LineHeight;
             }
 
+            _lastWidth = size.X;
+            
             return size;
         }
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
-            if (!string.IsNullOrWhiteSpace(_wrappedText))
+            if (_lines.Count > 0)
             {
-                var f = GetFont();
-
-                if (TextAlign == TextAlign.Left)
+                var f = _lastFont;
+                var color = (ForeColor ?? StyleColor.Default).GetColor(GuiSystem.Style.DefaultForeground);
+                foreach (var line in _lines)
                 {
-                    renderer.DrawString(f, Text, ContentRectangle.Location, Color.GetColor(GuiSystem.Style.DefaultForeground));
-                }
-                else
-                {
-                    var lines = _wrappedText.Split(Environment.NewLine);
-                    var pos = ContentRectangle.Location;
-
-                    foreach (var line in lines)
-                    {
-                        var m = f.MeasureString(line);
-
-                        switch (this.TextAlign)
-                        {
-                            case Gui.TextAlign.Right:
-                                pos.X = ContentRectangle.Right - m.X;
-                                break;
-                            case Gui.TextAlign.Center:
-                                pos.X = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
-                                break;
-                        }
-
-                        renderer.DrawString(f, line, pos, Color.GetColor(GuiSystem.Style.DefaultForeground));
-                        pos.Y += f.LineHeight;
-                    }
+                    renderer.DrawString(f, line.Text, line.Position, color);
                 }
             }
+        }
+
+        protected override void OnUpdate(GameTime gameTime)
+        {
+            var f = GetFont();
+            if (f != _lastFont)
+            {
+                _lastFont = f;
+                _textIsDirty = true;
+            }
+            
+            base.OnUpdate(gameTime);
+        }
+
+        private class Line
+        {
+            public string Text;
+            public Vector2 Position;
+            public Vector2 Measure;
         }
     }
 }
