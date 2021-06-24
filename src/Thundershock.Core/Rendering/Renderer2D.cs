@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.Numerics;
+using FontStashSharp.Interfaces;
 
 namespace Thundershock.Core.Rendering
 {
@@ -10,7 +11,7 @@ namespace Thundershock.Core.Rendering
     /// The Sprite Rocket is an extremely enhanced version of the MonoGame Sprite Batch with heaps more
     /// options for renderable polygons.
     /// </summary>
-    public sealed class Renderer2D
+    public sealed class Renderer2D : IFontStashRenderer
     {
         private int[] _ibo = new int[128];
         private int _indexPointer;
@@ -335,6 +336,41 @@ namespace Thundershock.Core.Rendering
             FillCircleSegment(center, radius, RightStartAngle, RightEndAngle, color, maxError);
         }
         
+        void IFontStashRenderer.Draw(object texture, Vector2 pos, System.Drawing.Rectangle? src, System.Drawing.Color color, float rotation, Vector2 origin, Vector2 scale,
+            float depth)
+        {
+            var tsTexture = texture as Texture2D;
+
+            // var rotate = Matrix4x4.CreateRotationZ(rotation);
+            // var scaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1);
+
+            // var transform = scaleMatrix * rotate;
+
+            pos -= origin;
+            
+            var tsColor = new Color(color.R, color.G, color.B, color.A);
+
+            var tsRectangle = Rectangle.Unit;
+            var tsDrawRect = new Rectangle(0, 0, tsTexture.Width, tsTexture.Height);
+            
+            if (src != null)
+            {
+                tsRectangle.X = (float) src?.Left / tsTexture.Width;
+                tsRectangle.Width = (float) src?.Width / tsTexture.Width;
+                
+                tsRectangle.Y = (float) src?.Top / tsTexture.Height;
+                tsRectangle.Height = (float) src?.Height / tsTexture.Height;
+
+                tsDrawRect.Width = (float) src?.Width;
+                tsDrawRect.Height = (float) src?.Height;
+            }
+
+            tsDrawRect.X = pos.X;
+            tsDrawRect.Y = pos.Y;
+            
+            FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle);
+        }
+
         private static void CreateCircleSegment(Vector2 center, float radius, float step, float start, float end, ref Span<Vector2> result)
         {
             var i = 0;
