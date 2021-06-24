@@ -17,7 +17,7 @@ namespace Thundershock.Config
 
         public Thundershock.Core.DisplayMode GetNewDisplayMode()
         {
-            return PlatformUtils.GetDisplayMode(this.ActiveConfig.Resolution, ActiveConfig.Monitor);
+            return GamePlatform.GetDisplayMode(this.ActiveConfig.Resolution, ActiveConfig.Monitor);
         }
         
         public void ResetToDefaults()

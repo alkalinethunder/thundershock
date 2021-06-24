@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using SDL2;
 using Silk.NET.OpenGL;
@@ -68,6 +69,16 @@ namespace Thundershock.OpenGL
                 throw new Exception(SDL.SDL_GetError());
 
             return new DisplayMode(bounds.w, bounds.h, monitor, bounds.x, bounds.y);
+        }
+
+        public IEnumerable<DisplayMode> GetAvailableDisplayModes(int monitor)
+        {
+            var count = SDL.SDL_GetNumDisplayModes(monitor);
+            for (var i = 0; i < count; i++)
+            {
+                SDL.SDL_GetDisplayMode(monitor, i, out var mode);
+                yield return new DisplayMode(mode.w, mode.h, monitor, 0, 0);
+            }
         }
     }
 }
