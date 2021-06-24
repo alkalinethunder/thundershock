@@ -5,7 +5,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class TextEntry : Element
+    public class TextEntry : ContentElement
     {
         private int _inputPos = 0;
         private string _text = string.Empty;

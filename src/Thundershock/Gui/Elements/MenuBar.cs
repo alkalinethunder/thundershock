@@ -6,7 +6,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class MenuBar : Element
+    public class MenuBar : LayoutElement
     {
         private Panel _menuBackground = new();
         private Stacker _menuStacker = new();

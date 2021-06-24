@@ -8,7 +8,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements.Console
 {
-    public sealed class ConsoleControl : Element, IConsole
+    public sealed class ConsoleControl : ContentElement, IConsole
     {
         public static readonly char BackgroundColorCode = '$';
         public static readonly char ForegroundColorCode = '#';

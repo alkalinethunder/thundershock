@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Picture : Element
+    public class Picture : ContentElement
     {
         private Texture2D _image;
         

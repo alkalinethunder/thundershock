@@ -6,7 +6,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class CheckBox : Element
+    public class CheckBox : ContentElement
     {
         private CheckState _checkState = CheckState.Unchecked;
         private bool _isHovered;

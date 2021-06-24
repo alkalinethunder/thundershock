@@ -381,43 +381,46 @@ namespace Thundershock.Gui
             // (the element is either off-screen or outside the bounds of its parent.)
             if (clip.IsEmpty)
                 return;
-            
-            // Get the computed tint value.
-            var tint = element.ComputedTint;
-            
-            // Set up the GUI renderer.
-            var gRenderer = new GuiRenderer(_renderer, element.ComputedOpacity, tint);
-            
-            // Set up the scissor testing for the element.
-            _gpu.EnableScissoring = true;
-            _gpu.ScissorRectangle = clip;
-            
-            // Begin the render batch.
-            _renderer.Begin();
-            
-            // Paint, damn you.
-            element.Paint(gameTime, gRenderer);
-            
-            // Debug rects if they're enabled.
-            if (_debugShowBounds)
+
+            if (element.CanPaint)
             {
-                var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
-                    
-                debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
+                // Get the computed tint value.
+                var tint = element.ComputedTint;
 
-                var text = $"{element.Name}{Environment.NewLine}BoundingBox={element.BoundingBox}";
-                var measure = _debugFont.MeasureString(text);
-                var pos = new Vector2((element.BoundingBox.Left + ((element.BoundingBox.Width - measure.X) / 2)),
-                    element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
+                // Set up the GUI renderer.
+                var gRenderer = new GuiRenderer(_renderer, element.ComputedOpacity, tint);
 
-                debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
+                // Set up the scissor testing for the element.
+                _gpu.EnableScissoring = true;
+                _gpu.ScissorRectangle = clip;
+
+                // Begin the render batch.
+                _renderer.Begin();
+
+                // Paint, damn you.
+                element.Paint(gameTime, gRenderer);
+
+                // Debug rects if they're enabled.
+                if (_debugShowBounds)
+                {
+                    var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
+
+                    debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
+
+                    var text = $"{element.Name}{Environment.NewLine}BoundingBox={element.BoundingBox}";
+                    var measure = _debugFont.MeasureString(text);
+                    var pos = new Vector2((element.BoundingBox.Left + ((element.BoundingBox.Width - measure.X) / 2)),
+                        element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
+
+                    debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
+                }
+
+                // End the batch.
+                _renderer.End();
+
+                // Disable scissoring.
+                _gpu.EnableScissoring = false;
             }
-
-            // End the batch.
-            _renderer.End();
-            
-            // Disable scissoring.
-            _gpu.EnableScissoring = false;
 
             // Recurse through the element's children.
             foreach (var child in element.Children)

@@ -5,7 +5,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Button : Element, IButtonElement
+    public class Button : ContentElement, IButtonElement
     {
         private string _wrapped = string.Empty;
         private string _text = "Button Text";

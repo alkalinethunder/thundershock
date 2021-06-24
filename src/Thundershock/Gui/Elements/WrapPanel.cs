@@ -4,7 +4,7 @@ using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class WrapPanel : Element
+    public class WrapPanel : LayoutElement
     {
         private StackDirection _orientation = StackDirection.Horizontal;
         

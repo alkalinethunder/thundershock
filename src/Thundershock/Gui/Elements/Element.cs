@@ -128,6 +128,9 @@ namespace Thundershock.Gui.Elements
                 }
             }
         }
+        
+        public abstract bool CanPaint { get; }
+        
         public bool Enabled { get; set; } = true;
 
         public StyleColor ForeColor { get; set; } = StyleColor.Default;

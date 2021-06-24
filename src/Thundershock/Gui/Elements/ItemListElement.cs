@@ -6,7 +6,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public abstract class ItemListElement<T> : Element
+    public abstract class ItemListElement<T> : ContentElement
     {
         private readonly List<T> _items = new();
         private int _selectedItem = -1;

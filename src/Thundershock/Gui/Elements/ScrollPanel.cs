@@ -6,7 +6,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class ScrollPanel : Element
+    public class ScrollPanel : LayoutElement
     {
         private float _scrollOffset;
         private float _pageHeight;

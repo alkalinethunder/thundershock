@@ -7,7 +7,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Menu : Element
+    public class Menu : LayoutElement
     {
         private MenuItem _item;
 

@@ -3,7 +3,7 @@ using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class ProgressBar : Element
+    public class ProgressBar : ContentElement
     {
         private float _value = 0;
 

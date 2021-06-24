@@ -6,7 +6,7 @@ using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Stacker : Element
+    public class Stacker : LayoutElement
     {
         public static readonly string FillProperty = "Fill";
 

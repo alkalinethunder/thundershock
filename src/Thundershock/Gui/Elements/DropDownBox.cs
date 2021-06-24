@@ -5,7 +5,7 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class DropDownBox : Element
+    public class DropDownBox : LayoutElement
     {
         private int _lastIndex;
         private AdvancedButton _activator = new();

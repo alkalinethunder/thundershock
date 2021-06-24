@@ -4,7 +4,7 @@ using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class FreePanel : Element
+    public class FreePanel : LayoutElement
     {
         public static readonly string AnchorProperty = "Anchor";
         public static readonly string AlignmentProperty = "Alignment";

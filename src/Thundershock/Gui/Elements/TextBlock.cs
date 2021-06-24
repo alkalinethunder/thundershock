@@ -12,7 +12,7 @@ using Rectangle = Thundershock.Core.Rectangle;
 
 namespace Thundershock.Gui.Elements
 {
-    public class TextBlock : Element
+    public class TextBlock : ContentElement
     {
         private Font _lastFont;
         private bool _textIsDirty = true;
