@@ -18,7 +18,6 @@ namespace Thundershock.Gui.Elements
                 if (_image != value)
                 {
                     _image = value;
-                    InvalidateMeasure();
                 }
             }
         }

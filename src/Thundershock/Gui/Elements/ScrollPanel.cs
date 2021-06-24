@@ -76,9 +76,7 @@ namespace Thundershock.Gui.Elements
             if (nextOffset < 0) nextOffset = 0;
 
             _scrollOffset = nextOffset;
-            
-            InvalidateMeasure();
-            
+
             return base.OnMouseScroll(e);
         }
     }

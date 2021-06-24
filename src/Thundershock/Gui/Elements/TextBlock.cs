@@ -26,7 +26,6 @@ namespace Thundershock.Gui.Elements
                 if (_text != value)
                 {
                     _text = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -39,7 +38,6 @@ namespace Thundershock.Gui.Elements
                 if (_textAlign != value)
                 {
                     _textAlign = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -52,7 +50,6 @@ namespace Thundershock.Gui.Elements
                 if (_wrapMode != value)
                 {
                     _wrapMode = value;
-                    InvalidateMeasure();
                 }
             }
         }

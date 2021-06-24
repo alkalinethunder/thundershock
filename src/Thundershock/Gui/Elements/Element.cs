@@ -14,8 +14,6 @@ namespace Thundershock.Gui.Elements
 {
     public abstract class Element : IPropertySetOwner
     {
-        private bool _isMeasureDirty = true;
-        private bool _isArrangeDirty = true;
         private bool _isRenderDataDirty = true;
         private float _computedOpacity;
         private Color _computedTint;
@@ -65,7 +63,6 @@ namespace Thundershock.Gui.Elements
                 if (_font != value)
                 {
                     _font = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -101,7 +98,6 @@ namespace Thundershock.Gui.Elements
                 if (_hAlign != value)
                 {
                     _hAlign = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -114,7 +110,6 @@ namespace Thundershock.Gui.Elements
                 if (_vAlign != value)
                 {
                     _vAlign = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -158,7 +153,6 @@ namespace Thundershock.Gui.Elements
                 if (_padding != value)
                 {
                     _padding = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -171,7 +165,6 @@ namespace Thundershock.Gui.Elements
                 if (_margin != value)
                 {
                     _margin = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -184,7 +177,6 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_fixedWidth - value) >= 0.0001f)
                 {
                     _fixedWidth = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -197,7 +189,6 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_fixedHeight - value) >= 0.0001f)
                 {
                     _fixedHeight = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -210,7 +201,6 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_minWidth - value) >= 0.0001f)
                 {
                     _minWidth = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -223,7 +213,6 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_minHeight - value) >= 0.0001f)
                 {
                     _minHeight = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -236,7 +225,6 @@ namespace Thundershock.Gui.Elements
                 if (_visibility != value)
                 {
                     _visibility = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -249,7 +237,6 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_maxWidth - value) >= 0.0001f)
                 {
                     _maxWidth = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -262,7 +249,6 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_maxHeight - value) >= 0.0001f)
                 {
                     _maxHeight = value;
-                    InvalidateMeasure();
                 }
             }
         }
@@ -329,15 +315,11 @@ namespace Thundershock.Gui.Elements
 
         public Vector2 Measure(Vector2 alottedSize = default)
         {
-            if (!_isMeasureDirty)
-                return ActualSize;
-            
             // If the UI element is collapsed, report a measurement of zero.
             if (Visibility == Visibility.Collapsed)
             {
                 // this fixes a layout bug!
                 ActualSize = Vector2.Zero;
-                _isMeasureDirty = false;
                 return Vector2.Zero;
             }
 
@@ -386,8 +368,7 @@ namespace Thundershock.Gui.Elements
             measure += Margin.Size + Padding.Size;
             
             ActualSize = measure;
-
-            _isMeasureDirty = false;
+            
             return measure;
         }
         
@@ -416,7 +397,7 @@ namespace Thundershock.Gui.Elements
 
             public void SetBounds(Rectangle rectangle)
             {
-                if (_owner.BoundingBox != rectangle || _owner._isMeasureDirty)
+                if (_owner.BoundingBox != rectangle)
                 {
                     var contentSize = this.GetContentSize(rectangle.Size);
 
@@ -776,27 +757,7 @@ namespace Thundershock.Gui.Elements
         
         public void NotifyPropertyModified(string name)
         {
-            InvalidateMeasure();
-        }
-
-        protected void InvalidateMeasure()
-        {
-            if (!_isMeasureDirty)
-            {
-                foreach (var child in Children.Collapse())
-                {
-                    child._isMeasureDirty = true;
-                }
-
-                _isMeasureDirty = true;
-
-                var p = Parent;
-                while (p != null)
-                {
-                    p._isMeasureDirty = true;
-                    p = p.Parent;
-                }
-            }
+            // Stub.
         }
         
         public class ElementCollection : ICollection<Element>
@@ -849,8 +810,6 @@ namespace Thundershock.Gui.Elements
                 }
                 
                 _children.Add(item);
-                
-                item.InvalidateMeasure();
             }
 
             public void Clear()
@@ -876,8 +835,6 @@ namespace Thundershock.Gui.Elements
 
                 if (item.Parent != _owner)
                     return false;
-
-                item.InvalidateMeasure();
                 
                 item.Parent = null;
                 item._guiSystem = null;

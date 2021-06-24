@@ -16,7 +16,6 @@ namespace Thundershock.Gui.Elements
                 if (_orientation != value)
                 {
                     _orientation = value;
-                    InvalidateMeasure();
                 }
             }
         }

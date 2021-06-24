@@ -34,9 +34,6 @@ namespace Thundershock.Gui.Elements
                     if (value < -1 && value >= _items.Count)
                         throw new ArgumentOutOfRangeException(nameof(value), value,
                             "Selected index must be -1 for no selection or between 0 and the number of items in the list.");
-
-                    // Just in case.
-                    InvalidateMeasure();
                     
                     _selectedItem = value;
                     OnSelectedIndexChanged(value);
@@ -56,7 +53,6 @@ namespace Thundershock.Gui.Elements
             set
             {
                 _items[index] = value;
-                InvalidateMeasure();
             }
         }
         
@@ -69,7 +65,6 @@ namespace Thundershock.Gui.Elements
         {
             _items.Clear();
             _selectedItem = -1;
-            InvalidateMeasure();
         }
 
         public void AddItem(T value)
@@ -77,7 +72,6 @@ namespace Thundershock.Gui.Elements
             if (!_items.Contains(value))
             {
                 _items.Add(value);
-                InvalidateMeasure();
             }
         }
 
@@ -93,7 +87,6 @@ namespace Thundershock.Gui.Elements
                     SelectedIndex--;
                 }
                 
-                InvalidateMeasure();
                 return true;
             }
 
@@ -156,8 +149,6 @@ namespace Thundershock.Gui.Elements
             {
                 SelectedIndex++;
             }
-            
-            InvalidateMeasure();
         }
 
         protected abstract Rectangle GetItemBounds(int index, T value);

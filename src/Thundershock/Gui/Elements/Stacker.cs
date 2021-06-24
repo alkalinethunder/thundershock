@@ -20,7 +20,6 @@ namespace Thundershock.Gui.Elements
                 if (_direction != value)
                 {
                     _direction = value;
-                    InvalidateMeasure();
                 }
             }
         }
