@@ -108,7 +108,8 @@ namespace Thundershock.Debugging
             AddObject(Logger.GetLogger()); // Console control
             
             // Static cheats
-            foreach (var type in ThundershockPlatform.GetAllTypes<object>())
+            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var type in ass.GetTypes())
             {
                 var cheatAlias = type.GetCustomAttributes(false).OfType<CheatAliasAttribute>().FirstOrDefault();
 
@@ -120,8 +121,7 @@ namespace Thundershock.Debugging
                 if (string.IsNullOrWhiteSpace(name))
                     continue;
 
-                foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic |
-                                                       BindingFlags.Static))
+                foreach (var method in type.GetMethods(BindingFlags.NonPublic |  BindingFlags.Static))
                 {
                     var cheatAttrib = method.GetCustomAttributes(false).OfType<CheatAttribute>().FirstOrDefault();
 
@@ -132,7 +132,7 @@ namespace Thundershock.Debugging
 
                     var fullname = $"{name}.{cheatName}";
 
-                    AddCheat(name, method, null);
+                    AddCheat(fullname, method, null);
                 }
             }
         }

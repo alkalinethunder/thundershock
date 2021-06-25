@@ -5,6 +5,7 @@ using Thundershock.Debugging;
 
 namespace Thundershock.Core
 {
+    [CheatAlias("Sys")]
     public static class GamePlatform
     {
         private static IGamePlatform _gamePlatform;
@@ -102,6 +103,12 @@ namespace Thundershock.Core
             }
             
             return result;
+        }
+
+        [Cheat("GPUName")]
+        private static void PrintGPUInfo()
+        {
+            Logger.GetLogger().Log(GraphicsCardDescription);
         }
     }
 }
