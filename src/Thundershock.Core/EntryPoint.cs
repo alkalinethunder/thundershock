@@ -71,9 +71,6 @@ namespace Thundershock.Core
             var console = new ConsoleOutput();
             logger.AddOutput(console);
             
-            // platform init
-            PlatformUtils.Initialize(logger);
-
             // verbose logging
             console.Verbose = entryArgs.Verbose;
             if (console.Verbose)

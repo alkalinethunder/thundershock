@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0;net5.0-windows</TargetFrameworks>
-    <MonoGamePlatform>DesktopGL</MonoGamePlatform>
+    <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(TargetFramework.StartsWith('net5.0-windows'))">
+    <TargetFrameworks>net5.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   
