@@ -343,11 +343,26 @@ namespace Thundershock
 
         private void NoEffect(RenderTarget2D renderTarget, Rectangle rect)
         {
-            // _gfx.SetRenderTarget(_intermediate);
+            // Bind the render target as a texture.
+            _gpu.Textures[0] = renderTarget;
 
-            // _batch.Begin();
-            // _batch.Draw(renderTarget, rect, Color.White);
-            // _batch.End();
+            // Render to the intermediate buffer.
+            _gpu.SetRenderTarget(_intermediate);
+            
+            // Use the basic effect shader program for this next render.
+            // We don't want any special effects here. Just the source frame.
+            _basicEffect.Programs.First().Apply();
+            
+            // Prepare the render.
+            _gpu.PrepareRender();
+            
+            // Render the quad.
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            
+            // Clean up.
+            _gpu.EndRender();
+            _gpu.SetRenderTarget(null);
+            _gpu.Textures[0] = null;
         }
 
         private void SetShadowMaskParams()

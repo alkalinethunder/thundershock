@@ -72,7 +72,7 @@ namespace Thundershock.Debugging
 
         public override bool KeyDown(KeyEventArgs e)
         {
-            return _gui.KeyDown(e);
+            return _gui.KeyDown(e) || true;
         }
 
         public override bool KeyUp(KeyEventArgs e)
@@ -83,12 +83,12 @@ namespace Thundershock.Debugging
                 return true;
             }
             
-            return _gui.KeyUp(e);
+            return _gui.KeyUp(e) || true;
         }
 
         public override bool KeyChar(KeyCharEventArgs e)
         {
-            return _gui.KeyChar(e);
+            return _gui.KeyChar(e) || true;
         }
 
         public void Log(string message, LogLevel logLevel)
