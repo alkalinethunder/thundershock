@@ -46,7 +46,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     bloom = AdjustSaturation(bloom, BloomSaturation) * BloomIntensity;
     base = AdjustSaturation(base, BaseSaturation) * BaseIntensity;
 	
-	base *= (1 - saturate(bloom));
+    base *= (1 - saturate(bloom));
 	
 	return base + bloom;
 }

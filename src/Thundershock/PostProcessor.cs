@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using Thundershock.Components;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Rendering;
 
 namespace Thundershock
@@ -35,6 +36,7 @@ namespace Thundershock
         
         #region State
 
+        private bool _ignoreCamera;
         private Matrix4x4 _matrix;
         private GraphicsProcessor _gpu;
         private BasicEffect _basicEffect;
@@ -132,6 +134,9 @@ namespace Thundershock
 
         public void SettingsFromCameraComponent(CameraComponent cam)
         {
+            if (_ignoreCamera)
+                return;
+            
             _bloomThreshold = cam.BloomThreshold;
             _bloomIntensity = cam.BloomIntensity;
             _bloomSaturation = cam.BloomSaturation;
@@ -450,5 +455,63 @@ namespace Thundershock
                 _processor = processor;
             }
         }
+
+        #region Cheats
+
+        [Cheat("IgnoreCamera")]
+        private void IgnoreCamera(bool value)
+        {
+            _ignoreCamera = value;
+        }
+
+        [Cheat("Bloom")]
+        private void EnableBloomCheat(bool value)
+        {
+            Settings.EnableBloom = value;
+        }
+
+        [Cheat("CRT")]
+        private void CrtCheat(bool value)
+        {
+            Settings.EnableShadowMask = value;
+        }
+
+        [Cheat("BloomThreshold")]
+        private void BloomThresholdCheat(float value)
+        {
+            _bloomThreshold = value;
+        }
+        
+        [Cheat("BloomIntensity")]
+        private void BloomIntensityCheat(float value)
+        {
+            _bloomIntensity = value;
+        }
+
+        [Cheat("BloomSaturation")]
+        private void BloomSaturationCheat(float value)
+        {
+            _bloomSaturation = value;
+        }
+
+        [Cheat("BloomBaseIntensity")]
+        private void BloomBaseIntensityCheat(float value)
+        {
+            _baseIntensity = value;
+        }
+
+        [Cheat("BloomBaseSaturation")]
+        private void BloomBaseSaturationCheat(float value)
+        {
+            _baseSaturation = value;
+        }
+
+        [Cheat("BloomBlur")]
+        private void BloomBlurCheat(float value)
+        {
+            _blurAmount = value;
+        }
+
+        #endregion
     }
 }

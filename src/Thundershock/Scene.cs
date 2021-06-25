@@ -129,6 +129,10 @@ namespace Thundershock
 
             _gameLoop.GetComponent<CheatManager>().AddObject(this);
 
+            // Add common scene cheats.
+            _gameLoop.GetComponent<CheatManager>().AddObject(_postProcessSystem);
+            _gameLoop.GetComponent<CheatManager>().AddObject(_registry);
+
             OnLoad();
         }
 
@@ -233,6 +237,9 @@ namespace Thundershock
         public void Unload()
         {
             _gameLoop.GetComponent<CheatManager>().RemoveObject(this);
+            
+            _gameLoop.GetComponent<CheatManager>().RemoveObject(_postProcessSystem);
+            _gameLoop.GetComponent<CheatManager>().RemoveObject(_registry);
 
             while (_components.Any())
                 RemoveComponent(_components.First());

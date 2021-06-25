@@ -143,10 +143,15 @@
         out vec4 color;
         
         vec4 adjustSaturation(vec4 color, float saturation) {
-            float grayDot = dot(vec3(color.r, color.g, color.b), vec3(0.3, 0.59, 0.11));
-            vec4 gray = vec4(grayDot,grayDot,grayDot, 1);
-            return mix(gray, color, vec4(saturation, saturation, saturation, 1));
+            float grayDot = dot(color, vec4(0.3, 0.59, 0.11, 0));
+            return mix(vec4(grayDot), color, vec4(saturation));
         }
+        
+        // vec4 adjustSaturation(vec4 color, float saturation) {
+        //     float grayDot = dot(color.rgb, vec3(0.3, 0.59, 0.11));
+        //     vec4 gray = vec4(grayDot);
+        //     return mix(gray, color, vec4(saturation, saturation, saturation, 1));
+        // }
         
         void main() {
             vec4 base = texture(tex0, fragTexture);
@@ -155,7 +160,12 @@
             bloom = adjustSaturation(bloom, bloomSaturation) * bloomIntensity;
             base = adjustSaturation(base, baseSaturation) * baseIntensity;
         
-            base *= vec4(1) - clamp(bloom, vec4(0), vec4(1));
+            // base *= vec4(1) - clamp(bloom, vec4(0), vec4(1));
+        
+            base.r *= 1 - clamp(bloom.r, 0, 1);
+            base.g *= 1 - clamp(bloom.g, 0, 1);
+            base.b *= 1 - clamp(bloom.b, 0, 1);
+            base.a *= 1 - clamp(bloom.a, 0, 1);
         
             color = base + bloom;
         }
