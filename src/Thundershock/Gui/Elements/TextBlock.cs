@@ -174,7 +174,7 @@ namespace Thundershock.Gui.Elements
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
             var pos = contentRectangle.Location;
-            var height = _lastFont.LineHeight;
+            var height = (_lastFont ?? GetFont()).LineHeight;
             
             foreach (var line in _lines)
             {

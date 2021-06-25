@@ -1,9 +1,13 @@
 using System;
 using System.Reflection;
+using System.Threading;
 using SDL2;
 using Silk.NET.Core.Contexts;
 using Silk.NET.OpenAL;
+using Thundershock.Core;
 using Thundershock.Core.Audio;
+using Thundershock.Core.Debugging;
+using Thundershock.Debugging;
 
 namespace Thundershock.OpenGL
 {
@@ -41,9 +45,25 @@ namespace Thundershock.OpenGL
             unsafe
             {
                 var device = _alc.OpenDevice(string.Empty);
+                var error = _alc.GetError(device);
+                if (error != ContextError.NoError)
+                    throw new InvalidOperationException("OpenAL threw an error: " + error);
+
+                
                 var ctx = _alc.CreateContext(device, null);
+                error = _alc.GetError(device);
+                if (error != ContextError.NoError)
+                    throw new InvalidOperationException("OpenAL threw an error: " + error);
+
+                
                 _alc.MakeContextCurrent(ctx);
+                error = _alc.GetError(device);
+                if (error != ContextError.NoError)
+                    throw new InvalidOperationException("OpenAL threw an error: " + error);
+
             }
+            
+            ThrowOnError();
         }
 
         public override float MasterVolume { get; set; }
@@ -55,7 +75,15 @@ namespace Thundershock.OpenGL
         
         protected override void Dispose(bool disposing)
         {
-            throw new NotImplementedException();
         }
-    }
+        
+        private void ThrowOnError()
+        {
+            var error = _al.GetError();
+            if (error != AudioError.NoError)
+                throw new InvalidOperationException("OpenAL threw an error: " + error);
+        }
+
+
+   }
 }
