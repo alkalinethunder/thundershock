@@ -6,6 +6,7 @@ using Thundershock.Components;
 using Thundershock.Core;
 using Thundershock.Core.Ecs;
 using Thundershock.Core.Audio;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
@@ -17,6 +18,7 @@ using Thundershock.Rendering;
 
 namespace Thundershock
 {
+    [CheatAlias("Scene")]
     public abstract class Scene
     {
         public const uint MaxEntityCount = 10000;
@@ -117,33 +119,17 @@ namespace Thundershock
             _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
             _postProcessSystem.LoadContent();
             
+            // Help a playa out, spawn the default camera entity.
+            var cam = SpawnObject();
+            cam.AddComponent(new CameraComponent());
+            cam.AddComponent(new Transform());
+            
             // Ensure that the scene render target matches the viewport size.
             EnsureSceneRenderTargetSize();
 
-            OnLoad();
-            
-            Game.GetComponent<CheatManager>().AddCheat("cam.setPersp", () => Camera.ProjectionType = CameraProjectionType.Perspective);
-            Game.GetComponent<CheatManager>().AddCheat("cam.setOrtho",
-                () => Camera.ProjectionType = CameraProjectionType.Orthographic);
+            _gameLoop.GetComponent<CheatManager>().AddObject(this);
 
-            Game.GetComponent<CheatManager>().AddCheat("cam.orthoWidth", (args) =>
-            {
-                if (float.TryParse(args.First(), out var width))
-                {
-                    Camera.OrthoRight = width;
-                }
-            });
-            
-            Game.GetComponent<CheatManager>().AddCheat("cam.orthoHeight", (args) =>
-            {
-                if (float.TryParse(args.First(), out var height))
-                {
-                    Camera.OrthoBottom = height;
-                }
-            });
-            
-            Game.GetComponent<CheatManager>().AddCheat("noclip",
-                () => _noClip = !_noClip);
+            OnLoad();
         }
 
         internal bool MouseDown(MouseButtonEventArgs e)
@@ -246,6 +232,8 @@ namespace Thundershock
         
         public void Unload()
         {
+            _gameLoop.GetComponent<CheatManager>().RemoveObject(this);
+
             while (_components.Any())
                 RemoveComponent(_components.First());
 
@@ -382,7 +370,19 @@ namespace Thundershock
             _postProcessSystem.Process(_sceneRenderTarget);
         }
 
+        protected SceneObject PrimaryCamera
+        {
+            get
+            {
+                var view = _registry.View<Transform, CameraComponent>();
 
+                if (view.Any())
+                    return new SceneObject(_registry, view.Last());
+                else
+                    return null;
+            }
+        }
+        
         protected virtual void OnUpdate(GameTime gameTime) {}
         protected virtual void OnLoad() {}
         protected virtual void OnUnload() {}
@@ -449,6 +449,18 @@ namespace Thundershock
                     _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
                 }
             }
+        }
+
+        [Cheat]
+        protected void NoClip(bool value)
+        {
+            _noClip = value;
+        }
+
+        [Cheat]
+        protected void SetCamMode(CameraProjectionType mode)
+        {
+            PrimaryCamera.GetComponent<CameraComponent>().ProjectionType = mode;
         }
     }
 }

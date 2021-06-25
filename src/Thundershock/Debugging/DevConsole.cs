@@ -1,6 +1,6 @@
 using System;
-using SDL2;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Gui;
 using Thundershock.Gui.Elements;
@@ -8,7 +8,7 @@ using Thundershock.Gui.Elements.Console;
 
 namespace Thundershock.Debugging
 {
-    public sealed class DevConsole : Layer
+    public sealed class DevConsole : Layer, ILogOutput
     {
         private GuiSystem _gui;
 
@@ -20,6 +20,8 @@ namespace Thundershock.Debugging
         protected override void OnInit()
         {
             _gui = new GuiSystem(App.Window.GraphicsProcessor);
+
+            Logger.GetLogger().AddOutput(this);
 
             _console.Properties.SetValue(Stacker.FillProperty, StackFill.Fill);
             
@@ -51,6 +53,7 @@ namespace Thundershock.Debugging
 
         protected override void OnUnload()
         {
+            Logger.GetLogger().RemoveOutput(this);
         }
 
         protected override void OnUpdate(GameTime gameTime)
@@ -86,6 +89,23 @@ namespace Thundershock.Debugging
         public override bool KeyChar(KeyCharEventArgs e)
         {
             return _gui.KeyChar(e);
+        }
+
+        public void Log(string message, LogLevel logLevel)
+        {
+            var color = logLevel switch
+            {
+                LogLevel.Info => "f",
+                LogLevel.Message => "c",
+                LogLevel.Warning => "d",
+                LogLevel.Error => "c",
+                LogLevel.Fatal => "c",
+                LogLevel.Trace => "7",
+                _ => "f"
+            };
+
+            var messageLog = $"#{color}{message}&0";
+            _console.WriteLine(messageLog);
         }
     }
 }
