@@ -41,7 +41,7 @@ namespace Thundershock.Gui.Elements
         private Rectangle _bounds;
         private Rectangle _contentRect;
         private Rectangle _clipRect;
-
+        
         public Rectangle ClipBounds => _clipRect;
 
         public float ComputedOpacity => _computedOpacity;
@@ -400,71 +400,68 @@ namespace Thundershock.Gui.Elements
 
             public void SetBounds(Rectangle rectangle)
             {
-                if (_owner.BoundingBox != rectangle)
+                var contentSize = this.GetContentSize(rectangle.Size);
+
+                // Apply padding.
+                rectangle.X += _owner.Padding.Left;
+                rectangle.Y += _owner.Padding.Top;
+                rectangle.Width -= _owner.Padding.Width;
+                rectangle.Height -= _owner.Padding.Height;
+
+                var bounds = Rectangle.Empty;
+
+                switch (_owner.HorizontalAlignment)
                 {
-                    var contentSize = this.GetContentSize(rectangle.Size);
-
-                    // Apply padding.
-                    rectangle.X += _owner.Padding.Left;
-                    rectangle.Y += _owner.Padding.Top;
-                    rectangle.Width -= _owner.Padding.Width;
-                    rectangle.Height -= _owner.Padding.Height;
-
-                    var bounds = Rectangle.Empty;
-
-                    switch (_owner.HorizontalAlignment)
-                    {
-                        case HorizontalAlignment.Center:
-                            bounds.Width = (int) Math.Round(contentSize.X);
-                            bounds.X = rectangle.Left + ((rectangle.Width - bounds.Width) / 2);
-                            break;
-                        case HorizontalAlignment.Left:
-                            bounds.Width = (int) Math.Round(contentSize.X);
-                            bounds.X = rectangle.Left;
-                            break;
-                        case HorizontalAlignment.Right:
-                            bounds.Width = (int) Math.Round(contentSize.X);
-                            bounds.X = rectangle.Right - bounds.Width;
-                            break;
-                        case HorizontalAlignment.Stretch:
-                            bounds.Width = rectangle.Width;
-                            bounds.X = rectangle.Left;
-                            break;
-                    }
-
-                    switch (_owner.VerticalAlignment)
-                    {
-                        case VerticalAlignment.Center:
-                            bounds.Height = (int) Math.Round(contentSize.Y);
-                            bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
-                            break;
-                        case Gui.VerticalAlignment.Top:
-                            bounds.Height = (int) Math.Round(contentSize.Y);
-                            bounds.Y = rectangle.Top;
-                            break;
-                        case VerticalAlignment.Bottom:
-                            bounds.Height = (int) Math.Round(contentSize.Y);
-                            bounds.Y = rectangle.Bottom - bounds.Height;
-                            break;
-                        case VerticalAlignment.Stretch:
-                            bounds.Height = rectangle.Height;
-                            bounds.Y = rectangle.Top;
-                            break;
-                    }
-
-                    _owner._bounds = bounds;
-
-                    // Margins
-                    bounds.X += _owner.Margin.Left;
-                    bounds.Y += _owner.Margin.Top;
-                    bounds.Width -= _owner.Margin.Width;
-                    bounds.Height -= _owner.Margin.Height;
-
-                    _owner._contentRect = bounds;
-                    
-                    _owner._clipRect = ComputeClipRect();
+                    case HorizontalAlignment.Center:
+                        bounds.Width = (int) Math.Round(contentSize.X);
+                        bounds.X = rectangle.Left + ((rectangle.Width - bounds.Width) / 2);
+                        break;
+                    case HorizontalAlignment.Left:
+                        bounds.Width = (int) Math.Round(contentSize.X);
+                        bounds.X = rectangle.Left;
+                        break;
+                    case HorizontalAlignment.Right:
+                        bounds.Width = (int) Math.Round(contentSize.X);
+                        bounds.X = rectangle.Right - bounds.Width;
+                        break;
+                    case HorizontalAlignment.Stretch:
+                        bounds.Width = rectangle.Width;
+                        bounds.X = rectangle.Left;
+                        break;
                 }
-                
+
+                switch (_owner.VerticalAlignment)
+                {
+                    case VerticalAlignment.Center:
+                        bounds.Height = (int) Math.Round(contentSize.Y);
+                        bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
+                        break;
+                    case Gui.VerticalAlignment.Top:
+                        bounds.Height = (int) Math.Round(contentSize.Y);
+                        bounds.Y = rectangle.Top;
+                        break;
+                    case VerticalAlignment.Bottom:
+                        bounds.Height = (int) Math.Round(contentSize.Y);
+                        bounds.Y = rectangle.Bottom - bounds.Height;
+                        break;
+                    case VerticalAlignment.Stretch:
+                        bounds.Height = rectangle.Height;
+                        bounds.Y = rectangle.Top;
+                        break;
+                }
+
+                _owner._bounds = bounds;
+
+                // Margins
+                bounds.X += _owner.Margin.Left;
+                bounds.Y += _owner.Margin.Top;
+                bounds.Width -= _owner.Margin.Width;
+                bounds.Height -= _owner.Margin.Height;
+
+                _owner._contentRect = bounds;
+
+                _owner._clipRect = ComputeClipRect();
+
                 _owner.ArrangeOverride(_owner.ContentRectangle);
             }
 

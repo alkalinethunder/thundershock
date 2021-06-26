@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Thundershock.Core.Rendering
@@ -12,6 +13,18 @@ namespace Thundershock.Core.Rendering
         {
         }
 
+        public static Texture2D FromResource(GraphicsProcessor gpu, Assembly ass, string resource)
+        {
+            if (Resource.GetStream(ass, resource, out var stream))
+            {
+                return FromStream(gpu, stream);
+            }
+            else
+            {
+                throw new InvalidOperationException("Resource not found.");
+            }
+        }
+        
         public static Texture2D FromStream(GraphicsProcessor gpu, Stream stream)
         {
             // load the stream as a bitmap using System.Drawing

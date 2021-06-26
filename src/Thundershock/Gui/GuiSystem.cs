@@ -27,6 +27,8 @@ namespace Thundershock.Gui
         private Vector2 _tooltipPosition;
         private Renderer2D _renderer;
         
+        public event EventHandler<MouseMoveEventArgs> GlobalMouseMove;
+
         public Font FallbackFont => _debugFont;
         
         public Element FocusedElement => _focused;
@@ -188,6 +190,8 @@ namespace Thundershock.Gui
 
         public bool MouseMove(MouseMoveEventArgs e)
         {
+            GlobalMouseMove?.Invoke(this, e);
+
             var pos = ScreenToViewport(new Vector2(e.X, e.Y));
             var hovered = FindElement((int) pos.X, (int) pos.Y);
 

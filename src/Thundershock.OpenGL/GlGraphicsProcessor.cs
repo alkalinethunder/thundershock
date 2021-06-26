@@ -257,8 +257,8 @@ namespace Thundershock.OpenGL
 
             _gl.BindTexture(GLEnum.Texture2D, id);
 
-            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int) GLEnum.Nearest);
-            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int) GLEnum.Nearest);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int) GLEnum.Linear);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int) GLEnum.Linear);
             _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapS, (int) GLEnum.ClampToEdge);
             _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapT, (int) GLEnum.ClampToEdge);
 
