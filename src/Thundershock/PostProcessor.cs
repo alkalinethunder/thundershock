@@ -52,7 +52,7 @@ namespace Thundershock
         private Effect.EffectProgram _brightnessThreshold;
         private Effect.EffectProgram _gaussian;
         private Effect.EffectProgram _bloom;
-        private Effect _shadowmask;
+        private Effect.EffectProgram _shadowmask;
         private Effect _glitch;
         
         #endregion
@@ -177,6 +177,7 @@ namespace Thundershock
             _brightnessThreshold = _ppEffect.Programs["BloomThreshold"];
             _gaussian = _ppEffect.Programs["BloomGaussian"];
             _bloom = _ppEffect.Programs["Bloom"];
+            _shadowmask = _ppEffect.Programs["CRT"];
             
             /* _brightnessThreshold.Parameters["Threshold"].SetValue(_bloomThreshold);
             // _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
@@ -190,6 +191,7 @@ namespace Thundershock
             _brightnessThreshold.Parameters["transform"].SetValue(_matrix);
             _gaussian.Parameters["transform"].SetValue(_matrix);
             _bloom.Parameters["transform"].SetValue(_matrix);
+            _shadowmask.Parameters["transform"].SetValue(_matrix);
         }
 
         public void ReallocateEffectBuffers(int width, int height)
@@ -350,13 +352,13 @@ namespace Thundershock
 
         private void SetShadowMaskParams()
         {
-            /*_shadowmask.Parameters["TextureSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
-            _shadowmask.Parameters["OutputSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
-            _shadowmask.Parameters["HardPix"].SetValue(_hardPix);
-            _shadowmask.Parameters["HardScan"].SetValue(_hardScan);
-            _shadowmask.Parameters["BrightnessBoost"].SetValue(_shadowmaskBrightness);
-            _shadowmask.Parameters["MaskDark"].SetValue(_maskDark);
-            _shadowmask.Parameters["MaskLight"].SetValue(_maskLight);*/
+            _shadowmask.Parameters["texSize"].SetValue(_intermediate.Bounds.Size);
+            _shadowmask.Parameters["outputSize"].SetValue(_intermediate.Bounds.Size);
+            _shadowmask.Parameters["hardPix"].SetValue(_hardPix);
+            _shadowmask.Parameters["hardScan"].SetValue(_hardScan);
+            _shadowmask.Parameters["brightnessBoost"].SetValue(_shadowmaskBrightness);
+            _shadowmask.Parameters["maskDark"].SetValue(_maskDark);
+            _shadowmask.Parameters["maskLight"].SetValue(_maskLight);
         }
         
         public void Process(RenderTarget2D renderTarget)
@@ -404,17 +406,40 @@ namespace Thundershock
                 
                 // copy the intermediate RT to effect buffer 1
                 // with the shadowmask effect applied
-                // _gfx.SetRenderTarget(_effectBuffer1);
-                // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                // _shadowmask.CurrentTechnique.Passes[0].Apply();
-                // _batch.Draw(_intermediate, rect, Color.White);
-                // _batch.End();
+                _gpu.SetRenderTarget(_effectBuffer1);
                 
-                // copy effect buffer 1 back into the intermediate buffer
-                // _gfx.SetRenderTarget(_intermediate);
-                // _batch.Begin();
-                // _batch.Draw(_effectBuffer1, rect, Color.White);
-                // _batch.End();
+                // apply the shadowmask.
+                _shadowmask.Apply();
+                
+                // clear the effect buffer
+                _gpu.Clear(Color.Black);
+                
+                // Bind the texture and prepare for a render
+                _gpu.Textures[0] = _intermediate;
+                _gpu.PrepareRender();
+
+                // Render
+                _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                
+                // End the render and bind the effect buffer after we switch to the immediate RT
+                _gpu.EndRender();
+                _gpu.SetRenderTarget(null);
+                _gpu.Textures[0] = _effectBuffer1;
+                _gpu.SetRenderTarget(_intermediate);
+                
+                // Apply the default effect.
+                _basicEffect.Programs.First().Apply();
+                
+                // Start a render
+                _gpu.PrepareRender();
+                
+                // Render
+                _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                
+                // End.
+                _gpu.EndRender();
+                _gpu.Textures[0] = null;
+                _gpu.SetRenderTarget(null);
             }
             
             // Render the intermediate buffer to the screen.
