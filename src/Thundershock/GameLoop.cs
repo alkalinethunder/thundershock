@@ -79,37 +79,37 @@ namespace Thundershock
 
         public override bool KeyDown(KeyEventArgs e)
         {
-            return _currentScene.KeyDown(e);
+            return _currentScene?.KeyDown(e) ?? false;
         }
 
         public override bool KeyUp(KeyEventArgs e)
         {
-            return _currentScene.KeyUp(e);
+            return _currentScene?.KeyUp(e) ?? false;
         }
 
         public override bool KeyChar(KeyCharEventArgs e)
         {
-            return _currentScene.KeyChar(e);
+            return _currentScene?.KeyChar(e) ?? false;
         }
 
         public override bool MouseMove(MouseMoveEventArgs e)
         {
-            return _currentScene.MouseMove(e);
+            return _currentScene?.MouseMove(e) ?? false;
         }
 
         public override bool MouseDown(MouseButtonEventArgs e)
         {
-            return _currentScene.MouseDown(e);
+            return _currentScene?.MouseDown(e) ?? false;
         }
 
         public override bool MouseUp(MouseButtonEventArgs e)
         {
-            return _currentScene.MouseUp(e);
+            return _currentScene?.MouseUp(e) ?? false;
         }
 
         public override bool MouseScroll(MouseScrollEventArgs e)
         {
-            return _currentScene.MouseScroll(e);
+            return _currentScene?.MouseScroll(e) ?? false;
         }
     }
 }
