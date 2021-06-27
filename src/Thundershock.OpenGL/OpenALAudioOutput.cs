@@ -11,6 +11,7 @@ namespace Thundershock.OpenGL
 {
     public sealed class OpenAlAudioOutput : AudioOutput
     {
+        private AudioState _state = AudioState.Stopped;
         private ConcurrentQueue<byte[]> _queue = new();
         private bool _teardown;
         private ManualResetEvent _teardownWait = new(false);
@@ -21,9 +22,11 @@ namespace Thundershock.OpenGL
         private int _sampleRate;
         private int _channels;
 
+        public override AudioState State => _state;
+        
         public override int PendingBufferCount
-            => _queue.Count;
-
+            => _pendingBufferCount;
+        
         public override float Volume
         {
             get
@@ -68,7 +71,7 @@ namespace Thundershock.OpenGL
             _al.SetSourceProperty(_source, SourceFloat.Pitch, 1);
             ThrowOnError();
             
-            _al.SetSourceProperty(_source, SourceBoolean.Looping, true);
+            _al.SetSourceProperty(_source, SourceBoolean.Looping, false);
             ThrowOnError();
 
             new Thread(bufferThread).Start();
@@ -76,12 +79,45 @@ namespace Thundershock.OpenGL
 
         protected override void Dispose(bool disposing)
         {
-            _teardown = true;
-            _teardownWait.WaitOne();
+            if (disposing)
+            {
+                // I. Fucking. Want. You. To. Stop.
+                Stop();
+                
+                _teardown = true;
+                
+                // delete any queued up audio buffers.
+                unsafe
+                {
+                    var buf = stackalloc uint[1];
+
+                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersQueued, out var queued);
+
+                    while (queued > 0)
+                    {
+                        _al.SourceUnqueueBuffers(_source, 1, buf);
+                        _al.DeleteBuffer(buf[0]);
+
+                        queued--;
+                    }
+                }
+
+                _teardownWait.WaitOne();
+                
+                // delete the source
+                _al.DeleteSource(_source);
+            }
         }
 
+        public override void Stop()
+        {
+            _state = AudioState.Stopped;
+            _al.SourceStop(_source);
+        }
+        
         public override void Play()
         {
+            _state = AudioState.Playing;
             _al.SourcePlay(_source);
             ThrowOnError();
         }
@@ -109,25 +145,30 @@ namespace Thundershock.OpenGL
 
         private void bufferThread()
         {
-            while (!_teardown)
+            unsafe
             {
-                _al.GetSourceProperty(_source, GetSourceInteger.SourceState, out int state);
-                _al.GetSourceProperty(_source, GetSourceInteger.BuffersQueued, out int queued);
-                _al.GetSourceProperty(_source, GetSourceInteger.BuffersProcessed, out int processed);
+                var buf = stackalloc uint[1];
 
-                while (processed > 0)
+                while (!_teardown)
                 {
-                    unsafe
+                    _al.GetSourceProperty(_source, GetSourceInteger.SourceState, out int state);
+                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersQueued, out int queued);
+                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersProcessed, out int processed);
+
+                    while (processed > 1)
                     {
-                        var buf = stackalloc uint[1];
                         _al.SourceUnqueueBuffers(_source, 1, buf);
+
+                        _al.DeleteBuffer(buf[0]);
+
                         processed--;
+                        _pendingBufferCount--;
                     }
-                }
-                
-                if (queued > 0 && state == (int) SourceState.Stopped)
-                {
-                    _al.SourcePlay(_source);
+
+                    if (queued > 0 && state == (int) SourceState.Stopped && _state == AudioState.Playing)
+                    {
+                        _al.SourcePlay(_source);
+                    }
                 }
             }
 

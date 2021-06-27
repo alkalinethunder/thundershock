@@ -316,6 +316,9 @@ namespace Thundershock.OpenGL
             
             App.Logger.Log("Destroying the SDL window...");
             SDL.SDL_DestroyWindow(_sdlWindow);
+            
+            // Fucking. STOP.
+            _audio.Dispose();
         }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using SDL2;
@@ -13,6 +15,7 @@ namespace Thundershock.OpenGL
 {
     public sealed class OpenAlAudioBackend : AudioBackend
     {
+        private List<AudioOutput> _outputs = new List<AudioOutput>();
         private AL _al;
         private ALContext _alc;
         
@@ -70,11 +73,25 @@ namespace Thundershock.OpenGL
 
         public override AudioOutput OpenAudioOutput(int sampleRate, int channels)
         {
-            return new OpenAlAudioOutput(_al, sampleRate, channels);
+            var aud = new OpenAlAudioOutput(_al, sampleRate, channels);
+            _outputs.Add(aud);
+            return aud;
         }
         
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                // Sometimes love don't feel like it should....
+                while (_outputs.Any())
+                {
+                    var output = _outputs.First();
+                    
+                    // BUT IT HURTS SO GOOD.
+                    output.Dispose();
+                    _outputs.Remove(output);
+                }
+            }
         }
         
         private void ThrowOnError()
