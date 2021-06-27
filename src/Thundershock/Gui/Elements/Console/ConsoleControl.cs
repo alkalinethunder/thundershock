@@ -902,7 +902,7 @@ namespace Thundershock.Gui.Elements.Console
         {
             var result = base.OnMouseScroll(e);
 
-            var sb = _scrollback + (e.WheelDelta / 8);
+            var sb = _scrollback + e.WheelDelta;
             if (sb > _scrollbackMax)
                 sb = _scrollbackMax;
             else if (sb < 0)
