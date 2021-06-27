@@ -99,14 +99,23 @@ namespace Thundershock.OpenGL
                 GLEnum.StaticDraw);
         }
 
-        public override void PrepareRender(BlendMode blendMode = BlendMode.Alpha)
+        public override void PrepareRender(BlendMode blendMode = BlendMode.Alpha, Culling culling = Culling.None)
         {
-            // Back-face culling - improves performance because we only need to render what we can
-            // actually see.
-            // TODO: fix this so that the engine can enable/disable/configure it.
-            _gl.CullFace(GLEnum.Front);
-            _gl.Enable(GLEnum.CullFace);
-
+            switch (culling)
+            {
+                case Culling.None:
+                    _gl.Disable(GLEnum.CullFace);
+                    break;
+                case Culling.Back:
+                    _gl.Enable(GLEnum.CullFace);
+                    _gl.CullFace(CullFaceMode.Back);
+                    break;
+                case Culling.Front:
+                    _gl.Enable(GLEnum.CullFace);
+                    _gl.CullFace(GLEnum.Front);
+                    break;
+            }
+ {}            
             // Bind to the vertex array object.
             _gl.BindVertexArray(_vao);
             

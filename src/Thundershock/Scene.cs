@@ -300,7 +300,8 @@ namespace Thundershock
 
                 var viewProjectionMatrix = Camera.ProjectionMatrix;
 
-                var mvp = transformMatrix * viewProjectionMatrix;
+                Matrix4x4.Invert(transformMatrix, out var mvp);
+                mvp *= Camera.ProjectionMatrix;
 
                 _renderer.ProjectionMatrix = mvp;
 

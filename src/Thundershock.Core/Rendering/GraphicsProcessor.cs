@@ -8,7 +8,7 @@ namespace Thundershock.Core.Rendering
     {
         public Matrix4x4 ProjectionMatrix { get; set; } = Matrix4x4.Identity;
 
-        public abstract void PrepareRender(BlendMode blendMode = BlendMode.Alpha);
+        public abstract void PrepareRender(BlendMode blendMode = BlendMode.Alpha, Culling culling = Culling.None);
         public abstract void EndRender();
         public abstract void SubmitIndices(ReadOnlySpan<int> indices);
         public abstract Rectangle ViewportBounds { get; }
@@ -56,5 +56,12 @@ namespace Thundershock.Core.Rendering
     {
         Alpha,
         Additive
+    }
+
+    public enum Culling
+    {
+        None,
+        Back,
+        Front
     }
 }
