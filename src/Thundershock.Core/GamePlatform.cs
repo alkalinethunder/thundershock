@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Thundershock.Core.Audio;
 using Thundershock.Core.Debugging;
 using Thundershock.Debugging;
 
@@ -9,7 +10,8 @@ namespace Thundershock.Core
     public static class GamePlatform
     {
         private static IGamePlatform _gamePlatform;
-
+        
+        public static AudioBackend Audio => _gamePlatform.Audio;
         public static int MonitorCount => _gamePlatform.GetMonitorCount();
 
         public static DisplayMode GetDefaultDisplayMode(int monitor)

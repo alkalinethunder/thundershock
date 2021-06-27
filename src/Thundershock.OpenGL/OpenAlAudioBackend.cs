@@ -68,9 +68,9 @@ namespace Thundershock.OpenGL
 
         public override float MasterVolume { get; set; }
 
-        public override AudioOutput OpenAudioOutput()
+        public override AudioOutput OpenAudioOutput(int sampleRate, int channels)
         {
-            return new OpenAlAudioOutput(_al);
+            return new OpenAlAudioOutput(_al, sampleRate, channels);
         }
         
         protected override void Dispose(bool disposing)

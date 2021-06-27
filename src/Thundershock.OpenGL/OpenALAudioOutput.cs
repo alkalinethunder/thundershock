@@ -18,12 +18,43 @@ namespace Thundershock.OpenGL
         private uint _source;
         private int _pendingBufferCount;
         private object _lockObject = new();
+        private int _sampleRate;
+        private int _channels;
 
         public override int PendingBufferCount
             => _queue.Count;
-        
-        public OpenAlAudioOutput(AL al)
+
+        public override float Volume
         {
+            get
+            {
+                var vol = 0f;
+                _al.GetSourceProperty(_source, SourceFloat.Gain, out vol);
+                return vol;
+            }
+            set
+            {
+                _al.SetSourceProperty(_source, SourceFloat.Gain, value);
+            }
+        }
+
+        public BufferFormat BufferFormat
+        {
+            get
+            {
+                return _channels switch
+                {
+                    1 => BufferFormat.Mono16,
+                    2 => BufferFormat.Stereo16,
+                    _ => throw new InvalidOperationException("WHAT THE ACTUAL FUCK")
+                };
+            }
+        }
+
+        public OpenAlAudioOutput(AL al, int sampleRate, int channels)
+        {
+            _sampleRate = sampleRate;
+            _channels = channels;
             _al = al;
             _source = _al.GenSource();
             ThrowOnError();
@@ -59,8 +90,8 @@ namespace Thundershock.OpenGL
         {
             var alBuffer = _al.GenBuffer();
             ThrowOnError();
-            
-            _al.BufferData(alBuffer, BufferFormat.Stereo16, buffer, 44100);
+
+            _al.BufferData(alBuffer, BufferFormat, buffer, _sampleRate);
             ThrowOnError();
             
             _al.SourceQueueBuffers(_source, new uint[] {alBuffer});

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Input;
@@ -22,6 +23,7 @@ namespace Thundershock
         private TimeSpan _totalGameTime;
         private LayerManager _layerManager;
         private GameLayer _gameLayer;
+        private MusicPlayer _musicPlayer;
         
         public GameWindow Window => _gameWindow;
         public LayerManager LayerManager => _layerManager;
@@ -77,6 +79,9 @@ namespace Thundershock
                 
                 // Run enqueued actions.
                 RunQueuedActions();
+                
+                // Tick the music player
+                _musicPlayer.Update(frameTime.TotalSeconds);
                 
                 // Tick all of the global app modules.
                 UpdateComponents(gameTimeInfo);
@@ -183,6 +188,8 @@ namespace Thundershock
 
         private void PostInit()
         {
+            _musicPlayer = MusicPlayer.GetInstance();
+            
             OnPostInit();
 
             _frameTimer.Start();

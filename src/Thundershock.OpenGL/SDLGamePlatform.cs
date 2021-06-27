@@ -4,16 +4,21 @@ using System.Text;
 using SDL2;
 using Silk.NET.OpenGL;
 using Thundershock.Core;
+using Thundershock.Core.Audio;
 
 namespace Thundershock.OpenGL
 {
     public sealed class SDLGamePlatform : IGamePlatform
     {
         private GL _gl;
+        private OpenAlAudioBackend _audio;
+
+        public AudioBackend Audio => _audio;
         
-        internal SDLGamePlatform(GL gl)
+        internal SDLGamePlatform(GL gl, OpenAlAudioBackend al)
         {
             _gl = gl;
+            _audio = al;
         }
 
         public string GraphicsCardDescription

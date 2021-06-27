@@ -47,11 +47,11 @@ namespace Thundershock.OpenGL
 
                 throw new Exception(errText);
             }
-            
-            CreateSdlWindow();
 
             App.Logger.Log("Initializing SDL_mixer audio backend...");
             _audio = new OpenAlAudioBackend();
+
+            CreateSdlWindow();
         }
 
         private void SetupGLRenderer()
@@ -93,7 +93,7 @@ namespace Thundershock.OpenGL
             SDL.SDL_GL_SetSwapInterval(0);
             
             // Initialize the platform layer now that we have GL
-            GamePlatform.Initialize(new SDLGamePlatform(_gl));
+            GamePlatform.Initialize(new SDLGamePlatform(_gl, _audio));
         }
 
 #if DEBUG

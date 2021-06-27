@@ -13,6 +13,8 @@ namespace Thundershock.Core.Audio
             Dispose(!_disposed);
         }
 
+        public abstract float Volume { get; set; }
+        
         protected abstract void Dispose(bool disposing);
         public abstract void Play();
 

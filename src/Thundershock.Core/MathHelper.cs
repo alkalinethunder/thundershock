@@ -1,15 +1,18 @@
 using System;
 using System.Numerics;
+using System.Runtime.Intrinsics.X86;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace Thundershock.Core
 {
     public static class MathHelper
     {
-        public static float Clamp(float value, float min, float max)
+        public static T Clamp<T>(T value, T min, T max)
+            where T : IComparable
         {
-            if (value > max)
+            if (value.CompareTo(max) > 0)
                 return max;
-            if (value < min)
+            if (value.CompareTo(min) < 0)
                 return min;
             return value;
         }
