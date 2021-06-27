@@ -86,6 +86,8 @@ namespace Thundershock.OpenGL
                 
                 _teardown = true;
                 
+                _teardownWait.WaitOne();
+
                 // delete any queued up audio buffers.
                 unsafe
                 {
@@ -101,8 +103,6 @@ namespace Thundershock.OpenGL
                         queued--;
                     }
                 }
-
-                _teardownWait.WaitOne();
                 
                 // delete the source
                 _al.DeleteSource(_source);
