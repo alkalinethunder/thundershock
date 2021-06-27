@@ -26,6 +26,23 @@ namespace Thundershock.Audio
                 _playing = _backend.OpenAudioOutput(_currentSong.SampleRate, _currentSong.Channels);
                 _playing.Play();
             }
+            else
+            {
+                _fade = 0;
+                _fadeTime = fadeTime;
+
+                if (_next != null)
+                {
+                    _playing?.Dispose();
+                    _currentSong?.Dispose();
+                    _currentSong = _nextSong;
+                    _playing = _next;
+                }
+
+                _nextSong = song;
+                _next = _backend.OpenAudioOutput(song.SampleRate, song.Channels);
+                _next.Play();
+            }
         }
 
         private void StopInternal()
@@ -94,6 +111,15 @@ namespace Thundershock.Audio
                 var frame = _currentSong.ReadFrame();
                 _playing.SubmitBuffer(frame);
             }
+            
+            if (_nextSong != null && _next != null && _next.PendingBufferCount < 3)
+            {
+                // read a frame from the song and submit it to the audio output.
+                var frame = _nextSong.ReadFrame();
+                _next.SubmitBuffer(frame);
+            }
+            
+            
         }
         
 
@@ -113,6 +139,13 @@ namespace Thundershock.Audio
             return _instance;
         }
 
+        [Cheat("PlayOggFade")]
+        private static void PlayOggFade(double fadeTime, string file)
+        {
+            var song = Song.FromOggFile(file);
+            GetInstance().Play(song, fadeTime);
+        }
+        
         [Cheat("PlayOggFile")]
         private static void PlayOggCheat(string file)
         {
