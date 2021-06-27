@@ -171,8 +171,8 @@ namespace Thundershock.OpenGL
 
                 case SDL.SDL_EventType.SDL_MOUSEWHEEL:
 
-                    var xDelta = _event.wheel.x;
-                    var yDelta = _event.wheel.y;
+                    var xDelta = _event.wheel.x * 16;
+                    var yDelta = _event.wheel.y * 16;
 
                     if (_event.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
                     {
