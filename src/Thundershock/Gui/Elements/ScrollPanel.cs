@@ -69,7 +69,7 @@ namespace Thundershock.Gui.Elements
 
         protected override bool OnMouseScroll(MouseScrollEventArgs e)
         {
-            var nextOffset = _scrollOffset - (e.WheelDelta / 4);
+            var nextOffset = _scrollOffset - e.WheelDelta;
             
             // Clamp the offset
             if (nextOffset > _scrollHeight - _pageHeight) nextOffset = _scrollHeight - _pageHeight;
