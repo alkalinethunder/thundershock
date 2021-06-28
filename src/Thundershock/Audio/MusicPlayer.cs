@@ -66,6 +66,26 @@ namespace Thundershock.Audio
             _backend = backend;
         }
 
+        private double CalculatePower()
+        {
+            var result = 0d;
+            var streams = 0;
+
+            if (_playing != null)
+            {
+                streams++;
+                result += _playing.Power * _playing.Volume;
+            }
+
+            if (_next != null)
+            {
+                streams++;
+                result += _next.Power * _next.Volume;
+            }
+            
+            return result / streams;
+        }
+        
         internal void Update(double deltaTime)
         {
             if (_fade < _fadeTime && _fadeTime > 0)
@@ -125,11 +145,13 @@ namespace Thundershock.Audio
 
         private static MusicPlayer _instance;
 
+        public static double Power => GetInstance().CalculatePower();
+        
         public static void PlaySong(Song song)
         {
             GetInstance().Play(song);
         }
-        
+
         public static MusicPlayer GetInstance()
         {
             if (_instance != null)

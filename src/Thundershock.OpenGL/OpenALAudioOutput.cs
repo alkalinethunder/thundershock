@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using SDL2;
 using Silk.NET.OpenAL;
@@ -11,6 +12,12 @@ namespace Thundershock.OpenGL
 {
     public sealed class OpenAlAudioOutput : AudioOutput
     {
+        private const double sc16 = 0x7FFF + 0.4999999999999999;
+
+        private double _floor = 60;
+        private double _sensitivity = 2;
+        private double _power;
+        private ConcurrentQueue<double> _powerQueue = new ConcurrentQueue<double>();
         private AudioState _state = AudioState.Stopped;
         private ConcurrentQueue<byte[]> _queue = new();
         private bool _teardown;
@@ -23,6 +30,9 @@ namespace Thundershock.OpenGL
         private int _channels;
 
         public override AudioState State => _state;
+
+        public override double Power
+            => (_power + _floor) * _sensitivity;
         
         public override int PendingBufferCount
             => _pendingBufferCount;
@@ -133,6 +143,46 @@ namespace Thundershock.OpenGL
             _al.SourceQueueBuffers(_source, new uint[] {alBuffer});
             ThrowOnError();
             
+            // Let's do some FFT!
+            unsafe
+            {
+                var power = 0d;
+                Span<double> doubleFault = stackalloc double[buffer.Length / sizeof(ushort)];
+                var j = 0;
+                fixed (byte* ptr = buffer)
+                {
+                    for (var i = 0; i < buffer.Length; i += sizeof(ushort))
+                    {
+                        var sample = (ushort) *(ptr + i + 1);
+                        sample += (ushort) ((*(ptr + i)) << 8);
+                        doubleFault[j] = (double) (sample / sc16);
+                        j++;
+                    }
+                }
+
+                try
+                {
+                    var arr = doubleFault.ToArray();
+                    var hanning = FftSharp.Window.Hanning(doubleFault.Length);
+                    FftSharp.Window.ApplyInPlace(hanning, arr);
+
+                    power = FftSharp.Transform.FFTpower(arr).Average();
+                }
+                catch
+                {
+                    power = double.NegativeInfinity;
+                }
+
+                if (_pendingBufferCount > 0)
+                {
+                    _powerQueue.Enqueue(power);
+                }
+                else
+                {
+                    _power = power;
+                }
+            }
+            
             _pendingBufferCount++;
         }
 
@@ -162,6 +212,7 @@ namespace Thundershock.OpenGL
                         _al.DeleteBuffer(buf[0]);
 
                         processed--;
+                        _powerQueue.TryDequeue(out _power);
                         _pendingBufferCount--;
                     }
 

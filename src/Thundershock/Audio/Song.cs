@@ -24,7 +24,7 @@ namespace Thundershock.Audio
 
         public byte[] ReadFrame()
         {
-            return _pcmStream.ReadSamples(_channels * _sampleRate / 20);
+            return _pcmStream.ReadSamples(_channels * 1024);
         }
         
         public void Dispose()
@@ -73,7 +73,7 @@ namespace Thundershock.Audio
         public VorbisStream(VorbisReader reader)
         {
             _reader = reader;
-            _buffer = new float[_reader.Channels * _reader.SampleRate / 20];
+            _buffer = new float[_reader.Channels * 1024];
         }
 
         public byte[] ReadSamples(int samples)

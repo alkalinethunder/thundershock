@@ -7,7 +7,7 @@ namespace Thundershock.Core.Audio
         private bool _disposed = false;
         
         public abstract int PendingBufferCount { get; }
-        
+        public abstract double Power { get; }
         public abstract AudioState State { get; }
         
         public void Dispose()
