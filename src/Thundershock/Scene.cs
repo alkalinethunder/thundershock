@@ -60,6 +60,8 @@ namespace Thundershock
         
         public GraphicsProcessor Graphics => _gameLoop.Graphics;
 
+        protected CameraComponent PrimaryCameraSettings => PrimaryCamera.GetComponent<CameraComponent>();
+        
         public Scene()
         {
             // Create the camera manager for this scene.
@@ -271,9 +273,6 @@ namespace Thundershock
             // draw all scene elements.
             _gameLoop.Graphics.SetRenderTarget(_sceneRenderTarget);
             
-            // Clear the screen. Because our RT implementation doesn't fucking do that. FIXME
-            _gameLoop.Graphics.Clear(Color.Black);
-
             var cameras = _registry.View<CameraComponent, Transform>();
             if (cameras.Any() && !_noClip)
             {
@@ -289,6 +288,12 @@ namespace Thundershock
                 Camera.ProjectionType = cameraComponent.ProjectionType;
 
                 _postProcessSystem.SettingsFromCameraComponent(cameraComponent);
+
+                _gameLoop.Graphics.Clear(cameraComponent.BackgroundColor);
+            }
+            else
+            {
+                _gameLoop.Graphics.Clear(Color.Black);
             }
 
             var renderables2D = _registry.View<Transform2D>();
@@ -301,7 +306,7 @@ namespace Thundershock
                 var viewProjectionMatrix = Camera.ProjectionMatrix;
 
                 Matrix4x4.Invert(transformMatrix, out var mvp);
-                mvp *= Camera.ProjectionMatrix;
+                mvp = transformMatrix * Camera.ProjectionMatrix;
 
                 _renderer.ProjectionMatrix = mvp;
 

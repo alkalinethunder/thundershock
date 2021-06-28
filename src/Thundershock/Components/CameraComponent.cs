@@ -1,3 +1,4 @@
+using Thundershock.Core;
 using Thundershock.Rendering;
 
 namespace Thundershock.Components
@@ -35,6 +36,12 @@ namespace Thundershock.Components
 
         public bool EnableBloom = true;
         public bool EnableCRT = true;
+
+        #endregion
+
+        #region World
+
+        public Color BackgroundColor { get; set; } = Color.Black;
 
         #endregion
     }

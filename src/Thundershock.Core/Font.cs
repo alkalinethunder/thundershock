@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
 using Thundershock.Core.Rendering;
 
 namespace Thundershock.Core
@@ -18,6 +19,13 @@ namespace Thundershock.Core
         
         public abstract Vector2 MeasureString(string text);
         public abstract void Draw(Renderer2D renderer, string text, Vector2 location, Color color);
+
+        public static Font FromResource(GraphicsProcessor gpu, Assembly ass, string resource)
+        {
+            if (Resource.GetStream(ass, resource, out var stream))
+                return FromTtfStream(gpu, stream);
+            throw new InvalidOperationException("Resource not found.");
+        }
         
         public static Font FromTtfStream(GraphicsProcessor gpu, Stream stream, int defaultSize = 16)
         {
