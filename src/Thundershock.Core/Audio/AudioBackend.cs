@@ -8,7 +8,9 @@ namespace Thundershock.Core.Audio
         
         public abstract float MasterVolume { get; set; }
 
-        public abstract AudioOutput OpenAudioOutput(int sampleRate, int channels);
+        public abstract IAudioBuffer CreateBuffer(int channels, int sampleRate);
+        
+        public abstract AudioOutput OpenAudioOutput();
         
         public void Dispose()
         {

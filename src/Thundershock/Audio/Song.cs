@@ -60,7 +60,7 @@ namespace Thundershock.Audio
     public interface IMusicReader
     {
         byte[] ReadSamples(int samples);
-        
+        TimeSpan Length { get; }
         int SampleRate { get; }
         int Channels { get; }
     }
@@ -71,6 +71,8 @@ namespace Thundershock.Audio
 
         public int SampleRate => _reader.SampleRate;
         public int Channels => _reader.Channels;
+
+        public TimeSpan Length => _reader.TotalTime;
         
         private float[] _buffer;
         

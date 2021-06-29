@@ -9,6 +9,8 @@ namespace Thundershock.Core.Audio
         public abstract int PendingBufferCount { get; }
         public abstract double Power { get; }
         public abstract AudioState State { get; }
+
+        public event EventHandler<IAudioBuffer> BufferProcessed;
         
         public void Dispose()
         {
@@ -21,7 +23,12 @@ namespace Thundershock.Core.Audio
         protected abstract void Dispose(bool disposing);
         public abstract void Play();
 
-        public abstract void SubmitBuffer(byte[] buffer);
+        public abstract void SubmitBuffer(IAudioBuffer buffer);
+
+        protected void FireBufferProcessed(IAudioBuffer buffer)
+        {
+            EntryPoint.CurrentApp.EnqueueAction(() => { BufferProcessed?.Invoke(this, buffer); });
+        }
     }
 
     public enum AudioState

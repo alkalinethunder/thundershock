@@ -16,6 +16,7 @@ namespace Thundershock.OpenGL
     public sealed class OpenAlAudioBackend : AudioBackend
     {
         private List<AudioOutput> _outputs = new List<AudioOutput>();
+        private List<IAudioBuffer> _buffers = new List<IAudioBuffer>();
         private AL _al;
         private ALContext _alc;
         
@@ -71,9 +72,16 @@ namespace Thundershock.OpenGL
 
         public override float MasterVolume { get; set; }
 
-        public override AudioOutput OpenAudioOutput(int sampleRate, int channels)
+        public override IAudioBuffer CreateBuffer(int channels, int sampleRate)
         {
-            var aud = new OpenAlAudioOutput(_al, sampleRate, channels);
+            var buffer = new OpenAlAudioBuffer(_al, channels, sampleRate);
+            _buffers.Add(buffer);
+            return buffer;
+        }
+
+        public override AudioOutput OpenAudioOutput()
+        {
+            var aud = new OpenAlAudioOutput(_al);
             _outputs.Add(aud);
             return aud;
         }
@@ -90,6 +98,16 @@ namespace Thundershock.OpenGL
                     // BUT IT HURTS SO GOOD.
                     output.Dispose();
                     _outputs.Remove(output);
+                }
+                
+                // Sometimes love don't feel like it should....
+                while (_buffers.Any())
+                {
+                    var buffer = _buffers.First();
+                    
+                    // BUT IT HURTS SO GOOD.
+                    buffer.Dispose();
+                    _buffers.Remove(buffer);
                 }
             }
         }

@@ -15,6 +15,8 @@ namespace Thundershock.Audio
 
         public AudioState State => _output.State;
         
+        public TimeSpan Length { get; }
+        
         public double Power => _output.Power;
         
         public float Volume
@@ -43,8 +45,10 @@ namespace Thundershock.Audio
             _output.Stop();
         }
         
-        private Sound(List<IAudioBuffer> buffers)
+        private Sound(List<IAudioBuffer> buffers, TimeSpan length)
         {
+            Length = length;
+            
             _buffers = buffers;
 
             _output = GamePlatform.Audio.OpenAudioOutput();
@@ -68,7 +72,7 @@ namespace Thundershock.Audio
                 buffers.Add(buf);
             } while (read.Length >= readCount);
 
-            return new Sound(buffers);
+            return new Sound(buffers, reader.Length);
         }
         
         public static Sound FromOggStream(Stream stream)

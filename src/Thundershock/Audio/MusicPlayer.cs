@@ -169,9 +169,9 @@ namespace Thundershock.Audio
 
         public static double Power => GetInstance().CalculatePower();
         
-        public static void PlaySong(Song song)
+        public static void PlaySong(Song song, double fade = 0)
         {
-            GetInstance().Play(song);
+            GetInstance().Play(song, fade);
         }
 
         public static MusicPlayer GetInstance()
