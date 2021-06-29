@@ -24,7 +24,7 @@ namespace Thundershock.Audio
 
         public byte[] ReadFrame()
         {
-            return _pcmStream.ReadSamples(_channels * 1024);
+            return _pcmStream.ReadSamples(_channels * 4096);
         }
         
         public void Dispose()
@@ -60,12 +60,18 @@ namespace Thundershock.Audio
     public interface IMusicReader
     {
         byte[] ReadSamples(int samples);
+        
+        int SampleRate { get; }
+        int Channels { get; }
     }
     
     public sealed class VorbisStream : IMusicReader
     {
         private const double sc16 = 0x7FFF + 0.4999999999999999;
 
+        public int SampleRate => _reader.SampleRate;
+        public int Channels => _reader.Channels;
+        
         private float[] _buffer;
         
         private VorbisReader _reader;

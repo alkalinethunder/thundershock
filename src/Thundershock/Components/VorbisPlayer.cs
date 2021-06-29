@@ -84,7 +84,6 @@ namespace Thundershock.Components
             _buffer = new float[(_channels * _sampleRate) / 20];
 
             // Allocate the output sound.
-            _audioOutput = this.Scene.Audio.OpenAudioOutput(_reader.SampleRate, _reader.Channels);
 
             // play.
             _isPlaying = true;
@@ -137,8 +136,6 @@ namespace Thundershock.Components
                         _lowest = lowest;
                         
                         WriteSamples();
-
-                        _audioOutput.SubmitBuffer(_mgBuffer);
                     }
                     else
                     {

@@ -1,3 +1,4 @@
+using System;
 using Thundershock.Core;
 using Thundershock.Core.Audio;
 using Thundershock.Core.Debugging;
@@ -23,7 +24,13 @@ namespace Thundershock.Audio
                 StopInternal();
 
                 _currentSong = song;
-                _playing = _backend.OpenAudioOutput(_currentSong.SampleRate, _currentSong.Channels);
+
+                _playing = _backend.OpenAudioOutput();
+                
+                ReadInitial(_currentSong, _playing);
+                
+                _playing.BufferProcessed += PlayingBufferProcessed;
+                
                 _playing.Play();
             }
             else
@@ -40,8 +47,39 @@ namespace Thundershock.Audio
                 }
 
                 _nextSong = song;
-                _next = _backend.OpenAudioOutput(song.SampleRate, song.Channels);
+                _next = _backend.OpenAudioOutput();
+
+                ReadInitial(_nextSong, _next);
+                _next.BufferProcessed += PlayingBufferProcessed;
+                
                 _next.Play();
+            }
+        }
+
+        private void PlayingBufferProcessed(object? sender, IAudioBuffer e)
+        {
+            if (sender is AudioOutput output)
+            {
+                var read = Array.Empty<byte>();
+
+                if (output == _playing)
+                {
+                    read = _currentSong.ReadFrame();
+                }
+                else if (output == _next)
+                {
+                    read = _nextSong.ReadFrame();
+                }
+                
+                if (read.Length > 0)
+                {
+                    e.SetBuffer(read);
+                    output.SubmitBuffer(e);
+                }
+                else
+                {
+                    e.Dispose();
+                }
             }
         }
 
@@ -124,22 +162,6 @@ namespace Thundershock.Audio
                     }
                 }
             }
-
-            if (_currentSong != null && _playing != null && _playing.PendingBufferCount < 3)
-            {
-                // read a frame from the song and submit it to the audio output.
-                var frame = _currentSong.ReadFrame();
-                _playing.SubmitBuffer(frame);
-            }
-            
-            if (_nextSong != null && _next != null && _next.PendingBufferCount < 3)
-            {
-                // read a frame from the song and submit it to the audio output.
-                var frame = _nextSong.ReadFrame();
-                _next.SubmitBuffer(frame);
-            }
-            
-            
         }
         
 
@@ -172,6 +194,24 @@ namespace Thundershock.Audio
         private static void PlayOggCheat(string file)
         {
             PlaySong(Song.FromOggFile(file));
+        }
+
+        private static void ReadInitial(Song song, AudioOutput output)
+        {
+            var bufCount = 4;
+
+            while (bufCount >= 0)
+            {
+                var bug = GamePlatform.Audio.CreateBuffer(song.Channels, song.SampleRate); // I'm keeping that FUCKING typo.
+
+                var data = song.ReadFrame();
+
+                bug.SetBuffer(data);
+
+                output.SubmitBuffer(bug);
+                
+                bufCount--;
+            }
         }
     }
 }
