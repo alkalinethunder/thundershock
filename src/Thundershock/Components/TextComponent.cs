@@ -6,7 +6,7 @@ using Thundershock.Gui;
 
 namespace Thundershock.Components
 {
-    public class TextComponent : SceneComponent
+    public class TextComponent
     {
         public Font Font = null;
         public string Text = "Text Component";

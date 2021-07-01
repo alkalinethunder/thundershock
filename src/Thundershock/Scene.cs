@@ -28,7 +28,6 @@ namespace Thundershock
         private bool _noClip;
         private CameraManager _cameraManager;
         private GameLayer _gameLoop;
-        private List<SceneComponent> _components = new List<SceneComponent>();
         private Font _debugFont;
         private Renderer2D _renderer;
         private InputSystem _input = new();
@@ -71,47 +70,11 @@ namespace Thundershock
             _registry = new Registry(MaxEntityCount);
         }
         
-        public bool HasComponent<T>() where T : SceneComponent
-        {
-            return _components.Any(x => x is T);
-        }
-
-        public void AddComponent(SceneComponent component)
-        {
-            if (component == null)
-                throw new ArgumentNullException(nameof(component));
-            if (component.Scene != null)
-                throw new InvalidOperationException("Scene component already belongs to a Scene.");
-            _components.Add(component);
-            component.Load(this);
-        }
-
         public void GoToScene<T>() where T : Scene, new ()
         {
             _gameLoop.LoadScene<T>();
         }
         
-        public T GetComponent<T>() where T : SceneComponent
-        {
-            return _components.OfType<T>().First();
-        }
-
-        public T AddComponent<T>() where T : SceneComponent, new()
-        {
-            var component = new T();
-            AddComponent(component);
-            return component;
-        }
-
-        public void RemoveComponent(SceneComponent component)
-        {
-            if (component == null)
-                throw new ArgumentNullException(nameof(component));
-
-            component.Unload();
-            _components.Remove(component);
-        }
-
         internal void Load(GameLayer gameLoop)
         {
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
@@ -250,10 +213,7 @@ namespace Thundershock
             
             _gameLoop.GetComponent<CheatManager>().RemoveObject(_postProcessSystem);
             _gameLoop.GetComponent<CheatManager>().RemoveObject(_registry);
-
-            while (_components.Any())
-                RemoveComponent(_components.First());
-
+            
             OnUnload();
             _sceneRenderTarget.Dispose();
             _postProcessSystem.UnloadContent();
