@@ -24,7 +24,7 @@ namespace Thundershock
         public const uint MaxEntityCount = 10000;
 
         private List<ISystem> _systems = new();
-        
+        private bool _paused = false;
         private bool _noClip;
         private CameraManager _cameraManager;
         private GameLayer _gameLoop;
@@ -161,8 +161,10 @@ namespace Thundershock
                 var deltaX = 0.5f * e.DeltaX;
                 var deltaY = 0.5f * -e.DeltaY;
 
-                Camera.Transform.Rotation.Yaw += deltaX;
-                Camera.Transform.Rotation.Pitch += deltaY;
+                var trans = PrimaryCamera.GetComponent<Transform>();
+                
+                trans.Rotation.Yaw += deltaX;
+                trans.Rotation.Pitch += deltaY;
                 
             }
             else
@@ -199,32 +201,28 @@ namespace Thundershock
         {
             if (_noClip)
             {
+                var trans = PrimaryCamera.GetComponent<Transform>();
+                var moveSpeed = 0.5f;
+                
                 switch (e.Key)
                 {
+                    case Keys.PageUp:
+                        trans.Position.Y += moveSpeed;
+                        break;
+                    case Keys.PageDown:
+                        trans.Position.Y -= moveSpeed;
+                        break;
                     case Keys.W:
-                        Camera.Transform.Position = new Vector3(Camera.Transform.Position.X,
-                            Camera.Transform.Position.Y, Camera.Transform.Position.Z + 0.25f);
+                        trans.Position.Z += moveSpeed;
                         break;
                     case Keys.S:
-                        Camera.Transform.Position = new Vector3(Camera.Transform.Position.X,
-                            Camera.Transform.Position.Y, Camera.Transform.Position.Z - 0.25f);
+                        trans.Position.Z -= moveSpeed;
                         break;
-                    
-                    case Keys.Left:
-                        Camera.Transform.Position = new Vector3(Camera.Transform.Position.X - 0.25f,
-                            Camera.Transform.Position.Y, Camera.Transform.Position.Z);
+                    case Keys.A:
+                        trans.Position.X -= moveSpeed;
                         break;
-                    case Keys.Right:
-                        Camera.Transform.Position = new Vector3(Camera.Transform.Position.X + 0.25f,
-                            Camera.Transform.Position.Y, Camera.Transform.Position.Z);
-                        break;
-                    case Keys.Down:
-                        Camera.Transform.Position = new Vector3(Camera.Transform.Position.X,
-                            Camera.Transform.Position.Y - 0.25f, Camera.Transform.Position.Z);
-                        break;
-                    case Keys.Up:
-                        Camera.Transform.Position = new Vector3(Camera.Transform.Position.X,
-                            Camera.Transform.Position.Y + 0.25f, Camera.Transform.Position.Z);
+                    case Keys.D:
+                        trans.Position.X += moveSpeed;
                         break;
                 }
 
@@ -265,20 +263,23 @@ namespace Thundershock
 
         internal void Update(GameTime gameTime)
         {
-            // Tick all of our registered systems.
-            foreach (var system in _systems)
-                system.Update(gameTime);
-            
             // Ensure that the scene render target matches the viewport size.
             EnsureSceneRenderTargetSize();
-            
+
             // Set the scene GUI viewport to match ours.
             _sceneGui.SetViewportSize(_gameLoop.Window.Width, _gameLoop.Window.Height);
-            
-            // Update the scene's GUI
-            _sceneGui.Update(gameTime);
-            
-            OnUpdate(gameTime);
+
+            if (!_paused)
+            {
+                // Tick all of our registered systems.
+                foreach (var system in _systems)
+                    system.Update(gameTime);
+                
+                // Update the scene's GUI
+                _sceneGui.Update(gameTime);
+
+                OnUpdate(gameTime);
+            }
         }
 
         public void Draw(GameTime gameTime)
@@ -288,7 +289,7 @@ namespace Thundershock
             _gameLoop.Graphics.SetRenderTarget(_sceneRenderTarget);
             
             var cameras = _registry.View<CameraComponent, Transform>();
-            if (cameras.Any() && !_noClip)
+            if (cameras.Any())
             {
                 var lastCamera = cameras.Last();
 
@@ -484,6 +485,24 @@ namespace Thundershock
             _noClip = value;
         }
 
+        [Cheat]
+        protected void Play()
+        {
+            _paused = false;
+        }
+
+        [Cheat]
+        protected void PrimaryCamPos()
+        {
+            Logger.GetLogger().Log(PrimaryCamera.GetComponent<Transform>().ToString());
+        }
+        
+        [Cheat]
+        protected void Pause()
+        {
+            _paused = true;
+        }
+        
         [Cheat]
         protected void SetCamMode(CameraProjectionType mode)
         {

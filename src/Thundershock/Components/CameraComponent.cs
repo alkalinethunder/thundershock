@@ -7,7 +7,7 @@ namespace Thundershock.Components
     {
         #region Projection Mode
 
-        public CameraProjectionType ProjectionType = CameraProjectionType.Perspective;
+        public CameraProjectionType ProjectionType = CameraProjectionType.Orthographic;
 
         #endregion
 

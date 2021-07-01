@@ -28,6 +28,11 @@ namespace Thundershock.Core
                    Matrix4x4.CreateScale(Scale.X, Scale.Y, Scale.Z) *
                    Rotation.CreateMatrix();
         }
+
+        public override string ToString()
+        {
+            return $"(Position = {Position}, Rotation = {Rotation}, Scale = {Scale})";
+        }
     }
 
     public struct Rotation
@@ -43,6 +48,11 @@ namespace Thundershock.Core
             var roll = MathHelper.ToRadians(Roll);
 
             return Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, roll);
+        }
+
+        public override string ToString()
+        {
+            return $"(Pitch = {Pitch}, Yaw = {Yaw}, Roll = {Roll})";
         }
     }
 }
