@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Numerics;
 
 namespace Thundershock.Gui
 {
@@ -32,5 +33,30 @@ namespace Thundershock.Gui
 
         public static implicit operator Padding(int all)
             => new Padding(all);
+
+        public static bool operator ==(Padding a, Padding b)
+        {
+            return (a.Left == b.Left && a.Top == b.Top && a.Right == b.Right && a.Bottom == b.Bottom);
+        }
+
+        public static bool operator !=(Padding a, Padding b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Padding b && b == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Left, Top, Right, Bottom);
+        }
+
+        public override string ToString()
+        {
+            return $"(Left={Left}, Top={Top}, Right={Right}, Bottom={Bottom})";
+        }
     }
 }

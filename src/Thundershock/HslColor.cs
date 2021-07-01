@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
+using Thundershock.Core;
 
 namespace Thundershock
 {
@@ -93,11 +93,11 @@ namespace Thundershock
         {
             var color = new Color();
 
-            color.A = (byte) MathHelper.Clamp(alpha * 255, 0, 255);
+            color.A = MathHelper.Clamp(alpha, 0, 1);
 
             if (Math.Abs(saturation) < .001f)
             {
-                color.R = (byte) MathHelper.Clamp(luminance * 255f, 0, 255);
+                color.R = MathHelper.Clamp(luminance, 0, 1);
                 color.G = color.R;
                 color.B = color.G;
             }
@@ -112,9 +112,9 @@ namespace Thundershock
 
                 var v1 = 2f * luminance - v2;
 
-                color.R = (byte) (255f * HueToRgb(v1, v2, hue + (1f / 3f)));
-                color.G = (byte) (255f * HueToRgb(v1, v2, hue));
-                color.B = (byte) (255f * HueToRgb(v1, v2, hue - (1f / 3f)));
+                color.R = HueToRgb(v1, v2, hue + (1f / 3f));
+                color.G = HueToRgb(v1, v2, hue);
+                color.B = HueToRgb(v1, v2, hue - (1f / 3f));
             }
 
 
@@ -131,10 +131,10 @@ namespace Thundershock
         {
             var hsl = new HslColor(0, 0, 0);
 
-            var r = color.R / 255f;
-            var g = color.G / 255f;
-            var b = color.B / 255f;
-            var a = color.A / 255f;
+            var r = color.R;
+            var g = color.G;
+            var b = color.B;
+            var a = color.A;
 
             hsl.Alpha = a;
 

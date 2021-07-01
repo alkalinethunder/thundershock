@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
-using Microsoft.Xna.Framework;
 using Thundershock.Core;
 
 namespace Thundershock
@@ -38,7 +37,7 @@ namespace Thundershock
         public static Color HtmlColor(string html)
         {
             var gdiColor = System.Drawing.ColorTranslator.FromHtml(html);
-            return new Color(gdiColor.R, gdiColor.G, gdiColor.B, gdiColor.A);
+            return gdiColor;
         }
 
         public static Platform GetCurrentPlatform()

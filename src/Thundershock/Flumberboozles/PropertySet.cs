@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Thundershock.Flumberboozles
@@ -6,7 +7,13 @@ namespace Thundershock.Flumberboozles
     public class PropertySet
     {
         private List<IAttachedProperty> _properties = new();
+        private IPropertySetOwner _owner;
 
+        public PropertySet(IPropertySetOwner owner)
+        {
+            _owner = owner ?? throw new ArgumentNullException(nameof(owner));
+        }
+        
         public T GetValue<T>(string name)
         {
             var prop = _properties.OfType<AttachedProperty<T>>().FirstOrDefault(x => x.Name == name);
@@ -28,6 +35,8 @@ namespace Thundershock.Flumberboozles
 
             foreach (var item in all)
                 _properties.Remove(item);
+            
+            _owner.NotifyPropertyModified(name);
         }
 
         public void SetValue<T>(string name, T value)
@@ -41,6 +50,13 @@ namespace Thundershock.Flumberboozles
             prop.SetValue(value);
 
             _properties.Add(prop);
+            
+            _owner.NotifyPropertyModified(name);
         }
+    }
+
+    public interface IPropertySetOwner
+    {
+        void NotifyPropertyModified(string name);
     }
 }

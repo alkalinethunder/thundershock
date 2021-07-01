@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Thundershock.Input;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public abstract class ItemListElement<T> : Element
+    public abstract class ItemListElement<T> : ContentElement
     {
         private readonly List<T> _items = new();
         private int _selectedItem = -1;
@@ -33,7 +34,7 @@ namespace Thundershock.Gui.Elements
                     if (value < -1 && value >= _items.Count)
                         throw new ArgumentOutOfRangeException(nameof(value), value,
                             "Selected index must be -1 for no selection or between 0 and the number of items in the list.");
-
+                    
                     _selectedItem = value;
                     OnSelectedIndexChanged(value);
                 }
@@ -49,7 +50,10 @@ namespace Thundershock.Gui.Elements
         public T this[int index]
         {
             get => _items[index];
-            set => _items[index] = value;
+            set
+            {
+                _items[index] = value;
+            }
         }
         
         protected virtual void OnSelectedIndexChanged(int value)
@@ -93,7 +97,7 @@ namespace Thundershock.Gui.Elements
         {
             if (HotTracking)
             {
-                var pos = GuiSystem.Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+                var pos = GuiSystem.ScreenToViewport(new Vector2(e.X, e.Y));
 
                 if (TryGetItem((int) pos.X, (int) pos.Y,  out int index))
                 {
@@ -122,7 +126,7 @@ namespace Thundershock.Gui.Elements
         {
             if (e.Button == MouseButton.Primary)
             {
-                var pos = GuiSystem.Scene.ScreenToViewport(new Vector2(e.XPosition, e.YPosition));
+                var pos = GuiSystem.ScreenToViewport(new Vector2(e.X, e.Y));
 
                 if (TryGetItem((int) pos.X, (int) pos.Y, out int index))
                 {

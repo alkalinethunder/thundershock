@@ -1,8 +1,9 @@
-using Microsoft.Xna.Framework;
+using System.Numerics;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class ProgressBar : Element
+    public class ProgressBar : ContentElement
     {
         private float _value = 0;
 

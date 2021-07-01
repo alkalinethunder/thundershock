@@ -1,13 +1,33 @@
 ﻿using System;
-using System.Threading;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+using System.Linq;
+using System.Numerics;
+using Thundershock.Components;
+using Thundershock.Core;
+using Thundershock.Core.Debugging;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock
 {
     public class PostProcessor
     {
+        #region Post-Processor Quad
+
+        private readonly Vertex[] _verts = new Vertex[]
+        {
+            new Vertex(new Vector3(0, 0, 0), Color.White, new Vector2(0, 1)),
+            new Vertex(new Vector3(1, 0, 0), Color.White, new Vector2(1, 1)),
+            new Vertex(new Vector3(0, 1, 0), Color.White, new Vector2(0, 0)),
+            new Vertex(new Vector3(1, 1, 0), Color.White, new Vector2(1, 0)),
+        };
+
+        private readonly int[] _indices = new int[]
+        {
+            1, 2, 0,
+            1, 3, 2
+        };
+
+        #endregion
+        
         #region Scene Settings
 
         public PostProcessSettings Settings { get; }
@@ -16,8 +36,10 @@ namespace Thundershock
         
         #region State
 
-        private GraphicsDevice _gfx;
-        private SpriteBatch _batch;
+        private bool _ignoreCamera;
+        private Matrix4x4 _matrix;
+        private GraphicsProcessor _gpu;
+        private BasicEffect _basicEffect;
         private RenderTarget2D _effectBuffer1;
         private RenderTarget2D _effectBuffer2;
         private RenderTarget2D _intermediate;
@@ -26,10 +48,11 @@ namespace Thundershock
 
         #region Resources
 
-        private Effect _brightnessThreshold;
-        private Effect _gaussian;
-        private Effect _bloom;
-        private Effect _shadowmask;
+        private Effect _ppEffect;
+        private Effect.EffectProgram _brightnessThreshold;
+        private Effect.EffectProgram _gaussian;
+        private Effect.EffectProgram _bloom;
+        private Effect.EffectProgram _shadowmask;
         private Effect _glitch;
         
         #endregion
@@ -99,69 +122,87 @@ namespace Thundershock
 
         #endregion
         
-        public PostProcessor(GraphicsDevice gfx)
+        public PostProcessor(GraphicsProcessor gpu)
         {
             Settings = new PostProcessSettings(this);
-            _gfx = gfx;
-            _batch = new SpriteBatch(_gfx);
+            _gpu = gpu;
+            _basicEffect = new(_gpu);
+            _matrix = Matrix4x4.CreateOrthographicOffCenter(0, 1, 1, 0, -1, 1);
+
+            _basicEffect.Programs.First().Parameters["projection"].SetValue(_matrix);
         }
 
+        public void SettingsFromCameraComponent(CameraComponent cam)
+        {
+            if (_ignoreCamera)
+                return;
+            
+            _bloomThreshold = cam.BloomThreshold;
+            _bloomIntensity = cam.BloomIntensity;
+            _bloomSaturation = cam.BloomSaturation;
+            _baseIntensity = cam.BloomBaseIntensity;
+            _baseSaturation = cam.BloomBaseSaturation;
+            _blurAmount = cam.BloomBlurAmount;
+        }
+        
         public void UnloadContent()
         {
             // shaders
-            _bloom.Dispose();
-            _shadowmask.Dispose();
-            _glitch.Dispose();
+            // _bloom.Dispose();
+            // _shadowmask.Dispose();
+            // _glitch.Dispose();
             
             // effect buffers
             _intermediate.Dispose();
             _effectBuffer1.Dispose();
             _effectBuffer2.Dispose();
             
-            // batcher
-            _batch.Dispose();
-            
             // null
             _bloom = null;
             _shadowmask = null;
             _glitch = null;
-            _batch = null;
             _intermediate = null;
             _effectBuffer1 = null;
             _effectBuffer2 = null;
         }
 
-        public void LoadContent(ContentManager content)
+        public void LoadContent()
         {
-            _brightnessThreshold = content.Load<Effect>("Effects/BrightnessThreshold");
-            _gaussian = content.Load<Effect>("Effects/Gaussian");
-            _bloom = content.Load<Effect>("Effects/Bloom");
-            _shadowmask = content.Load<Effect>("Effects/ShadowMask");
-            _glitch = content.Load<Effect>("Effects/GlitchEffect");
+            if (Resource.TryGetString(this.GetType().Assembly, "Thundershock.Resources.Effects.PostProcessor.glsl",
+                out var text))
+            {
+                _ppEffect = ShaderPipeline.CompileShader(_gpu, text);
+            }
+
+            _brightnessThreshold = _ppEffect.Programs["BloomThreshold"];
+            _gaussian = _ppEffect.Programs["BloomGaussian"];
+            _bloom = _ppEffect.Programs["Bloom"];
+            _shadowmask = _ppEffect.Programs["CRT"];
             
-            _brightnessThreshold.Parameters["Threshold"].SetValue(_bloomThreshold);
-            _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
+            /* _brightnessThreshold.Parameters["Threshold"].SetValue(_bloomThreshold);
+            // _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
 
-            _bloom.Parameters["BaseIntensity"].SetValue(_baseIntensity);
-            _bloom.Parameters["BloomIntensity"].SetValue(_bloomIntensity);
+            // _bloom.Parameters["BaseIntensity"].SetValue(_baseIntensity);
+            // _bloom.Parameters["BloomIntensity"].SetValue(_bloomIntensity);
 
-            _bloom.Parameters["BloomSaturation"].SetValue(_bloomSaturation);
-            _bloom.Parameters["BaseSaturation"].SetValue(_baseSaturation);
+            // _bloom.Parameters["BloomSaturation"].SetValue(_bloomSaturation);
+            // _bloom.Parameters["BaseSaturation"].SetValue(_baseSaturation); */
+
+            _brightnessThreshold.Parameters["transform"].SetValue(_matrix);
+            _gaussian.Parameters["transform"].SetValue(_matrix);
+            _bloom.Parameters["transform"].SetValue(_matrix);
+            _shadowmask.Parameters["transform"].SetValue(_matrix);
         }
-        
-        public void ReallocateEffectBuffers()
+
+        public void ReallocateEffectBuffers(int width, int height)
         {
             _effectBuffer1?.Dispose();
             _effectBuffer2?.Dispose();
             _intermediate?.Dispose();
-            
-            _effectBuffer1 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-                _gfx.PresentationParameters.BackBufferHeight);
-            _effectBuffer2 = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-                _gfx.PresentationParameters.BackBufferHeight);
-            _intermediate = new RenderTarget2D(_gfx, _gfx.PresentationParameters.BackBufferWidth,
-                _gfx.PresentationParameters.BackBufferHeight);
-            
+
+            _effectBuffer1 = new RenderTarget2D(_gpu, width, height);
+            _effectBuffer2 = new RenderTarget2D(_gpu, width, height);
+            _intermediate = new RenderTarget2D(_gpu, width, height);
         }
 
         private void SetBlurOffsets(float dx, float dy)
@@ -173,8 +214,8 @@ namespace Thundershock
             
             for (var i = 0; i < KERNEL_SIZE / 2; i++)
             {
-                float weight = ComputeGaussian(i + 1);
-                float offset = i * 2 + 1.0f;
+                var weight = ComputeGaussian(i + 1);
+                var offset = i * 2 + 1.0f;
 
                 totalWeight += weight;
 
@@ -191,8 +232,8 @@ namespace Thundershock
                 _gaussianKernel[i] /= totalWeight;
             }
 
-            _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
-            _gaussian.Parameters["Offsets"].SetValue(_offsets);
+            _gaussian.Parameters["weights"].SetValue(_gaussianKernel);
+            _gaussian.Parameters["offsets"].SetValue(_offsets);
         }
 
         private float ComputeGaussian(float n)
@@ -203,80 +244,144 @@ namespace Thundershock
                            Math.Exp(-(n * n) / (2 * theta * theta)));
         }
         
-        private void SetBloomTexture(Texture2D texture)
-        {
-            _bloom.Parameters["BloomTexture"].SetValue(texture);
-        }
-
         private void PerformBloom(RenderTarget2D frame, Rectangle rect)
         {
             var hWidth = (float) rect.Width;
             var hHeight = (float) rect.Height;
 
-            _gfx.SetRenderTarget(_effectBuffer1);
+            // change to the first effect buffer.
+            _gpu.SetRenderTarget(_effectBuffer1);
+            _gpu.Clear(Color.Black);
+            
+            // Apply the bloom threshold program.
+            _brightnessThreshold.Parameters["threshold"].SetValue(_bloomThreshold);
+            _brightnessThreshold.Apply();
+            
+            // Prepare for a render.
+            _gpu.PrepareRender();
+            _gpu.Textures[1] = frame;
+            
+            // Render the quad.
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            
+            // End the render.
+            _gpu.EndRender();
+            _gpu.Textures[1] = null;
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _brightnessThreshold.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(frame, rect, Color.White);
-            _batch.End();
-
-            _gfx.SetRenderTarget(_effectBuffer2);
+            // Now we switch to Effect Buffer 2 so we can render the first blur pass.
+            _gpu.SetRenderTarget(_effectBuffer2);
+            _gpu.Clear(Color.Black);
 
             SetBlurOffsets(1.0f / hWidth, 0f);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _gaussian.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(_effectBuffer1, rect, Color.White);
-            _batch.End();
-
-            _gfx.SetRenderTarget(_effectBuffer1);
-
+            // Apply the blur shader.
+            _gaussian.Apply();
+            
+            // Prepare for a render.
+            _gpu.PrepareRender();
+            _gpu.Textures[0] = _effectBuffer1;
+            
+            // Draw the quad.
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            
+            // End the render.
+            _gpu.EndRender();
+            _gpu.Textures[0] = null;
+            
+            // Switch to Effect Buffer 1 again and render the first blur pass with
+            // an additional blur pass.
+            _gpu.SetRenderTarget(_effectBuffer1);
+            _gpu.Clear(Color.Black);
+            
             SetBlurOffsets(0f, 1f / hHeight);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _gaussian.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(_effectBuffer2, rect, Color.White);
-            _batch.End();
+            // Start the render after setting Effect Buffer 2 as the texture to render.
+            _gpu.Textures[0] = _effectBuffer2;
+            _gpu.PrepareRender();
+            
+            // Draw the quad.
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            
+            // End the render.
+            _gpu.EndRender();
+            _gpu.Textures[0] = null;
+            
+            _gpu.SetRenderTarget(null);
+            
+            // Now for the actual bloom effect.
+            _gpu.SetRenderTarget(_effectBuffer2);
+            _gpu.Clear(Color.Black);
+            
+            _gpu.Textures[0] = frame;
+            _gpu.Textures[1] = _effectBuffer1;
 
-            _gfx.SetRenderTarget(_effectBuffer2);
+            _bloom.Parameters["baseIntensity"].SetValue(_baseIntensity);
+            _bloom.Parameters["baseSaturation"].SetValue(_baseSaturation);
+            _bloom.Parameters["bloomIntensity"].SetValue(_bloomIntensity);
+            _bloom.Parameters["bloomSaturation"].SetValue(_bloomSaturation);
+            
+            _bloom.Apply();
 
-            SetBloomTexture(_effectBuffer1);
+            _gpu.PrepareRender();
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            _gpu.EndRender();
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _bloom.CurrentTechnique.Passes[0].Apply();
-            _batch.Draw(frame, rect, Color.White);
-            _batch.End();
+            _gpu.Textures[0] = null;
+            _gpu.Textures[1] = null;
 
-            _gfx.SetRenderTarget(_intermediate);
-
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-            _batch.Draw(_effectBuffer2, rect, Color.White);
-            _batch.End();
-
+            // Render to our intermediate buffer.
+            _gpu.SetRenderTarget(_intermediate);
+            _gpu.Clear(Color.Black);
+            _basicEffect.Programs.First().Apply();
+            _gpu.PrepareRender(BlendMode.Additive);
+            _gpu.Textures[0] = _effectBuffer2;
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            _gpu.EndRender();
+            _gpu.Textures[0] = null;
+            _gpu.SetRenderTarget(null);
         }
 
         private void NoEffect(RenderTarget2D renderTarget, Rectangle rect)
         {
-            _gfx.SetRenderTarget(_intermediate);
+            // Bind the render target as a texture.
+            _gpu.Textures[0] = renderTarget;
 
-            _batch.Begin();
-            _batch.Draw(renderTarget, rect, Color.White);
-            _batch.End();
+            // Render to the intermediate buffer.
+            _gpu.SetRenderTarget(_intermediate);
+            
+            // Use the basic effect shader program for this next render.
+            // We don't want any special effects here. Just the source frame.
+            _basicEffect.Programs.First().Apply();
+            
+            // Prepare the render.
+            _gpu.PrepareRender();
+            
+            // Render the quad.
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            
+            // Clean up.
+            _gpu.EndRender();
+            _gpu.SetRenderTarget(null);
+            _gpu.Textures[0] = null;
         }
 
         private void SetShadowMaskParams()
         {
-            _shadowmask.Parameters["TextureSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
-            _shadowmask.Parameters["OutputSize"].SetValue(_intermediate.Bounds.Size.ToVector2());
-            _shadowmask.Parameters["HardPix"].SetValue(_hardPix);
-            _shadowmask.Parameters["HardScan"].SetValue(_hardScan);
-            _shadowmask.Parameters["BrightnessBoost"].SetValue(_shadowmaskBrightness);
-            _shadowmask.Parameters["MaskDark"].SetValue(_maskDark);
-            _shadowmask.Parameters["MaskLight"].SetValue(_maskLight);
+            _shadowmask.Parameters["texSize"].SetValue(_intermediate.Bounds.Size);
+            _shadowmask.Parameters["outputSize"].SetValue(_intermediate.Bounds.Size);
+            _shadowmask.Parameters["hardPix"].SetValue(_hardPix);
+            _shadowmask.Parameters["hardScan"].SetValue(_hardScan);
+            _shadowmask.Parameters["brightnessBoost"].SetValue(_shadowmaskBrightness);
+            _shadowmask.Parameters["maskDark"].SetValue(_maskDark);
+            _shadowmask.Parameters["maskLight"].SetValue(_maskLight);
         }
         
         public void Process(RenderTarget2D renderTarget)
         {
+            // First step in all this is submitting our quad to the GPU.
+            _gpu.SubmitVertices(_verts);
+            _gpu.SubmitIndices(_indices);
+            
             var rect = renderTarget.Bounds;
 
             if (EnableBloom && Settings.EnableBloom)
@@ -291,23 +396,23 @@ namespace Thundershock
             if (Settings.EnableGlitch && _glitchIntensity > 0)
             {
                 // update glitch settings.
-                _glitch.Parameters["Intensity"].SetValue(_glitchIntensity);
-                _glitch.Parameters["TextureSize"].SetValue(rect.Size.ToVector2());
-                _glitch.Parameters["Skew"].SetValue(_glitchSkew);
+                // _glitch.Parameters["Intensity"].SetValue(_glitchIntensity);
+                // _glitch.Parameters["TextureSize"].SetValue(rect.Size.ToVector2());
+                // _glitch.Parameters["Skew"].SetValue(_glitchSkew);
                 
                 // copy intermediate to effect buffer 1.
                 // using the glitch effect.
-                _gfx.SetRenderTarget(_effectBuffer1);
-                _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
-                _glitch.CurrentTechnique.Passes[0].Apply();
-                _batch.Draw(_intermediate, rect, Color.White);
-                _batch.End();
+                // _gfx.SetRenderTarget(_effectBuffer1);
+                // _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
+                // _glitch.CurrentTechnique.Passes[0].Apply();
+                // _batch.Draw(_intermediate, rect, Color.White);
+                // _batch.End();
                 
                 // render effect buffer 1 to intermediate
-                _gfx.SetRenderTarget(_intermediate);
-                _batch.Begin();
-                _batch.Draw(_effectBuffer1, rect, Color.White);
-                _batch.End();
+                // _gfx.SetRenderTarget(_intermediate);
+                // _batch.Begin();
+                // _batch.Draw(_effectBuffer1, rect, Color.White);
+                // _batch.End();
             }
 
             if (EnableShadowMask && Settings.EnableShadowMask)
@@ -316,24 +421,53 @@ namespace Thundershock
                 
                 // copy the intermediate RT to effect buffer 1
                 // with the shadowmask effect applied
-                _gfx.SetRenderTarget(_effectBuffer1);
-                _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                _shadowmask.CurrentTechnique.Passes[0].Apply();
-                _batch.Draw(_intermediate, rect, Color.White);
-                _batch.End();
+                _gpu.SetRenderTarget(_effectBuffer1);
                 
-                // copy effect buffer 1 back into the intermediate buffer
-                _gfx.SetRenderTarget(_intermediate);
-                _batch.Begin();
-                _batch.Draw(_effectBuffer1, rect, Color.White);
-                _batch.End();
+                // apply the shadowmask.
+                _shadowmask.Apply();
+                
+                // clear the effect buffer
+                _gpu.Clear(Color.Black);
+                
+                // Bind the texture and prepare for a render
+                _gpu.Textures[0] = _intermediate;
+                _gpu.PrepareRender();
+
+                // Render
+                _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                
+                // End the render and bind the effect buffer after we switch to the immediate RT
+                _gpu.EndRender();
+                _gpu.SetRenderTarget(null);
+                _gpu.Textures[0] = _effectBuffer1;
+                _gpu.SetRenderTarget(_intermediate);
+                
+                // Apply the default effect.
+                _basicEffect.Programs.First().Apply();
+                
+                // Start a render
+                _gpu.PrepareRender();
+                
+                // Render
+                _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+                
+                // End.
+                _gpu.EndRender();
+                _gpu.Textures[0] = null;
+                _gpu.SetRenderTarget(null);
             }
             
-            _gfx.SetRenderTarget(null);
+            // Render the intermediate buffer to the screen.
+            _basicEffect.Programs.First().Apply();
+            _gpu.SetRenderTarget(null);
 
-            _batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap);
-            _batch.Draw(_intermediate, rect, Color.White);
-            _batch.End();
+            // Get the GPU ready for some rendering :P
+            _gpu.PrepareRender();
+            _gpu.Textures[0] = _intermediate;
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            _gpu.EndRender();
+
+            _gpu.Textures[0] = null;
         }
 
         public class PostProcessSettings
@@ -361,5 +495,63 @@ namespace Thundershock
                 _processor = processor;
             }
         }
+
+        #region Cheats
+
+        [Cheat("IgnoreCamera")]
+        private void IgnoreCamera(bool value)
+        {
+            _ignoreCamera = value;
+        }
+
+        [Cheat("Bloom")]
+        private void EnableBloomCheat(bool value)
+        {
+            Settings.EnableBloom = value;
+        }
+
+        [Cheat("CRT")]
+        private void CrtCheat(bool value)
+        {
+            Settings.EnableShadowMask = value;
+        }
+
+        [Cheat("BloomThreshold")]
+        private void BloomThresholdCheat(float value)
+        {
+            _bloomThreshold = value;
+        }
+        
+        [Cheat("BloomIntensity")]
+        private void BloomIntensityCheat(float value)
+        {
+            _bloomIntensity = value;
+        }
+
+        [Cheat("BloomSaturation")]
+        private void BloomSaturationCheat(float value)
+        {
+            _bloomSaturation = value;
+        }
+
+        [Cheat("BloomBaseIntensity")]
+        private void BloomBaseIntensityCheat(float value)
+        {
+            _baseIntensity = value;
+        }
+
+        [Cheat("BloomBaseSaturation")]
+        private void BloomBaseSaturationCheat(float value)
+        {
+            _baseSaturation = value;
+        }
+
+        [Cheat("BloomBlur")]
+        private void BloomBlurCheat(float value)
+        {
+            _blurAmount = value;
+        }
+
+        #endregion
     }
 }

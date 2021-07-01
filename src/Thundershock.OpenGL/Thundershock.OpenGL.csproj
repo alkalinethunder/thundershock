@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <PrivateAssets>all</PrivateAssets>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Thundershock.Core\Thundershock.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\Shaders\BasicShader.frag" />
+    <EmbeddedResource Include="Resources\Shaders\BasicShader.frag" />
+    <None Remove="Resources\Shaders\BasicShader.vert" />
+    <EmbeddedResource Include="Resources\Shaders\BasicShader.vert" />
+    <None Update="SDL2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FftSharp" Version="1.0.8" />
+    <PackageReference Include="sdl2.nuget" Version="2.0.14" />
+    <PackageReference Include="Silk.NET.Core" Version="2.5.0" />
+    <PackageReference Include="Silk.NET.OpenAL" Version="2.5.0" />
+    <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.21.1" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.5.0" />
+  </ItemGroup>
+
+</Project>

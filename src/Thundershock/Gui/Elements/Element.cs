@@ -1,113 +1,38 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System.Net.WebSockets;
+using System.Numerics;
+using Gtk;
 using Thundershock.Flumberboozles;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
+using Thundershock.Core.Input;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public abstract class Element
+    public abstract class Element : IPropertySetOwner
     {
-        public class ElementCollection : ICollection<Element>
-        {
-            private Element _owner;
-            private List<Element> _children = new List<Element>();
-
-            public ElementCollection(Element owner)
-            {
-                _owner = owner;
-            }
-            
-            public IEnumerator<Element> GetEnumerator()
-            {
-                return _children.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public IEnumerable<Element> Collapse()
-            {
-                foreach (var child in _children)
-                {
-                    yield return child;
-                    foreach (var subchild in child.Children.Collapse())
-                    {
-                        yield return subchild;
-                    }
-                }
-            }
-            
-            public void Add(Element item)
-            {
-                if (item == null)
-                    throw new ArgumentNullException(nameof(item));
-
-                if (item.Parent != null)
-                    throw new InvalidOperationException("GUI element already has a parent.");
-
-                item.Parent = _owner;
-                
-                // fixes a stupid fucking bug
-                item._guiSystem = _owner.GuiSystem;
-                foreach (var offspring in item.Children.Collapse())
-                {
-                    offspring._guiSystem = _owner.GuiSystem;
-                }
-                
-                _children.Add(item);
-            }
-
-            public void Clear()
-            {
-                while (_children.Any())
-                    Remove(_children.First());
-            }
-
-            public bool Contains(Element item)
-            {
-                return item != null && item.Parent == _owner;
-            }
-
-            public void CopyTo(Element[] array, int arrayIndex)
-            {
-                _children.CopyTo(array, arrayIndex);
-            }
-
-            public bool Remove(Element item)
-            {
-                if (item == null)
-                    return false;
-
-                if (item.Parent != _owner)
-                    return false;
-
-                item.Parent = null;
-                item._guiSystem = null;
-                return _children.Remove(item);
-            }
-
-            public int Count => _children.Count;
-            public bool IsReadOnly => _owner.SupportsChildren;
-        }
-
+        private bool _isRenderDataDirty = true;
+        private float _computedOpacity;
+        private Color _computedTint;
         private GuiSystem _guiSystem;
-        private int _minWidth;
-        private int _minHeight;
-        private int _maxWidth;
-        private int _maxHeight;
-        private int _fixedWidth;
-        private int _fixedHeight;
-        private int _widthUnitRounding;
-        private int _heightUnitRounding;
+        private float _opacity = 1;
+        private float _minWidth;
+        private float _minHeight;
+        private float _maxWidth;
+        private float _maxHeight;
+        private float _fixedWidth;
+        private float _fixedHeight;
+        private float _widthUnitRounding;
+        private float _heightUnitRounding;
         private string _name;
+        private PropertySet _props;
+        private StyleFont _font = StyleFont.Default;
+        private Visibility _visibility = Visibility.Visible;
+        private Padding _padding;
+        private Padding _margin;
         private LayoutManager _layout;
         private Element _parent;
         private ElementCollection _children;
@@ -115,7 +40,13 @@ namespace Thundershock.Gui.Elements
         private VerticalAlignment _vAlign;
         private Rectangle _bounds;
         private Rectangle _contentRect;
+        private Rectangle _clipRect;
+        
+        public Rectangle ClipBounds => _clipRect;
 
+        public float ComputedOpacity => _computedOpacity;
+        public Color ComputedTint => _computedTint;
+        
         public bool CanFocus { get; set; }
         
         public Rectangle ContentRectangle => _contentRect;
@@ -124,20 +55,24 @@ namespace Thundershock.Gui.Elements
         
         public string ToolTip { get; set; }
 
-        public StyleFont Font { get; set; } = StyleFont.Default;
-        
-        public PropertySet Properties { get; } = new PropertySet();
+        public StyleFont Font
+        {
+            get => _font;
+            set
+            {
+                if (_font != value)
+                {
+                    _font = value;
+                }
+            }
+        }
 
-        public int WidthUnitRounding
+        public PropertySet Properties => _props;
+
+        public float WidthUnitRounding
         {
             get => _widthUnitRounding;
             set => _widthUnitRounding = value;
-        }
-
-        public int HeightUnitRounding
-        {
-            get => _heightUnitRounding;
-            set => _heightUnitRounding = value;
         }
         
         public GuiSystem GuiSystem
@@ -158,18 +93,44 @@ namespace Thundershock.Gui.Elements
         public HorizontalAlignment HorizontalAlignment
         {
             get => _hAlign;
-            set => _hAlign = value;
+            set
+            {
+                if (_hAlign != value)
+                {
+                    _hAlign = value;
+                }
+            }
         }
 
         public VerticalAlignment VerticalAlignment
         {
             get => _vAlign;
-            set => _vAlign = value;
+            set
+            {
+                if (_vAlign != value)
+                {
+                    _vAlign = value;
+                }
+            }
+        }
+
+        public float Opacity
+        {
+            get => _opacity;
+            set
+            {
+                value = MathHelper.Clamp(value, 0, 1);
+                
+                if (Math.Abs(_opacity - value) > 0.0001f)
+                {
+                    _opacity = value;
+                    InvalidateRenderData();
+                }
+            }
         }
         
+        public abstract bool CanPaint { get; }
         
-        
-        public float Opacity { get; set; } = 1;
         public bool Enabled { get; set; } = true;
 
         public StyleColor ForeColor { get; set; } = StyleColor.Default;
@@ -187,45 +148,112 @@ namespace Thundershock.Gui.Elements
         public bool IsFocused => GuiSystem.FocusedElement == this;
         public bool HasAnyFocus => IsFocused || _children.Any(x => x.HasAnyFocus);
 
-        public Padding Padding { get; set; }
-        public Padding Margin { get; set; }
+        public Padding Padding
+        {
+            get => _padding;
+            set
+            {
+                if (_padding != value)
+                {
+                    _padding = value;
+                }
+            }
+        }
+
+        public Padding Margin
+        {
+            get => _margin;
+            set
+            {
+                if (_margin != value)
+                {
+                    _margin = value;
+                }
+            }
+        }
         
-        public int FixedWidth
+        public float FixedWidth
         {
             get => _fixedWidth;
-            set => _fixedWidth = value;
+            set
+            {
+                if (MathF.Abs(_fixedWidth - value) >= 0.0001f)
+                {
+                    _fixedWidth = value;
+                }
+            }
         }
 
-        public int FixedHeight
+        public float FixedHeight
         {
             get => _fixedHeight;
-            set => _fixedHeight = value;
+            set
+            {
+                if (MathF.Abs(_fixedHeight - value) >= 0.0001f)
+                {
+                    _fixedHeight = value;
+                }
+            }
         }
 
-        public int MinimumWidth
+        public float MinimumWidth
         {
             get => _minWidth;
-            set => _minWidth = value;
+            set
+            {
+                if (MathF.Abs(_minWidth - value) >= 0.0001f)
+                {
+                    _minWidth = value;
+                }
+            }
         }
 
-        public int MinimumHeight
+        public float MinimumHeight
         {
             get => _minHeight;
-            set => _minHeight = value;
+            set
+            {
+                if (MathF.Abs(_minHeight - value) >= 0.0001f)
+                {
+                    _minHeight = value;
+                }
+            }
         }
 
-        public Visibility Visibility { get; set; }
+        public Visibility Visibility
+        {
+            get => _visibility;
+            set
+            {
+                if (_visibility != value)
+                {
+                    _visibility = value;
+                }
+            }
+        }
         
-        public int MaximumWidth
+        public float MaximumWidth
         {
             get => _maxWidth;
-            set => _maxWidth = value;
+            set
+            {
+                if (MathF.Abs(_maxWidth - value) >= 0.0001f)
+                {
+                    _maxWidth = value;
+                }
+            }
         }
 
-        public int MaximumHeight
+        public float MaximumHeight
         {
             get => _maxHeight;
-            set => _maxHeight = value;
+            set
+            {
+                if (MathF.Abs(_maxHeight - value) >= 0.0001f)
+                {
+                    _maxHeight = value;
+                }
+            }
         }
         
         public Vector2 ActualSize { get; private set; }
@@ -235,6 +263,8 @@ namespace Thundershock.Gui.Elements
             _children = new ElementCollection(this);
             _layout = new LayoutManager(this);
             _name = DefaultName;
+
+            _props = new(this);
         }
 
         protected void SetGuiSystem(GuiSystem gui)
@@ -341,9 +371,8 @@ namespace Thundershock.Gui.Elements
             measure += Margin.Size + Padding.Size;
             
             ActualSize = measure;
-
+            
             return measure;
-
         }
         
         protected virtual void OnPaint(GameTime gameTime, GuiRenderer renderer) {}
@@ -353,7 +382,7 @@ namespace Thundershock.Gui.Elements
         public class LayoutManager
         {
             private Element _owner;
-
+            
             public Vector2 GetContentSize(Vector2 alottedSize = default)
             {
                 return _owner.Measure(alottedSize);
@@ -368,17 +397,17 @@ namespace Thundershock.Gui.Elements
             {
                 elem.GetLayoutManager().SetBounds(rect);
             }
-            
+
             public void SetBounds(Rectangle rectangle)
             {
-                var contentSize = this.GetContentSize(rectangle.Size.ToVector2());
+                var contentSize = this.GetContentSize(rectangle.Size);
 
                 // Apply padding.
                 rectangle.X += _owner.Padding.Left;
                 rectangle.Y += _owner.Padding.Top;
                 rectangle.Width -= _owner.Padding.Width;
                 rectangle.Height -= _owner.Padding.Height;
-                
+
                 var bounds = Rectangle.Empty;
 
                 switch (_owner.HorizontalAlignment)
@@ -400,7 +429,7 @@ namespace Thundershock.Gui.Elements
                         bounds.X = rectangle.Left;
                         break;
                 }
-                
+
                 switch (_owner.VerticalAlignment)
                 {
                     case VerticalAlignment.Center:
@@ -430,8 +459,34 @@ namespace Thundershock.Gui.Elements
                 bounds.Height -= _owner.Margin.Height;
 
                 _owner._contentRect = bounds;
-                
-                _owner.ArrangeOverride(bounds);
+
+                _owner._clipRect = ComputeClipRect();
+
+                _owner.ArrangeOverride(_owner.ContentRectangle);
+            }
+
+            private Rectangle ComputeClipRect()
+            {
+                var e = _owner;
+                var rect = e.BoundingBox;
+                while (e != null)
+                {
+                    rect = Rectangle.Intersect(e.BoundingBox, rect);
+                    e = e.Parent;
+                }
+
+                var loc = rect.Location;
+                var size = rect.Size + Vector2.One;
+
+                size = _owner.GuiSystem.ViewportToScreen(size);
+                loc = _owner.GuiSystem.ViewportToScreen(loc);
+
+                rect.X = loc.X;
+                rect.Y = loc.Y;
+                rect.Width = size.X;
+                rect.Height = size.Y;
+
+                return rect;
             }
         }
 
@@ -638,5 +693,156 @@ namespace Thundershock.Gui.Elements
             return OnKeyUp(e);
         }
         
+        protected void InvalidateRenderData()
+        {
+            if (!_isRenderDataDirty)
+            {
+                foreach (var child in Children.Collapse())
+                    child._isRenderDataDirty = true;
+                
+                _isRenderDataDirty = true;
+                var p = Parent;
+                while (p != null)
+                {
+                    p._isRenderDataDirty = true;
+                    p = p.Parent;
+                }
+            }
+        }
+
+        public void RecomputeRenderData()
+        {
+            if (_isRenderDataDirty)
+            {
+                // This is simple. All we need is our current opacity and tint (enabled = white, disabled = gray)
+                var opacity = this.Opacity;
+                var tint = Enabled ? Color.White : Color.Gray;
+                
+                // And our parent.
+                var parent = this.Parent;
+                
+                // Recurse through the ancestry tree.
+                while (parent != null)
+                {
+                    // Multiply current opacity by parent opacity.
+                    opacity *= parent.Opacity;
+                    
+                    // Get the parent tint.
+                    var pColor = parent.Enabled ? Color.White : Color.Gray;
+                    
+                    // Compute linear color values for the parent color.
+                    var r = pColor.R;
+                    var g = pColor.G;
+                    var b = pColor.B;
+                    
+                    // And compute the values for our new color.
+                    var br = tint.R * r;
+                    var bg = tint.G * g;
+                    var bb = tint.B * b;
+
+                    // Apply the new computed values.
+                    tint = new Color(br, bg, bb);
+
+                    // Recurse up to the next parent.
+                    parent = parent.Parent;
+                }
+                
+                // Cache these computed values.
+                _computedOpacity = opacity;
+                _computedTint = tint;
+                
+                _isRenderDataDirty = false;
+            }
+        }
+        
+        public void NotifyPropertyModified(string name)
+        {
+            // Stub.
+        }
+        
+        public class ElementCollection : ICollection<Element>
+        {
+            private Element _owner;
+            private List<Element> _children = new List<Element>();
+
+            public ElementCollection(Element owner)
+            {
+                _owner = owner;
+            }
+            
+            public IEnumerator<Element> GetEnumerator()
+            {
+                return _children.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public IEnumerable<Element> Collapse()
+            {
+                foreach (var child in _children)
+                {
+                    yield return child;
+                    foreach (var subchild in child.Children.Collapse())
+                    {
+                        yield return subchild;
+                    }
+                }
+            }
+            
+            public void Add(Element item)
+            {
+                if (item == null)
+                    throw new ArgumentNullException(nameof(item));
+
+                if (item.Parent != null)
+                    throw new InvalidOperationException("GUI element already has a parent.");
+
+                item.Parent = _owner;
+                
+                // fixes a stupid fucking bug
+                item._guiSystem = _owner.GuiSystem;
+                foreach (var offspring in item.Children.Collapse())
+                {
+                    offspring._guiSystem = _owner.GuiSystem;
+                }
+                
+                _children.Add(item);
+            }
+
+            public void Clear()
+            {
+                while (_children.Any())
+                    Remove(_children.First());
+            }
+
+            public bool Contains(Element item)
+            {
+                return item != null && item.Parent == _owner;
+            }
+
+            public void CopyTo(Element[] array, int arrayIndex)
+            {
+                _children.CopyTo(array, arrayIndex);
+            }
+
+            public bool Remove(Element item)
+            {
+                if (item == null)
+                    return false;
+
+                if (item.Parent != _owner)
+                    return false;
+                
+                item.Parent = null;
+                item._guiSystem = null;
+                return _children.Remove(item);
+            }
+
+            public int Count => _children.Count;
+            public bool IsReadOnly => _owner.SupportsChildren;
+        }
     }
 }

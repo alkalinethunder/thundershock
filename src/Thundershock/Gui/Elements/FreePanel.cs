@@ -1,12 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Numerics;
-using Microsoft.Xna.Framework;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class FreePanel : Element
+    public class FreePanel : LayoutElement
     {
         public static readonly string AnchorProperty = "Anchor";
         public static readonly string AlignmentProperty = "Alignment";
@@ -127,13 +125,13 @@ namespace Thundershock.Gui.Elements
 
                 position += GetPosition(elem);
 
-                var rect = new Rectangle((int) position.X, (int) position.Y, 0, 0);
+                var rect = new Rectangle(position.X, position.Y, 0, 0);
 
-                rect.Width = (int) (contentRectangle.Width * anchor.Right);
-                rect.Height = (int) (contentRectangle.Height * anchor.Bottom);
+                rect.Width = (contentRectangle.Width * anchor.Right);
+                rect.Height = (contentRectangle.Height * anchor.Bottom);
 
-                if (rect.Width <= 0) rect.Width = (int) size.X;
-                if (rect.Height <= 0) rect.Height = (int) size.Y;
+                if (rect.Width <= 0) rect.Width = size.X;
+                if (rect.Height <= 0) rect.Height = size.Y;
                 
                 GetLayoutManager().SetChildBounds(elem, rect);
             }

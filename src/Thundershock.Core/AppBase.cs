@@ -54,13 +54,13 @@ namespace Thundershock.Core
             Bootstrap();
         }
 
-        protected void RegisterComponent(IGlobalComponent component)
+        public void RegisterComponent(IGlobalComponent component)
         {
             _components.Add(component);
             component.Initialize(this);
         }
 
-        protected T RegisterComponent<T>() where T : IGlobalComponent, new()
+        public T RegisterComponent<T>() where T : IGlobalComponent, new()
         {
             if (_components.Any(x => x is T))
                 throw new InvalidOperationException("Component is already registered.");

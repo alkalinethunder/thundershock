@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thundershock.Core", "Thunde
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thundershock.Platform", "Thundershock.Platform\Thundershock.Platform.csproj", "{FC455840-2211-4B5D-97D9-52B665C1CB47}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thundershock.OpenGL", "Thundershock.OpenGL\Thundershock.OpenGL.csproj", "{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,5 +60,17 @@ Global
 		{FC455840-2211-4B5D-97D9-52B665C1CB47}.Release|x64.Build.0 = Release|Any CPU
 		{FC455840-2211-4B5D-97D9-52B665C1CB47}.Release|x86.ActiveCfg = Release|Any CPU
 		{FC455840-2211-4B5D-97D9-52B665C1CB47}.Release|x86.Build.0 = Release|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Debug|x64.Build.0 = Debug|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Debug|x86.Build.0 = Debug|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Release|x64.ActiveCfg = Release|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Release|x64.Build.0 = Release|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Release|x86.ActiveCfg = Release|Any CPU
+		{A7822A11-3EF9-456A-B4D9-86F2D50B2B34}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,16 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using Microsoft.Xna.Framework;
+using System.Numerics;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Stacker : Element
+    public class Stacker : LayoutElement
     {
         public static readonly string FillProperty = "Fill";
+
+        private StackDirection _direction = StackDirection.Vertical;
         
-        public StackDirection Direction { get; set; } = StackDirection.Vertical;
+        public StackDirection Direction
+        {
+            get => _direction;
+            set
+            {
+                if (_direction != value)
+                {
+                    _direction = value;
+                }
+            }
+        }
 
         private float GetFillPercentage(Element elem)
         {

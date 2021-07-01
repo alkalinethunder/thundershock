@@ -1,8 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Panel : Element
+    public class Panel : ContentElement
     {
         public Color BackColor { get; set; } = Color.White;
 

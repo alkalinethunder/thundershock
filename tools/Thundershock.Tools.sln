@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thundershock", "..\src\Thun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thundershock.Editor", "Thundershock.Editor\Thundershock.Editor.csproj", "{65BAA072-6238-4DD4-BE69-914605E27B3C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thundershock.OpenGL", "..\src\Thundershock.OpenGL\Thundershock.OpenGL.csproj", "{2C9B3473-B220-4CD0-9468-323B1D29B78D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{3535D45E-E9AA-4D53-AA70-EBC11BEF56CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +76,22 @@ Global
 		{65BAA072-6238-4DD4-BE69-914605E27B3C}.Release|x64.Build.0 = Release|Any CPU
 		{65BAA072-6238-4DD4-BE69-914605E27B3C}.Release|x86.ActiveCfg = Release|Any CPU
 		{65BAA072-6238-4DD4-BE69-914605E27B3C}.Release|x86.Build.0 = Release|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Debug|x64.Build.0 = Debug|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Debug|x86.Build.0 = Debug|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Release|x64.ActiveCfg = Release|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Release|x64.Build.0 = Release|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Release|x86.ActiveCfg = Release|Any CPU
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{03D0E3BE-6C48-45D5-BEBC-245B43DB1971} = {3535D45E-E9AA-4D53-AA70-EBC11BEF56CA}
+		{646EB124-995A-483F-A961-AD22EBAF5DE6} = {3535D45E-E9AA-4D53-AA70-EBC11BEF56CA}
+		{2C9B3473-B220-4CD0-9468-323B1D29B78D} = {3535D45E-E9AA-4D53-AA70-EBC11BEF56CA}
 	EndGlobalSection
 EndGlobal

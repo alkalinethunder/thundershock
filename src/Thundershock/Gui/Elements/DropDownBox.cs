@@ -1,11 +1,11 @@
 ﻿using System;
-using Gtk;
-using Microsoft.Xna.Framework;
-using Thundershock.Input;
+using Thundershock.Core;
+using Thundershock.Core.Input;
+
 
 namespace Thundershock.Gui.Elements
 {
-    public class DropDownBox : Element
+    public class DropDownBox : LayoutElement
     {
         private int _lastIndex;
         private AdvancedButton _activator = new();
@@ -118,7 +118,7 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnUpdate(GameTime gameTime)
         {
-            _text.Color = GuiSystem.Style.GetButtonTextColor(_activator);
+            _text.ForeColor = GuiSystem.Style.GetButtonTextColor(_activator);
             
             if (_itemList.SelectedIndex > -1)
             {

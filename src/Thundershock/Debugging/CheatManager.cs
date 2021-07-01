@@ -2,8 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
+using System.Reflection;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 
 namespace Thundershock.Debugging
 {
@@ -12,6 +13,37 @@ namespace Thundershock.Debugging
         private List<CheatCode> _cheats = new List<CheatCode>();
         private ConcurrentQueue<string> _pendingCommands = new ConcurrentQueue<string>();
 
+        public void AddObject(object obj)
+        {
+            var type = obj.GetType();
+
+            var aliasAttribute = type.GetCustomAttributes(true).OfType<CheatAliasAttribute>().FirstOrDefault();
+
+            var name = (aliasAttribute != null && !string.IsNullOrWhiteSpace(aliasAttribute.Name))
+                ? aliasAttribute.Name
+                : type.Name;
+
+            foreach (var method in
+                type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                var cheatAttrib = method.GetCustomAttributes(true).OfType<CheatAttribute>().FirstOrDefault();
+
+                if (cheatAttrib == null)
+                    continue;
+
+                var cmdName = string.IsNullOrWhiteSpace(cheatAttrib.Name) ? method.Name : cheatAttrib.Name;
+
+                var fullname = $"{name}.{cmdName}";
+
+                AddCheat(fullname, method, obj);
+            }
+        }
+
+        public void RemoveObject(object obj)
+        {
+            _cheats.RemoveAll(x => x.Instance == obj);
+        }
+        
         public void ExecuteCommand(string commandLine)
         {
             if (!string.IsNullOrWhiteSpace(commandLine))
@@ -20,17 +52,12 @@ namespace Thundershock.Debugging
             }
         }
 
-        public void AddCheat(string name, Action<string[]> action)
+        public void AddCheat(string name, MethodInfo method, object instance = null)
         {
             if (_cheats.Any(x => x.Name == name))
                 return;
 
-            _cheats.Add(new CheatCode(name, action));
-        }
-        
-        public void AddCheat(string name, Action action)
-        {
-            AddCheat(name, _ => action());
+            _cheats.Add(new CheatCode(name, method, instance));
         }
         
         private void ProcessCommand(string line)
@@ -68,6 +95,56 @@ namespace Thundershock.Debugging
                 App.Logger.Log($"Executing: {cmd}");
 
                 ProcessCommand(cmd);
+            }
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            
+            // Add cheats from common Thundershock objects
+            AddObject(this); // Help
+            AddObject(App); // App control.
+            AddObject(Logger.GetLogger()); // Console control
+            
+            // Static cheats
+            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var type in ass.GetTypes())
+            {
+                var cheatAlias = type.GetCustomAttributes(false).OfType<CheatAliasAttribute>().FirstOrDefault();
+
+                if (cheatAlias == null)
+                    continue;
+
+                var name = cheatAlias.Name;
+
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                foreach (var method in type.GetMethods(BindingFlags.NonPublic |  BindingFlags.Static))
+                {
+                    var cheatAttrib = method.GetCustomAttributes(false).OfType<CheatAttribute>().FirstOrDefault();
+
+                    if (cheatAttrib == null)
+                        continue;
+
+                    var cheatName = string.IsNullOrWhiteSpace(cheatAttrib.Name) ? method.Name : cheatAttrib.Name;
+
+                    var fullname = $"{name}.{cheatName}";
+
+                    AddCheat(fullname, method, null);
+                }
+            }
+        }
+
+        [Cheat]
+        private void Help()
+        {
+            Logger.GetLogger().Log("Available commands:");
+            Logger.GetLogger().Log("");
+            foreach (var command in _cheats.OrderBy(x => x.Name))
+            {
+                Logger.GetLogger().Log(" - " + command.Name);
             }
         }
     }

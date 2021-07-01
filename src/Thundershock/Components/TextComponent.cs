@@ -1,58 +1,19 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Rendering;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
+using Thundershock.Gui;
 
 namespace Thundershock.Components
 {
-    public class TextComponent : SceneComponent
+    public class TextComponent
     {
-        private SpriteFont _font;
-
-        public SpriteFont Font
-        {
-            get => _font;
-            set
-            {
-                if (_font != value)
-                {
-                    _font = value ?? throw new ArgumentNullException(nameof(value));
-                }
-            }
-        }
-        public string Text { get; set; } = "Text Component";
-        public Vector2 Position { get; set; }
-        public Color Color { get; set; } = Color.White;
-        public Vector2 Origin { get; set; } = new Vector2(0.5f, 0.5f);
-        public Vector2 Pivpt { get; set; } = new Vector2(0.5f, 0.5f);
-
-        public Vector2 TextMeasure => _font.MeasureString(Text);
-        
-        protected override void OnLoad()
-        {
-            _font = Game.EngineContent.Load<SpriteFont>("Fonts/DebugSmall");
-            base.OnLoad();
-        }
-
-        protected override void OnDraw(GameTime gameTime, Renderer batch)
-        {
-            if (!string.IsNullOrWhiteSpace(Text))
-            {
-                var rect = batch.ViewportBounds;
-                var size = rect.Size.ToVector2();
-                var location = rect.Location.ToVector2();
-
-                var origin = location + (size * Origin);
-                var pivot = TextMeasure * Pivpt;
-
-                var pos = origin - pivot + Position;
-
-                batch.Begin();
-                batch.DrawString(_font, Text, pos, Color);
-                batch.End();
-            }
-
-            base.OnDraw(gameTime, batch);
-        }
+        public Font Font = null;
+        public string Text = "Text Component";
+        public float WrapWidth = 0;
+        public TextWrapMode WrapMode = TextWrapMode.None;
+        public Color Color = Color.White;
+        public TextAlign TextAlign = TextAlign.Left;
+        public Vector2 Pivot = new Vector2(0.5f, 0.5f);
     }
 }

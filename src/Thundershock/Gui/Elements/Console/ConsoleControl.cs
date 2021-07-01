@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Thundershock;
+using System.Numerics;
 using Thundershock.Core;
-using Thundershock.Gui;
-using Thundershock.Gui.Elements;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
-using GameTime = Microsoft.Xna.Framework.GameTime;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements.Console
 {
-    public sealed class ConsoleControl : Element, IConsole
+    public sealed class ConsoleControl : ContentElement, IConsole
     {
         public static readonly char BackgroundColorCode = '$';
         public static readonly char ForegroundColorCode = '#';
@@ -34,10 +28,10 @@ namespace Thundershock.Gui.Elements.Console
         
         private bool _textIsDirty = true;
         private Attributes _attributes;
-        private SpriteFont _regularFont;
-        private SpriteFont _boldFont;
-        private SpriteFont _italicFont;
-        private SpriteFont _boldItalicFont;
+        private Font _regularFont;
+        private Font _boldFont;
+        private Font _italicFont;
+        private Font _boldItalicFont;
 
         private ColorPalette _fallbackPalette = new ColorPalette();
         private ColorPalette _activePalette = null;
@@ -92,10 +86,6 @@ namespace Thundershock.Gui.Elements.Console
 
         public ConsoleControl()
         {
-            _regularFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Regular");
-            _boldFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Bold");
-            _boldItalicFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/BoldItalic");
-            _italicFont = (EntryPoint.CurrentApp as GameApp).EngineContent.Load<SpriteFont>("Fonts/Console/Italic");
             CanFocus = true;
             IsInteractable = true;
         }
@@ -193,7 +183,7 @@ namespace Thundershock.Gui.Elements.Console
             return words.ToArray();
         }
 
-        private string[] LetterWrap(SpriteFont font, string text, float width)
+        private string[] LetterWrap(Font font, string text, float width)
         {
             var lines = new List<string>();
 
@@ -327,8 +317,14 @@ namespace Thundershock.Gui.Elements.Console
             }
         }
 
-        private SpriteFont GetFont(bool bold, bool italic)
+        private Font GetFont(bool bold, bool italic)
         {
+            // load default fonts if we lack them
+            _regularFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+            _boldFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+            _boldItalicFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+            _italicFont ??= Core.Font.GetDefaultFont(GuiSystem.Graphics);
+
             if (bold && italic)
                 return (BoldItalicFont ?? StyleFont.Default).GetFont(_boldItalicFont);
             else if (bold)
@@ -374,7 +370,7 @@ namespace Thundershock.Gui.Elements.Console
                 
                 // reset attributes
                 attrs = new Attributes();
-                attrs.Position = ContentRectangle.Location.ToVector2();
+                attrs.Position = ContentRectangle.Location;
                 attrs.Background = ConsoleColor.Black;
                 attrs.Foreground = ConsoleColor.Gray;
                 
@@ -699,18 +695,6 @@ namespace Thundershock.Gui.Elements.Console
                     wrapPointAccount = 0;
                 }
                 
-                // Because we're doing text measurement with MG SpriteFonts, we need to filter any
-                // unrecognized text characters for this element's font. Otherwise, crash. This code
-                // does that.
-                for (int j = 0; j < elem.Text.Length; j++)
-                {
-                    if (char.IsWhiteSpace(elem.Text[j]))
-                        continue;
-
-                    if (!elem.Font.Characters.Contains(elem.Text[j]))
-                        elem.Text = elem.Text.Replace(elem.Text[j], '?');
-                }
-                
                 // Measure the element.
                 var measure = elem.Font.MeasureString(elem.Text);
 
@@ -718,7 +702,7 @@ namespace Thundershock.Gui.Elements.Console
                 if (attrs.Position.X + measure.X >= rect.Right)
                 {
                     attrs.Position.X = rect.Left + wrapPointAccount;
-                    attrs.Position.Y += elem.Font.LineSpacing;
+                    attrs.Position.Y += elem.Font.LineHeight;
                 }
 
                 // Set the position of the element from our attributes.
@@ -738,7 +722,7 @@ namespace Thundershock.Gui.Elements.Console
                     
                     // OH FUCKING JESUS FUCK FUCK
                     elem.MouseBounds = new Rectangle((int) elem.Position.X, (int) elem.Position.Y, (int) measure.X,
-                        (int) measure.Y);
+                        elem.Font.LineHeight);
 
                     // this is some seriously fucked shit
                     foreach (var line in lines.Skip(1))
@@ -751,7 +735,7 @@ namespace Thundershock.Gui.Elements.Console
                         wtf.Text = line;
                         
                         // I wanna die
-                        wtf.Position.Y += wtf.Font.LineSpacing;
+                        wtf.Position.Y += elem.Font.LineHeight;
                         
                         // fuck this
                         attrs.Position = wtf.Position;
@@ -765,19 +749,19 @@ namespace Thundershock.Gui.Elements.Console
                         
                         // OH FUCKING JESUS FUCK FUCK
                         elem.MouseBounds = new Rectangle((int) elem.Position.X, (int) elem.Position.Y, (int) measure.X,
-                            (int) measure.Y);
+                            elem.Font.LineHeight);
                     }
                 }
 
                 // store a rectangle for mouse hit detection
                 elem.MouseBounds = new Rectangle((int) elem.Position.X, (int) elem.Position.Y, (int) measure.X,
-                    (int) measure.Y);
+                    elem.Font.LineHeight);
                 
                 // Go to a new line if the element ends with a new line.
                 if (elem.Text.EndsWith('\n'))
                 {
                     attrs.Position.X = rect.Left + wrapPointAccount;
-                    attrs.Position.Y += elem.Font.LineSpacing;
+                    attrs.Position.Y += elem.Font.LineHeight;
                 }
                 else
                 {
@@ -788,14 +772,14 @@ namespace Thundershock.Gui.Elements.Console
             // Now everything is positioned on screen so we're going to calculate
             // the height of everything. This will be factored into the terminal's scroll height.
             var lineY = -1f;
-            var height = 0;
+            var height = 0f;
             foreach (var elem in elements)
             {
                 var y = elem.Position.Y;
                 if (MathF.Abs(lineY - y) >= 0.00001f)
                 {
                     lineY = y;
-                    height += elem.Font.LineSpacing;
+                    height += elem.MouseBounds.Height;
                 }
             }
 
@@ -870,8 +854,8 @@ namespace Thundershock.Gui.Elements.Console
                     _completionY = cursor.Position;
                 }
             }
-            
-            _completionY.Y += _regularFont.LineSpacing;
+
+            _completionY.Y += cursor.Font.LineHeight;
             _paintCompletions = _relevantCompletions.Any();
             _completionPageStart = 0;
             
@@ -918,7 +902,7 @@ namespace Thundershock.Gui.Elements.Console
         {
             var result = base.OnMouseScroll(e);
 
-            var sb = _scrollback + (e.WheelDelta / 8);
+            var sb = _scrollback + e.WheelDelta;
             if (sb > _scrollbackMax)
                 sb = _scrollbackMax;
             else if (sb < 0)
@@ -928,10 +912,8 @@ namespace Thundershock.Gui.Elements.Console
             return result;
         }
 
-        private bool PaintTextElement(GameTime gameTime, GuiRenderer renderer, TextElement elem)
+        private bool PaintTextElementBackground(GameTime gameTime, GuiRenderer renderer, TextElement elem)
         {
-            var continuePaint = true;
-
             // use the mouse rect to speed things up.
             var rect = elem.MouseBounds;
             
@@ -942,62 +924,98 @@ namespace Thundershock.Gui.Elements.Console
                 rect.Y += (int)_scrollback;
             }
 
+            if (rect.Bottom <= ContentRectangle.Top)
+                return false;
+            
             // only paint this element if it's above the bottom of the terminal bounds.
             if (rect.Top <= ContentRectangle.Bottom)
             {
-                // If the element is above the terminal bounds then we'll instruct the OnPaint routine to stop
-                // painting elements. This is a major perf boost.
-                if (rect.Bottom <= ContentRectangle.Top)
+                // Get the colors for the element.
+                var bg = elem.Background;
+                var fg = elem.Foreground;
+
+                // Handle background images.
+                if (bg.A < 255 && ColorPalette.BackgroundImage != null)
+                    bg = Color.Transparent;
+
+                // is this the cursor?
+                if (elem.IsCursor)
                 {
-                    continuePaint = false;
+                    // is the cursor blinked off?
+                    if (!_cursorShow)
+                    {
+                        // swap the colors of the cursor.
+                        var s = bg;
+                        bg = fg;
+                        fg = s;
+                    }
                 }
 
-                // Otherwise, THIS DAY WE FIGHT.
-                else
+                // if this is a blinking element, and the blinker is off, set foreground to transparent.
+                if (elem.Blinking && !_blinkShow)
                 {
-                    // Get the colors for the element.
-                    var bg = elem.Background;
-                    var fg = elem.Foreground;
+                    fg = Color.Transparent;
+                }
 
-                    // Handle background images.
-                    if (bg.A < 255 && ColorPalette.BackgroundImage != null)
-                        bg = Color.Transparent;
-                    
-                    // is this the cursor?
-                    if (elem.IsCursor)
-                    {
-                        // is the cursor blinked off?
-                        if (!_cursorShow)
-                        {
-                            // swap the colors of the cursor.
-                            var s = bg;
-                            bg = fg;
-                            fg = s;
-                        }
-                    }
+                // render the background rect followed by the text.
+                renderer.FillRectangle(rect, bg);
 
-                    // if this is a blinking element, and the blinker is off, set foreground to transparent.
-                    if (elem.Blinking && !_blinkShow)
-                    {
-                        fg = Color.Transparent;
-                    }
-
-                    // render the background rect followed by the text.
-                    renderer.FillRectangle(rect, bg);
-                    renderer.DrawString(elem.Font, elem.Text, rect.Location.ToVector2(), fg);
-
-                    // Render a nice text underline if that attribute is set.
-                    if (elem.Underline)
-                    {
-                        var h = rect.Height - 2;
-                        rect.Y += h;
-                        rect.Height = 2;
-                        renderer.FillRectangle(rect, fg);
-                    }
+                // Render a nice text underline if that attribute is set.
+                if (elem.Underline)
+                {
+                    var h = rect.Height - 2;
+                    rect.Y += h;
+                    rect.Height = 2;
+                    renderer.FillRectangle(rect, fg);
                 }
             }
 
-            return continuePaint;
+            return true;
+        }
+
+        private bool PaintTextElementText(GameTime gameTime, GuiRenderer renderer, TextElement elem)
+        {
+            // use the mouse rect to speed things up.
+            var rect = elem.MouseBounds;
+            
+            // Account for scrollback.
+            rect.Y -= (int)_scrollbackMax;
+            if (_height > ContentRectangle.Height)
+            {
+                rect.Y += (int)_scrollback;
+            }
+
+            if (rect.Bottom <= ContentRectangle.Top)
+                return false;
+            
+            // only paint this element if it's above the bottom of the terminal bounds.
+            if (rect.Top <= ContentRectangle.Bottom)
+            {
+                // Get the colors for the element.
+                var fg = elem.Foreground;
+                
+                // is this the cursor?
+                if (elem.IsCursor)
+                {
+                    // is the cursor blinked off?
+                    if (!_cursorShow)
+                    {
+                        // swap the colors of the cursor.
+                        fg = elem.Background;
+                    }
+                }
+
+                // if this is a blinking element, and the blinker is off, set foreground to transparent.
+                if (elem.Blinking && !_blinkShow)
+                {
+                    return true;
+                }
+
+                // render the background rect followed by the text.
+                renderer.DrawString(elem.Font, elem.Text, rect.Location, fg);
+            }
+
+            return true;
         }
 
         private void TryOpenUrl(string text)
@@ -1045,31 +1063,55 @@ namespace Thundershock.Gui.Elements.Console
             
             renderer.FillRectangle(BoundingBox, GetColor(ConsoleColor.Black));
             
-            var continuePaint = true;
             var paintCompletionsThisTime = true;
+            
+            // PASS #1: Draw text element backgrounds.
+            for (var i = _elements.Count - 1; i >= 0; i--)
+            {
+                var elem = _elements[i];
+                if (!PaintTextElementBackground(gameTime, renderer, elem))
+                    break;
+            }
             
             for(var i = _inputElements.Count - 1; i >= 0; i--)
             {
                 var elem = _inputElements[i];
-                if (!PaintTextElement(gameTime, renderer, elem))
-                {
-                    continuePaint = false;
-                    paintCompletionsThisTime = false;
+                if (!PaintTextElementBackground(gameTime, renderer, elem))
                     break;
-                }
+            }
+            
+            // paint the scroollbar.
+            if (_scrollbarWidth > 0 && _height > BoundingBox.Height)
+            {
+                var sRect = BoundingBox;
+                sRect.X = sRect.Right - _scrollbarWidth;
+                sRect.Width = _scrollbarWidth;
+
+                renderer.FillRectangle(sRect, _scrollBG);
+
+                var height = BoundingBox.Height / _height;
+
+                var pos = _height - BoundingBox.Height;
+                pos -= _scrollback;
+
+                sRect.Y = BoundingBox.Top + (int) ((pos / _height) * BoundingBox.Height);
+                sRect.Height = (int) (BoundingBox.Height * height);
+                renderer.FillRectangle(sRect, _scrollFG);
             }
 
-            if (continuePaint)
+            // PASS #2: Draw the actual text.
+            for (var i = _elements.Count - 1; i >= 0; i--)
             {
-                for (var i = _elements.Count - 1; i >= 0; i--)
-                {
-                    var elem = _elements[i];
-                    if (!PaintTextElement(gameTime, renderer, elem))
-                    {
-                        continuePaint = false;
-                        break;
-                    }
-                }
+                var elem = _elements[i];
+                if (!PaintTextElementText(gameTime, renderer, elem))
+                    break;
+            }
+            
+            for(var i = _inputElements.Count - 1; i >= 0; i--)
+            {
+                var elem = _inputElements[i];
+                if (!PaintTextElementText(gameTime, renderer, elem))
+                    break;
             }
 
             if (paintCompletionsThisTime)
@@ -1126,30 +1168,11 @@ namespace Thundershock.Gui.Elements.Console
                         }
 
                         // draw the text
-                        renderer.DrawString(_regularFont, _relevantCompletions[i], bgRect.Location.ToVector2(), color);
+                        renderer.DrawString(_regularFont, _relevantCompletions[i], bgRect.Location, color);
 
                         bgRect.Y += _regularFont.LineSpacing;
                     }
                 }
-            }
-
-            // paint the scroollbar.
-            if (_scrollbarWidth > 0 && _height > BoundingBox.Height)
-            {
-                var sRect = BoundingBox;
-                sRect.X = sRect.Right - _scrollbarWidth;
-                sRect.Width = _scrollbarWidth;
-
-                renderer.FillRectangle(sRect, _scrollBG);
-
-                var height = BoundingBox.Height / _height;
-
-                var pos = _height - BoundingBox.Height;
-                pos -= _scrollback;
-
-                sRect.Y = BoundingBox.Top + (int) ((pos / _height) * BoundingBox.Height);
-                sRect.Height = (int) (BoundingBox.Height * height);
-                renderer.FillRectangle(sRect, _scrollFG);
             }
         }
 
@@ -1219,9 +1242,24 @@ namespace Thundershock.Gui.Elements.Console
                         _input = _input.Remove(_inputPos, 1);
                         _inputIsDirty = true;
                     }
+
                     break;
                 case Keys.Tab:
                     ApplyCompletion();
+                    break;
+                case Keys.Enter:
+                    var nl = Environment.NewLine;
+                    _input += nl;
+                    _inputIsDirty = true;
+                    MoveToEnd();
+                    break;
+                case Keys.Backspace:
+                    if (_inputPos > 0)
+                    {
+                        _inputPos--;
+                        _input = _input.Remove(_inputPos, 1);
+                        _inputIsDirty = true;
+                    }
                     break;
                 default:
                     result = base.OnKeyDown(e);
@@ -1236,43 +1274,20 @@ namespace Thundershock.Gui.Elements.Console
             var result = base.OnKeyChar(e);
 
             ScrollToBottom();
-            
-            if (e.Key == Keys.Enter)
-            {
-                var nl = Environment.NewLine;
-                _input += nl;
-                _inputIsDirty = true;
-                MoveToEnd();
-                result = true;
-            }
-            
-            if (e.Character == '\b')
-            {
-                if (_inputPos > 0)
-                {
-                    _inputPos--;
-                    _input = _input.Remove(_inputPos, 1);
-                    _inputIsDirty = true;
-                }
 
-                return true;
-            }
             
-            if (_regularFont.Characters.Contains(e.Character))
-            {
-                _input = _input.Insert(_inputPos, e.Character.ToString());
-                _inputPos += 1;
-                _inputIsDirty = true;
-                result = true;
-            }
+            _input = _input.Insert(_inputPos, e.Character.ToString());
+            _inputPos += 1;
+            _inputIsDirty = true;
+            result = true;
 
             return result;
         }
 
         protected override bool OnMouseMove(MouseMoveEventArgs e)
         {
-            var x = e.XPosition;
-            var y = e.YPosition;
+            var x = e.X;
+            var y = e.Y;
 
             var rect = BoundingBox;
 
@@ -1308,7 +1323,7 @@ namespace Thundershock.Gui.Elements.Console
 
         private class TextElement
         {
-            public SpriteFont Font;
+            public Font Font;
             public string Text;
             public Color Background;
             public Color Foreground;

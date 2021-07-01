@@ -1,10 +1,11 @@
-﻿using Microsoft.Xna.Framework;
-using Thundershock.Gui.Styling;
-using Thundershock.Input;
+﻿using Thundershock.Gui.Styling;
+using Thundershock.Core.Input;
+using Thundershock.Core;
+
 
 namespace Thundershock.Gui.Elements
 {
-    public class AdvancedButton : Element, IButtonElement
+    public class AdvancedButton : ContentElement, IButtonElement
     {
         private bool _isHovered;
         private bool _isPressed;

@@ -1,10 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Thundershock.Core;
+using System.Numerics;
 using Thundershock.Gui.Styling;
-using Thundershock.Input;
+using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Button : Element, IButtonElement
+    public class Button : ContentElement, IButtonElement
     {
         private string _wrapped = string.Empty;
         private string _text = "Button Text";
@@ -92,20 +93,12 @@ namespace Thundershock.Gui.Elements
             var textColor = GuiSystem.Style.GetButtonTextColor(this);
             
             this.GuiSystem.Style.DrawButton(renderer, this);
-
-            var lines = _wrapped.Split('\n');
-
+            
             var y = ContentRectangle.Y;
 
-            foreach (var line in lines)
-            {
-                var m = font.MeasureString(line);
-                var x = ContentRectangle.Left + ((ContentRectangle.Width - m.X) / 2);
-
-                renderer.DrawString(font, line, new Vector2(x, y), textColor);
-                
-                y += font.LineSpacing;
-            }
+            var pos = new Vector2(ContentRectangle.Left,
+                ContentRectangle.Top + ((ContentRectangle.Height - font.LineHeight) / 2));
+            renderer.DrawString(font, Text, pos, textColor);
         }
     }
 }

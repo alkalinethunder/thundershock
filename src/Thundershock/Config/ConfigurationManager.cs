@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Thundershock.IO;
 using System.Text.Json;
-using Microsoft.Xna.Framework.Graphics;
 using Thundershock.Core;
 
 namespace Thundershock.Config
@@ -18,22 +15,17 @@ namespace Thundershock.Config
         public event EventHandler ConfigurationLoaded;
         
         public GameConfiguration ActiveConfig => _gameConfig;
+
+        public IEnumerable<DisplayMode> GetAvailableDisplayModes()
+        {
+            return GamePlatform.GetAvailableDisplayModes(ActiveConfig.Monitor);
+        }
         
         public DisplayMode GetDisplayMode()
         {
-            if (ParseDisplayMode(_gameConfig.Resolution, out int w, out int h))
-            {
-                var supported =
-                    GraphicsAdapter.DefaultAdapter.SupportedDisplayModes.FirstOrDefault(x =>
-                        x.Width == w && x.Height == h);
-
-                if (supported != null)
-                    return supported;
-            }
-
-            return GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+            return GamePlatform.GetDisplayMode(this.ActiveConfig.Resolution, ActiveConfig.Monitor);
         }
-
+        
         public void ResetToDefaults()
         {
             _gameConfig = new GameConfiguration();
@@ -45,14 +37,6 @@ namespace Thundershock.Config
         {
             if (ParseDisplayMode(value, out int w, out int h))
             {
-                var supported =
-                    GraphicsAdapter.DefaultAdapter.SupportedDisplayModes.FirstOrDefault(x =>
-                        x.Width == w && x.Height == h);
-
-                if (supported == null)
-                    throw new InvalidOperationException(
-                        $"\"{value}\" is not a display mode that is supportred by the current video card (\"{GraphicsAdapter.DefaultAdapter.Description}\").");
-
                 _gameConfig.Resolution = $"{w}x{h}";
             }
             else

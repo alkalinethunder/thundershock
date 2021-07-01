@@ -1,7 +1,6 @@
-﻿using Gtk;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Thundershock.Core;
 using Thundershock.Gui.Elements;
+using System.Numerics;
 
 namespace Thundershock.Gui.Styling
 {
@@ -11,7 +10,7 @@ namespace Thundershock.Gui.Styling
         private Color _buttonColor = ThundershockPlatform.HtmlColor("#343434");
         private Color _activeButtonColor = ThundershockPlatform.HtmlColor("#1baaf7");
         
-        public override SpriteFont DefaultFont => Gui.FallbackFont;
+        public override Font DefaultFont => Gui.FallbackFont;
         public override int CheckSize => 18;
         public override int TextCursorWidth => 1;
         
@@ -102,7 +101,7 @@ namespace Thundershock.Gui.Styling
                 .GetColor(isActive ? Color.White : Color.Black);
             var font = stringList.Font.GetFont(this.StringListFont);
             
-            renderer.DrawString(font, text, bounds.Location.ToVector2(), color);
+            renderer.DrawString(font, text, bounds.Location, color);
         }
     }
 }

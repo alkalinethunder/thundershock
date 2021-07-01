@@ -1,17 +1,24 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Resources;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic.FileIO;
+﻿using System;
+using System.Numerics;
+using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
-    public class WrapPanel : Element
+    public class WrapPanel : LayoutElement
     {
-        public StackDirection Orientation { get; set; } = StackDirection.Horizontal;
+        private StackDirection _orientation = StackDirection.Horizontal;
+        
+        public StackDirection Orientation
+        {
+            get => _orientation;
+            set
+            {
+                if (_orientation != value)
+                {
+                    _orientation = value;
+                }
+            }
+        }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {

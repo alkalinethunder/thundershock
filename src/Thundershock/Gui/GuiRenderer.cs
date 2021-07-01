@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Thundershock.Rendering;
+using System.Numerics;
+using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Gui
 {
@@ -10,63 +9,50 @@ namespace Thundershock.Gui
     {
         private float _opacity;
         private Color _masterTint;
-        private Renderer _spriteBatch;
-
+        private Renderer2D _spriteBatch;
+        private Rectangle _clipRect;
+        
         private Color GetProperTint(Color tint)
         {
-            var r = (float) tint.R;
-            var g = (float) tint.G;
-            var b = (float) tint.B;
+            var r = tint.R;
+            var g = tint.G;
+            var b = tint.B;
 
-            var mr = (float) _masterTint.R / 255f;
-            var mg = (float) _masterTint.G / 255f;
-            var mb = (float) _masterTint.B / 255f;
+            var mr = _masterTint.R;
+            var mg = _masterTint.G;
+            var mb = _masterTint.B;
 
             r *= mr;
             g *= mg;
             b *= mb;
 
-            return new Color((byte) r, (byte) g, (byte) b, tint.A) * _opacity;
+            return new Color(r, g, b, tint.A) * _opacity;
         }
         
-        public GuiRenderer(Renderer batch, float opacity, Color tint)
+        public GuiRenderer(Renderer2D batch, float opacity, Color tint)
         {
             _spriteBatch = batch;
             _opacity = opacity;
             _masterTint = tint;
         }
-
+        
         public void FillRectangle(Rectangle rect, Color color)
-            => _spriteBatch.FillRectangle(rect, GetProperTint(color));
-
-        public void FillRectangle(Rectangle rect, Texture2D texture, Color color, SpriteEffects effects = SpriteEffects.None)
         {
-            _spriteBatch.FillRectangle(rect.Location.ToVector2(), rect.Size.ToVector2(), GetProperTint(color), texture, effects);
+            _spriteBatch.FillRectangle(rect, GetProperTint(color));
+        }
+
+        public void FillRectangle(Rectangle rect, Texture2D texture, Color color)
+        {
+            _spriteBatch.FillRectangle(rect, GetProperTint(color), texture);
         }
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
         {
-            var half = Math.Min(rect.Width, rect.Height) / 2;
-            
-            if (thickness >= half)
-            {
-                FillRectangle(rect, color);
-                return;
-            }
-            
-            var left = new Rectangle(rect.Left, rect.Top, thickness, rect.Height);
-            var right = new Rectangle(rect.Right - thickness, rect.Top, thickness, rect.Height);
-            var top = new Rectangle(left.Right, left.Top, rect.Width - (thickness * 2), thickness);
-            var bottom = new Rectangle(top.Left, rect.Bottom - thickness, top.Width, top.Height);
-
-            FillRectangle(left, color);
-            FillRectangle(top, color);
-            FillRectangle(right, color);
-            FillRectangle(bottom, color);
+            _spriteBatch.DrawRectangle(rect, color, thickness);
         }
 
-        public void DrawString(SpriteFont font, string text, Vector2 position, Color color,
-            TextAlign textAlign = TextAlign.Left, int dropShadow = 0)
+        public void DrawString(Font font, string text, Vector2 position, Color color,
+            int dropShadow = 0)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return;
@@ -77,38 +63,10 @@ namespace Thundershock.Gui
             
             if (dropShadow != 0)
             {
-                DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black, textAlign);
+                DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black);
             }
 
-            if (textAlign == TextAlign.Left)
-            {
-                _spriteBatch.DrawString(font, text, position, tint);
-            }
-            else
-            {
-                var lines = text.Split(Environment.NewLine);
-                var width = font.MeasureString(text).X;
-                foreach (var line in lines)
-                {
-                    var m = font.MeasureString(line.Trim());
-
-                    var pos = position;
-
-                    if (textAlign == TextAlign.Right)
-                    {
-                        pos.X += (width - m.X);
-                    }
-                    else if (textAlign == TextAlign.Center)
-                    {
-                        pos.X += (width - m.X) / 2;
-                    }
-                    
-                    _spriteBatch.DrawString(font, line, pos, tint);
-                    
-                    position.Y += font.LineSpacing;
-                }
-            }
-            
+            _spriteBatch.DrawString(font, text, position, tint);
         }
     }
 }

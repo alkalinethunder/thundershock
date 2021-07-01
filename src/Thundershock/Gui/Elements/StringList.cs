@@ -1,7 +1,6 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System.Linq;
+using System.Numerics;
+using Thundershock.Core;
 using Thundershock.Gui.Styling;
 
 namespace Thundershock.Gui.Elements
@@ -14,7 +13,7 @@ namespace Thundershock.Gui.Elements
         public StyleColor ItemsColor { get; set; } = StyleColor.Default;
         public StyleColor ItemsActiveColor { get; set; } = StyleColor.Default;
 
-        private SpriteFont GetFont()
+        private Font GetFont()
         {
             return ItemsFont.GetFont(GuiSystem.Style.StringListFont);
         }
@@ -30,7 +29,7 @@ namespace Thundershock.Gui.Elements
 
             var m = font.MeasureString(longest);
 
-            m.Y = font.LineSpacing * Count;
+            m.Y = font.LineHeight * Count;
 
             return m;
         }
@@ -40,8 +39,8 @@ namespace Thundershock.Gui.Elements
             var font = GetFont();
             
             var rect = ContentRectangle;
-            rect.Height = font.LineSpacing;
-            rect.Y += font.LineSpacing * index;
+            rect.Height = font.LineHeight;
+            rect.Y += font.LineHeight * index;
 
             return rect;
         }
@@ -49,8 +48,8 @@ namespace Thundershock.Gui.Elements
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
             GuiSystem.Style.DrawStringListBackground(renderer, this);
-            
-            var pos = ContentRectangle.Location.ToVector2();
+
+            var pos = ContentRectangle.Location;
             var font = GetFont();
             
             for (var i = 0; i < Count; i++)
@@ -60,8 +59,8 @@ namespace Thundershock.Gui.Elements
                 var bounds = GetItemBounds(i, item);
 
                 GuiSystem.Style.DrawListItem(renderer, this, bounds, i == SelectedIndex, i == HotIndex, item);
-                
-                pos.Y += font.LineSpacing;
+
+                pos.Y += bounds.Height;
             }
         }
     }

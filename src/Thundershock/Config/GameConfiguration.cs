@@ -8,6 +8,8 @@
         public bool SwapMouseButtons = false;
 
         public float BgmVolume = 1;
+
+        public int Monitor = 0;
         
         public EffectsConfiguration Effects = new EffectsConfiguration();
 
