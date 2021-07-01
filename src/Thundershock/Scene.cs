@@ -22,6 +22,8 @@ namespace Thundershock
     public abstract class Scene
     {
         public const uint MaxEntityCount = 10000;
+
+        private List<ISystem> _systems = new();
         
         private bool _noClip;
         private CameraManager _cameraManager;
@@ -47,7 +49,7 @@ namespace Thundershock
             _gameLoop.Window.Height
         );
         
-        protected GuiSystem Gui => _sceneGui;
+        public GuiSystem Gui => _sceneGui;
         
         public Camera Camera
         {
@@ -238,6 +240,14 @@ namespace Thundershock
         
         public void Unload()
         {
+            // Teardown all of the systems.
+            while (_systems.Any())
+            {
+                var sys = _systems.First();
+                sys.Unload();
+                _systems.Remove(sys);
+            }
+            
             _gameLoop.GetComponent<CheatManager>().RemoveObject(this);
             
             _gameLoop.GetComponent<CheatManager>().RemoveObject(_postProcessSystem);
@@ -255,6 +265,10 @@ namespace Thundershock
 
         internal void Update(GameTime gameTime)
         {
+            // Tick all of our registered systems.
+            foreach (var system in _systems)
+                system.Update(gameTime);
+            
             // Ensure that the scene render target matches the viewport size.
             EnsureSceneRenderTargetSize();
             
@@ -475,5 +489,31 @@ namespace Thundershock
         {
             PrimaryCamera.GetComponent<CameraComponent>().ProjectionType = mode;
         }
+
+        private void RegisterSystemInternal(ISystem system)
+        {
+            _systems.Add(system);
+            system.Init(this);
+        }
+        
+        protected T RegisterSystem<T>() where T : ISystem, new()
+        {
+            var system = new T();
+            RegisterSystemInternal(system);
+            return system;
+        }
+
+        public T GetSystem<T>() where T : ISystem
+        {
+            return _systems.OfType<T>().First();
+        }
+    }
+
+    public interface ISystem
+    {
+        void Init(Scene scene);
+        void Unload();
+        void Update(GameTime gameTime);
+        void Render(GameTime gameTime);
     }
 }

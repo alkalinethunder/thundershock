@@ -27,7 +27,7 @@ namespace Thundershock.Core.Audio
 
         protected void FireBufferProcessed(IAudioBuffer buffer)
         {
-            EntryPoint.CurrentApp.EnqueueAction(() => { BufferProcessed?.Invoke(this, buffer); });
+            BufferProcessed?.Invoke(this, buffer);
         }
     }
 

@@ -12,11 +12,11 @@ namespace Thundershock
         public Scene Scene => _scene;
 
         public bool Visible { get; set; } = true;
-        
+
         public void Load(Scene scene)
         {
             _scene = scene ?? throw new ArgumentNullException(nameof(scene));
-            
+
             OnLoad();
         }
 
@@ -39,11 +39,21 @@ namespace Thundershock
             }
         }
 
-        protected virtual void OnLoad() {}
-        protected virtual void OnUnload() {}
+        protected virtual void OnLoad()
+        {
+        }
 
-        protected virtual void OnUpdate(GameTime gameTime) {}
-        protected virtual void OnDraw(GameTime gameTime, Renderer2D renderer) {}
+        protected virtual void OnUnload()
+        {
+        }
+
+        protected virtual void OnUpdate(GameTime gameTime)
+        {
+        }
+
+        protected virtual void OnDraw(GameTime gameTime, Renderer2D renderer)
+        {
+        }
 
     }
 }

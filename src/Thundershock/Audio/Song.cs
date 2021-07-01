@@ -24,7 +24,7 @@ namespace Thundershock.Audio
 
         public byte[] ReadFrame()
         {
-            return _pcmStream.ReadSamples(_channels * 4096);
+            return _pcmStream.ReadSamples(_channels * 1024);
         }
         
         public void Dispose()
