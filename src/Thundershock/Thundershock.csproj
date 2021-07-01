@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ThundershockContent" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Thundershock.Core\Thundershock.Core.csproj" />
     <ProjectReference Include="..\Thundershock.OpenGL\Thundershock.OpenGL.csproj" />
   </ItemGroup>
