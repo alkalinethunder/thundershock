@@ -1,4 +1,5 @@
 using System;
+using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.OpenGL;
@@ -35,6 +36,9 @@ namespace Thundershock
             Logger.Log("Configuration has been (re-)loaded.");
             var config = GetComponent<ConfigurationManager>();
 
+            // Set the BGM (MusicPlayer) volume
+            MusicPlayer.MasterVolume = config.ActiveConfig.BgmVolume;
+            
             // the configured screen resolution
             var displayMode = config.GetDisplayMode();
             Logger.Log($"Display mode: {displayMode.Width}x{displayMode.Height} on monitor {displayMode.Monitor}");

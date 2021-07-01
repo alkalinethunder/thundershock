@@ -13,6 +13,7 @@ namespace Thundershock.Audio
         private AudioOutput _next;
         private double _fadeTime;
         private double _fade;
+        private float _volume = 1;
 
         private Song _currentSong;
         private Song _nextSong;
@@ -134,16 +135,22 @@ namespace Thundershock.Audio
 
                 if (_playing != null)
                 {
-                    _playing.Volume = 1 - volume;
+                    _playing.Volume = (1 - volume) * _volume;
                 }
 
                 if (_next != null)
                 {
-                    _next.Volume = volume;
+                    _next.Volume = volume * _volume;
                 }
             }
             else
             {
+                if (_playing != null)
+                    _playing.Volume = _volume;
+
+                if (_next != null)
+                    _next.Volume = _volume;
+                
                 if (_fadeTime > 0)
                 {
                     _fade = 0;
@@ -168,7 +175,13 @@ namespace Thundershock.Audio
         private static MusicPlayer _instance;
 
         public static double Power => GetInstance().CalculatePower();
-        
+
+        public static float MasterVolume
+        {
+            get => GetInstance()._volume;
+            set => GetInstance()._volume = MathHelper.Clamp(value, 0, 1);
+        }
+
         public static void PlaySong(Song song, double fade = 0)
         {
             GetInstance().Play(song, fade);
@@ -183,6 +196,12 @@ namespace Thundershock.Audio
             return _instance;
         }
 
+        [Cheat("Volume")]
+        private static void Cheat_SetVolume(float volume)
+        {
+            MasterVolume = volume;
+        }
+        
         [Cheat("PlayOggFade")]
         private static void PlayOggFade(double fadeTime, string file)
         {
