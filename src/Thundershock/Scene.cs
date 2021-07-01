@@ -278,6 +278,13 @@ namespace Thundershock
                 // Update the scene's GUI
                 _sceneGui.Update(gameTime);
 
+                // Update scripts.
+                foreach (var entity in _registry.View<ScriptComponent>())
+                {
+                    var script = _registry.GetComponent<ScriptComponent>(entity);
+                    script.Update(gameTime);
+                }
+                
                 OnUpdate(gameTime);
             }
         }
@@ -405,7 +412,7 @@ namespace Thundershock
                 var view = _registry.View<Transform, CameraComponent>();
 
                 if (view.Any())
-                    return new SceneObject(_registry, view.Last());
+                    return new SceneObject(_registry, view.Last(), this);
                 else
                     return null;
             }
@@ -436,7 +443,7 @@ namespace Thundershock
             if (nameView.Any())
             {
                 var entity = nameView.First();
-                return new SceneObject(_registry, entity);
+                return new SceneObject(_registry, entity, this);
             }
 
             return null;
@@ -445,7 +452,7 @@ namespace Thundershock
         public SceneObject SpawnObject()
         {
             var entity = _registry.Create();
-            var obj = new SceneObject(_registry, entity);
+            var obj = new SceneObject(_registry, entity, this);
 
             var guid = Guid.NewGuid().ToString();
 

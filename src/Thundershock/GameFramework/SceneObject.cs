@@ -8,19 +8,37 @@ namespace Thundershock.GameFramework
     {
         private WeakReference<Registry> _registry;
         private Entity _entity;
-
+        private Scene _scene;
+        
         public string Name
         {
             get => GetComponent<string>();
             set => SetComponent<string>(value ?? Guid.NewGuid().ToString());
         }
         
-        public SceneObject(Registry registry, Entity entity)
+        public SceneObject(Registry registry, Entity entity, Scene scene)
         {
+            _scene = scene;
             _entity = entity;
             _registry = new WeakReference<Registry>(registry);
         }
 
+        public void AddScript<T>() where T : Script, new()
+        {
+            if (!HasComponent<ScriptComponent>())
+            {
+                AddComponent(new ScriptComponent());
+            }
+
+            var scp = GetComponent<ScriptComponent>();
+
+            var script = new T();
+
+            scp.AddScript(script);
+            
+            script.Init(_scene, this);
+        }
+        
         public bool HasComponent<T>()
         {
             if (_registry.TryGetTarget(out var reg))
