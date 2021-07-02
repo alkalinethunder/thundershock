@@ -14,9 +14,6 @@ namespace Thundershock.Gui.Styling
         public virtual int ProgressBarHeight => 4;
         public virtual Padding CheckPadding => 4;
         
-        public virtual Font StringListFont => DefaultFont;
-        public virtual Font ButtonFont => _guiSystem.FallbackFont;
-        
         protected GuiSystem Gui => _guiSystem;
         
         public abstract Font DefaultFont { get; }
@@ -71,6 +68,11 @@ namespace Thundershock.Gui.Styling
         public virtual Color GetButtonTextColor(IButtonElement button)
         {
             return Color.Black;
+        }
+
+        public virtual Font GetFont(Element element)
+        {
+            return DefaultFont;
         }
     }
 }

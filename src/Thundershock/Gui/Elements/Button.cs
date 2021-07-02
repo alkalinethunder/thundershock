@@ -72,13 +72,13 @@ namespace Thundershock.Gui.Elements
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
-            var font = Font.GetFont(GuiSystem.Style.ButtonFont);
+            var font = Font.GetFont(GuiSystem.Style.GetFont(this));
             return font.MeasureString(Text);
         }
 
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
-            var font = Font.GetFont(GuiSystem.Style.ButtonFont);
+            var font = Font.GetFont(GuiSystem.Style.GetFont(this));
 
             var text = Text;
             var wrapped = TextBlock.WordWrap(font, text, contentRectangle.Width);
@@ -88,7 +88,7 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
-            var font = Font.GetFont(GuiSystem.Style.ButtonFont);
+            var font = Font.GetFont(GuiSystem.Style.GetFont(this));
 
             var textColor = GuiSystem.Style.GetButtonTextColor(this);
             

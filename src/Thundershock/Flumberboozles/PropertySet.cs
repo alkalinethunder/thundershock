@@ -13,6 +13,16 @@ namespace Thundershock.Flumberboozles
         {
             _owner = owner ?? throw new ArgumentNullException(nameof(owner));
         }
+
+        public T GetValue<T>()
+        {
+            return GetValue<T>(typeof(T).FullName);
+        }
+
+        public void SetValue<T>(T value)
+        {
+            SetValue<T>(typeof(T).FullName, value);
+        }
         
         public T GetValue<T>(string name)
         {

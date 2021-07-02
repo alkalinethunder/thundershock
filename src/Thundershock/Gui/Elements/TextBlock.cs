@@ -64,7 +64,7 @@ namespace Thundershock.Gui.Elements
         
         private Font GetFont()
         {
-            return Font.GetFont(GuiSystem.Style.DefaultFont);
+            return Font.GetFont(GuiSystem.Style.GetFont(this));
         }
 
         public static string LetterWrap(Font font, string text, float wrapWidth)

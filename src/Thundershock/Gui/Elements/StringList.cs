@@ -15,7 +15,7 @@ namespace Thundershock.Gui.Elements
 
         private Font GetFont()
         {
-            return ItemsFont.GetFont(GuiSystem.Style.StringListFont);
+            return ItemsFont.GetFont(GuiSystem.Style.GetFont(this));
         }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
