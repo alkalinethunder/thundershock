@@ -4,9 +4,11 @@ using System.IO;
 using Thundershock.IO;
 using System.Text.Json;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 
 namespace Thundershock.Config
 {
+    [CheatAlias("Conf")]
     public class ConfigurationManager : GlobalComponent
     {
         private FileSystem _fs;
@@ -133,9 +135,26 @@ namespace Thundershock.Config
             else
             {
                 _gameConfig = new GameConfiguration();
+                
+                // Save the configuration file
+                SaveConfiguration();
             }
 
             ConfigurationLoaded?.Invoke(this, EventArgs.Empty);
+        }
+
+        [Cheat("Fullscreen")]
+        public void Cheat_IsFullscreen(bool value)
+        {
+            ActiveConfig.IsFullscreen = value;
+            ApplyChanges();
+        }
+
+        [Cheat("SetResolution")]
+        public void Cheat_SetResolution(string value)
+        {
+            ActiveConfig.Resolution = value;
+            ApplyChanges();
         }
     }
 }
