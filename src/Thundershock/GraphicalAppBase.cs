@@ -24,6 +24,8 @@ namespace Thundershock
         private LayerManager _layerManager;
         private GameLayer _gameLayer;
         private MusicPlayer _musicPlayer;
+
+        public GraphicsProcessor Graphics => Window.GraphicsProcessor;
         
         public GameWindow Window => _gameWindow;
         public LayerManager LayerManager => _layerManager;

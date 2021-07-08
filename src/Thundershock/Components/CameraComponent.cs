@@ -8,7 +8,9 @@ namespace Thundershock.Components
         #region Projection Mode
 
         public CameraProjectionType ProjectionType = CameraProjectionType.Orthographic;
-
+        public float OrthoWidth = 3840;
+        public float OrthoHeight = 2160;
+        
         #endregion
 
         #region Post-Process Settings: Bloom
