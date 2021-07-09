@@ -13,7 +13,7 @@ jobs:
       - uses: burnett01/rsync-deployments@4.1
         name: "Deploy docs"
         with:
-          switches: -avzr --delete
+          switches: "-avzr --delete"
           path: "_site/""
           remote_path: /mnt/cruise_volume/docs/thundershock/
           remote_user: ghdeploy-thundershock
