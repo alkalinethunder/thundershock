@@ -14,7 +14,7 @@ jobs:
         name: "Deploy docs"
         with:
           switches: "-avzr --delete"
-          path: "_site/""
+          path: "_site/"
           remote_path: /mnt/cruise_volume/docs/thundershock/
           remote_user: ghdeploy-thundershock
           remote_key: ${{ secrets.DEPLOY_KEY }}
