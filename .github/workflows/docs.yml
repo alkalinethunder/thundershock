@@ -18,4 +18,4 @@ jobs:
           remote_path: /mnt/cruise_volume/docs/thundershock/
           remote_user: ghdeploy-thundershock
           remote_key: ${{ secrets.DEPLOY_KEY }}
-          remote_host: ${{ secrets.YOUNOGETIP }}
+          remote_host: "${{ secrets.YOUNOGETIP }}"
