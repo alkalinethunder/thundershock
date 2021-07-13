@@ -5,6 +5,14 @@
     <PrivateAssets>all</PrivateAssets>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DocumentationFile>bin\Debug\Thundershock.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DocumentationFile>bin\Release\Thundershock.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="docopt.net" Version="0.6.1.11" />
     <PackageReference Include="FontStashSharp" Version="0.9.3" />

@@ -756,6 +756,29 @@ namespace Thundershock.Gui.Elements
                 _children.Add(item);
             }
 
+            public void Insert(int index, Element element)
+            {
+                if (element == null)
+                    throw new ArgumentNullException(nameof(element));
+
+                if (index < 0 || index > Count)
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                
+                if (element.Parent != null)
+                    throw new InvalidOperationException("GUI element already has a parent.");
+
+                element.Parent = _owner;
+
+                element._guiSystem = _owner._guiSystem;
+                
+                foreach (var offspring in element.Children.Collapse())
+                {
+                    offspring._guiSystem = _owner.GuiSystem;
+                }
+
+                _children.Insert(index, element);
+            }
+            
             public void Clear()
             {
                 while (_children.Any())

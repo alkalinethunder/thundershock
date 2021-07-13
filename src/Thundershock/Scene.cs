@@ -266,6 +266,9 @@ namespace Thundershock
                 ref var cameraComponent = ref _registry.GetComponent<CameraComponent>(lastCamera);
                 ref var cameraTransform = ref _registry.GetComponent<Transform>(lastCamera);
 
+                Camera.OrthoRight = cameraComponent.OrthoWidth;
+                Camera.OrthoBottom = cameraComponent.OrthoHeight;
+
                 Camera.Transform.Position = cameraTransform.Position;
                 Camera.Transform.Rotation = cameraTransform.Rotation;
                 Camera.Transform.Scale = cameraTransform.Scale;
