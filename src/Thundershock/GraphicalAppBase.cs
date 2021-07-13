@@ -4,6 +4,7 @@ using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Input;
+using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 
 namespace Thundershock
