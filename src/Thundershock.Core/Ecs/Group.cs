@@ -5,16 +5,14 @@ namespace Thundershock.Core.Ecs
 {
     public struct Group : IEnumerable<uint>
     {
-        Registry registry;
-        Registry.GroupData groupData;
+        private Registry.GroupData _groupData;
 
-        internal Group(Registry registry, Registry.GroupData groupData)
+        internal Group(Registry.GroupData groupData)
         {
-            this.registry = registry;
-            this.groupData = groupData;
+            _groupData = groupData;
         }
 
-        public IEnumerator<uint> GetEnumerator() => groupData.Entities.GetEnumerator();
+        public IEnumerator<uint> GetEnumerator() => _groupData.Entities.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }}

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Thundershock.Core.Debugging;
-using Thundershock.Debugging;
 
 namespace Thundershock.Core.Rendering
 {
@@ -13,7 +12,6 @@ namespace Thundershock.Core.Rendering
         {
             public int Line;
             public int Index;
-            public int Length;
             public string Content;
         }
         
@@ -38,7 +36,6 @@ namespace Thundershock.Core.Rendering
                     {
                         Line = i,
                         Index = pragmaTs,
-                        Length = lookFor.Length + content.Length,
                         Content = content
                     };
 
@@ -176,7 +173,6 @@ namespace Thundershock.Core.Rendering
                         programs.Add(program);
                         inProgram = false;
                         program = null;
-                        continue;
                     }
                 }
             }
@@ -258,17 +254,17 @@ namespace Thundershock.Core.Rendering
 
         public uint Compile(GraphicsProcessor gpu)
         {
-            var programID = gpu.CreateShaderProgram();
+            var programId = gpu.CreateShaderProgram();
 
             foreach (var compilation in _compilations)
             {
                 var shader = _shaders.First(x => x.Name == compilation.Key);
-                gpu.CompileGLSL(programID, compilation.Value, shader.SourceCode);
+                gpu.CompileGlsl(programId, compilation.Value, shader.SourceCode);
             }
 
-            gpu.VerifyShaderProgram(programID);
+            gpu.VerifyShaderProgram(programId);
 
-            return programID;
+            return programId;
         }
     }
 }

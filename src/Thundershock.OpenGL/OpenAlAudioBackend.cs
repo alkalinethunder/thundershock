@@ -2,14 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using SDL2;
 using Silk.NET.Core.Contexts;
 using Silk.NET.OpenAL;
-using Thundershock.Core;
 using Thundershock.Core.Audio;
-using Thundershock.Core.Debugging;
-using Thundershock.Debugging;
 
 namespace Thundershock.OpenGL
 {
@@ -18,8 +13,7 @@ namespace Thundershock.OpenGL
         private List<AudioOutput> _outputs = new List<AudioOutput>();
         private List<IAudioBuffer> _buffers = new List<IAudioBuffer>();
         private AL _al;
-        private ALContext _alc;
-        
+
         public OpenAlAudioBackend()
         {
             _al = AL.GetApi(true);
@@ -35,7 +29,7 @@ namespace Thundershock.OpenGL
             //
             // For now... YOUR IDE WILL SCREAM AT YOU IN TERROR BECAUSE I'M USING
             // SUPER SPOOKY SCARY EVIL REFLECTION STUFF but...
-            _alc = (ALContext) typeof(ALContext)
+            var alc = (ALContext) typeof(ALContext)
                 .GetConstructor(
                     BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
                     null,
@@ -44,24 +38,24 @@ namespace Thundershock.OpenGL
                         typeof(INativeContext)
                     },
                     null
-                )?.Invoke(new[] {_al.Context});
+                )?.Invoke(new object[] {_al.Context});
 
             unsafe
             {
-                var device = _alc.OpenDevice(string.Empty);
-                var error = _alc.GetError(device);
+                var device = alc.OpenDevice(string.Empty);
+                var error = alc.GetError(device);
                 if (error != ContextError.NoError)
                     throw new InvalidOperationException("OpenAL threw an error: " + error);
 
                 
-                var ctx = _alc.CreateContext(device, null);
-                error = _alc.GetError(device);
+                var ctx = alc.CreateContext(device, null);
+                error = alc.GetError(device);
                 if (error != ContextError.NoError)
                     throw new InvalidOperationException("OpenAL threw an error: " + error);
 
                 
-                _alc.MakeContextCurrent(ctx);
-                error = _alc.GetError(device);
+                alc.MakeContextCurrent(ctx);
+                error = alc.GetError(device);
                 if (error != ContextError.NoError)
                     throw new InvalidOperationException("OpenAL threw an error: " + error);
 

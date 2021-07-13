@@ -19,7 +19,7 @@ namespace Thundershock.Core
             App = null;
         }
 
-        public void Update(Thundershock.Core.GameTime gameTime)
+        public void Update(GameTime gameTime)
         {
             OnUpdate(gameTime);
         }
@@ -27,7 +27,7 @@ namespace Thundershock.Core
         protected virtual void OnLoad() {}
         protected virtual void OnUnload() {}
         
-        protected virtual void OnUpdate(Thundershock.Core.GameTime gameTime) {}
+        protected virtual void OnUpdate(GameTime gameTime) {}
         
     }
 }

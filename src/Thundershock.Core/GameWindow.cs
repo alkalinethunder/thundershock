@@ -13,7 +13,6 @@ namespace Thundershock.Core
         private string _windowTitle = "Thundershock Engine";
         private bool _borderless;
         private bool _fullscreen;
-        private bool _resizeable;
         private int _width = 640;
         private int _height = 480;
         

@@ -7,7 +7,6 @@ namespace Thundershock.Gui.Elements
 {
     public class Button : ContentElement, IButtonElement
     {
-        private string _wrapped = string.Empty;
         private string _text = "Button Text";
         private bool _isPressed;
         private bool _isHovered;
@@ -81,9 +80,7 @@ namespace Thundershock.Gui.Elements
             var font = Font.GetFont(GuiSystem.Style.GetFont(this));
 
             var text = Text;
-            var wrapped = TextBlock.WordWrap(font, text, contentRectangle.Width);
-
-            _wrapped = wrapped;
+            TextBlock.WordWrap(font, text, contentRectangle.Width);
         }
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
@@ -92,9 +89,7 @@ namespace Thundershock.Gui.Elements
 
             var textColor = GuiSystem.Style.GetButtonTextColor(this);
             
-            this.GuiSystem.Style.DrawButton(renderer, this);
-            
-            var y = ContentRectangle.Y;
+            GuiSystem.Style.DrawButton(renderer, this);
 
             var pos = new Vector2(ContentRectangle.Left,
                 ContentRectangle.Top + ((ContentRectangle.Height - font.LineHeight) / 2));

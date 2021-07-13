@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Thundershock.Core.Debugging;
-using Thundershock.Debugging;
 
 namespace Thundershock.Core
 {

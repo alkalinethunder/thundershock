@@ -1,5 +1,4 @@
 using System;
-using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Numerics;
 
@@ -90,15 +89,6 @@ namespace Thundershock.Core.Rendering
         {
             ThrowIfNotBegun();
             
-            // Determine the index buffer length based on the primitive type.
-            var length = primitive switch
-            {
-                PrimitiveType.LineStrip => primitiveCount * 2,
-                PrimitiveType.TriangleStrip => primitiveCount * 3,
-                PrimitiveType.TriangleList => primitiveCount * 3,
-                _ => primitiveCount
-            };
-            
             // Shader parameters.
             _program.Parameters["projection"]?.SetValue(ProjectionMatrix);
             
@@ -135,10 +125,7 @@ namespace Thundershock.Core.Rendering
 
         public void Dispose()
         {
-            if (_gpu != null)
-            {
-                _gpu = null;
-            }
+            _gpu = null;
         }
     }
 }

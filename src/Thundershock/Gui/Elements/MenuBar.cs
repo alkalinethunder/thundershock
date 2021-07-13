@@ -60,7 +60,7 @@ namespace Thundershock.Gui.Elements
             }
         }
 
-        private void MenuButtonOnMouseUp(object? sender, MouseButtonEventArgs e)
+        private void MenuButtonOnMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (e.Button == MouseButton.Primary)
             {

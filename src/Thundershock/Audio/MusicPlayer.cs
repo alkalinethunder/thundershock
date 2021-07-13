@@ -57,7 +57,7 @@ namespace Thundershock.Audio
             }
         }
 
-        private void PlayingBufferProcessed(object? sender, IAudioBuffer e)
+        private void PlayingBufferProcessed(object sender, IAudioBuffer e)
         {
             if (sender is AudioOutput output)
             {
@@ -197,20 +197,20 @@ namespace Thundershock.Audio
         }
 
         [Cheat("Volume")]
-        private static void Cheat_SetVolume(float volume)
+        public static void Cheat_SetVolume(float volume)
         {
             MasterVolume = volume;
         }
         
         [Cheat("PlayOggFade")]
-        private static void PlayOggFade(double fadeTime, string file)
+        public static void PlayOggFade(double fadeTime, string file)
         {
             var song = Song.FromOggFile(file);
             GetInstance().Play(song, fadeTime);
         }
         
         [Cheat("PlayOggFile")]
-        private static void PlayOggCheat(string file)
+        public static void PlayOggCheat(string file)
         {
             PlaySong(Song.FromOggFile(file));
         }

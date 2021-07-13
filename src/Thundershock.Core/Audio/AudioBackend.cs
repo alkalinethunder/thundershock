@@ -4,7 +4,7 @@ namespace Thundershock.Core.Audio
 {
     public abstract class AudioBackend : IDisposable
     {
-        private bool _disposed = false;
+        private bool _disposed;
         
         public abstract float MasterVolume { get; set; }
 

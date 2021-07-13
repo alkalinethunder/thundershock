@@ -13,7 +13,7 @@ namespace Thundershock.GameFramework
         public string Name
         {
             get => GetComponent<string>();
-            set => SetComponent<string>(value ?? Guid.NewGuid().ToString());
+            set => SetComponent(value ?? Guid.NewGuid().ToString());
         }
         
         public SceneObject(Registry registry, Entity entity, Scene scene)

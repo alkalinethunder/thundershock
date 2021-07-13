@@ -20,24 +20,24 @@ namespace Thundershock.Core.Ecs
 
         public SparseSet Set;
         public SparseSet Entities => Set;
-        T[] instances;
+        T[] _instances;
 
         public uint Count => Set.Count;
 
         public ComponentStore(uint maxComponents)
         {
             Set = new SparseSet(maxComponents);
-            instances = new T[maxComponents];
+            _instances = new T[maxComponents];
         }
 
         public void Add(Entity entity, T value)
         {
             Set.Add(entity.Id);
-            instances[Set.Index(entity.Id)] = value;
+            _instances[Set.Index(entity.Id)] = value;
             OnAdd?.Invoke(entity.Id);
         }
 
-        public ref T Get(uint entityId) => ref instances[Set.Index(entityId)];
+        public ref T Get(uint entityId) => ref _instances[Set.Index(entityId)];
 
         public bool Contains(uint entityId) => Set.Contains(entityId);
 

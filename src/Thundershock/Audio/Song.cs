@@ -33,11 +33,11 @@ namespace Thundershock.Audio
 
         public static Song FromOggStream(Stream stream)
         {
-            var reader = new VorbisReader(stream, true);
+            var reader = new VorbisReader(stream);
 
-            var vorbisToPCMStream = new VorbisStream(reader);
+            var vorbisToPcmStream = new VorbisStream(reader);
 
-            return new Song(vorbisToPCMStream, reader.Channels, reader.SampleRate);
+            return new Song(vorbisToPcmStream, reader.Channels, reader.SampleRate);
         }
         
         public static Song FromOggResource(Assembly ass, string resource)
@@ -67,7 +67,7 @@ namespace Thundershock.Audio
     
     public sealed class VorbisStream : IMusicReader
     {
-        private const double sc16 = 0x7FFF + 0.4999999999999999;
+        private const double Sc16 = 0x7FFF + 0.4999999999999999;
 
         public int SampleRate => _reader.SampleRate;
         public int Channels => _reader.Channels;
@@ -102,10 +102,10 @@ namespace Thundershock.Audio
                 for (var i = 0; i < read; i++)
                 {
                     var sample = _buffer[i];
-                    var asPCM = (ushort) (sample * sc16);
+                    var asPcm = (ushort) (sample * Sc16);
 
-                    bytes[offset] = (byte) asPCM;
-                    bytes[offset + 1] = (byte) (asPCM >> 8);
+                    bytes[offset] = (byte) asPcm;
+                    bytes[offset + 1] = (byte) (asPcm >> 8);
 
                     offset += sizeof(ushort);
                 }

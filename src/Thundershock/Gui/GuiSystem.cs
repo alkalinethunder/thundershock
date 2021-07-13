@@ -18,7 +18,7 @@ namespace Thundershock.Gui
         private GraphicsProcessor _gpu;
         private GuiStyle _activeStyle;
         private RootElement _rootElement;
-        private bool _debugShowBounds = false;
+        private bool _debugShowBounds;
         private Font _debugFont;
         private Element _focused;
         private Element _hovered;
@@ -244,18 +244,6 @@ namespace Thundershock.Gui
             var rootLayout = _rootElement.RootLayoutManager;
 
             rootLayout.SetBounds(screenRectangle);
-        }
-        
-        private bool IsVisible(Element elem)
-        {
-            while (elem != null)
-            {
-                if (elem.Visibility != Visibility.Visible)
-                    return false;
-                elem = elem.Parent;
-            }
-
-            return true;
         }
         
         public void Render(GameTime gameTime)

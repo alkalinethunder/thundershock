@@ -17,7 +17,7 @@ namespace Thundershock
         [DllImport("kernel32.dll")]
         internal static extern bool AttachConsole(int dwProcessId);
 
-        public static string OSName
+        public static string OsName
             => Environment.OSVersion.VersionString;
 
         public static string DeveloperName
@@ -45,7 +45,7 @@ namespace Thundershock
             switch (Environment.OSVersion.Platform)
             {
                 case PlatformID.MacOSX:
-                    return Platform.MacOS;
+                    return Platform.MacOs;
                 case PlatformID.WinCE:
                 case PlatformID.Win32NT:
                 case PlatformID.Win32Windows:
@@ -172,7 +172,7 @@ namespace Thundershock
     public enum Platform
     {
         Windows,
-        MacOS,
+        MacOs,
         Linux,
         Unknown,
     }

@@ -24,18 +24,18 @@ namespace Thundershock.Components
 
         #region Post-Process Settings: CRT Shadow-mask
 
-        public float CRTHardPix = -6;
-        public float CRTHardScan = -10;
-        public float CRTShadowMaskBrightness = 1;
-        public float CRTMaskDark = 0.78f;
-        public float CRTMaskLight = 1.3f;
+        public float CrtHardPix = -6;
+        public float CrtHardScan = -10;
+        public float CrtShadowMaskBrightness = 1;
+        public float CrtMaskDark = 0.78f;
+        public float CrtMaskLight = 1.3f;
 
         #endregion
 
         #region Post-Process Effect Enablers
 
         public bool EnableBloom = true;
-        public bool EnableCRT = true;
+        public bool EnableCrt = true;
 
         #endregion
 

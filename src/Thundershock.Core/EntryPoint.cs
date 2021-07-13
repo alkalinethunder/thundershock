@@ -11,9 +11,27 @@ namespace Thundershock.Core
         private static Dictionary<string, Type> _entryPoints = new Dictionary<string, Type>();
         private static AppBase _current;
         private static Assembly _entryAssembly;
+        private static EntryArgs _entryArgs;
 
         public static Assembly EntryAssembly => _entryAssembly;
         public static AppBase CurrentApp => _current;
+
+        public static bool GetBoolean(EntryBoolean boolean)
+        {
+            if (_entryArgs == null)
+                return false;
+
+            return boolean switch
+            {
+                EntryBoolean.VerboseLog => _entryArgs.Verbose,
+                EntryBoolean.WipeConfig => _entryArgs.WipeConfig,
+                EntryBoolean.SkipConfig => _entryArgs.SkipConfig,
+                EntryBoolean.MuteAudio => _entryArgs.MuteAudio,
+                EntryBoolean.GuiDebug => _entryArgs.LayoutDebug,
+                EntryBoolean.DisablePostProcessing => _entryArgs.DisablePostProcessor,
+                _ => false
+            };
+        }
         
         public static void RegisterApp<T>(string appName) where T : AppBase, new()
         {
@@ -58,6 +76,15 @@ namespace Thundershock.Core
         {
             // Retrieve the entry-point assembly. This is important for building the docopt usage string.
             var entryPointAssembly = Assembly.GetEntryAssembly();
+            
+            // Null-check that assembly.
+            if (entryPointAssembly == null)
+            {
+                Logger.GetLogger().Log("Could not find entry-point assembly information.", LogLevel.Fatal);
+                Environment.Exit(-1);
+                return;
+            }
+            
             _entryAssembly = entryPointAssembly;
             
             // Get the file name.
@@ -66,6 +93,9 @@ namespace Thundershock.Core
             // Get entry arguments
             var entryArgs = GetEntryArgs(entryPointFileName, args);
             
+            // Keep track of our entrypoint args.
+            _entryArgs = entryArgs;
+
             // create the logger and set up the default outputs
             var logger = Logger.GetLogger();
             var console = new ConsoleOutput();
@@ -99,6 +129,7 @@ namespace Thundershock.Core
             // we're done.
             logger.Log("Thundershock has been torn down.");
             _entryAssembly = null;
+            _entryArgs = null;
         }
 
         private static void Bootstrap(Logger logger, AppBase app)

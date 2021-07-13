@@ -1,26 +1,24 @@
 using System;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
-using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
-using Thundershock.Debugging;
 using Thundershock.Core.Audio;
 
 using Silk.NET.OpenGL;
+using Thundershock.Core.Debugging;
 
 namespace Thundershock.OpenGL
 {
-    public sealed class SDLGameWindow : GameWindow
+    public sealed class SdlGameWindow : GameWindow
     {
         private GL _gl;
         private int _wheelX;
         private int _wheelY;
         private IntPtr _sdlWindow;
         private IntPtr _glContext;
-        private SDL.SDL_Event _event;
+        private Sdl.SdlEvent _event;
         private GlGraphicsProcessor _graphicsProcessor;
         private OpenAlAudioBackend _audio;
 
@@ -33,17 +31,17 @@ namespace Thundershock.OpenGL
 
             // Swap the OpenGL buffers so we can see what was just rendered by
             // Thundershock.
-            SDL.SDL_GL_SwapWindow(_sdlWindow);
+            Sdl.SDL_GL_SwapWindow(_sdlWindow);
         }
 
         protected override void Initialize()
         {
             App.Logger.Log("Initializing SDL2...");
-            var errno = SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            var errno = Sdl.SDL_Init(Sdl.SdlInitVideo);
             if (errno != 0)
             {
                 App.Logger.Log("SDL initialization HAS FAILED.", LogLevel.Fatal);
-                var errText = SDL.SDL_GetError();
+                var errText = Sdl.SDL_GetError();
 
                 throw new Exception(errText);
             }
@@ -54,19 +52,19 @@ namespace Thundershock.OpenGL
             CreateSdlWindow();
         }
 
-        private void SetupGLRenderer()
+        private void SetupGlRenderer()
         {
             // Set up the OpenGL context attributes.
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 5);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK,
-                SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlContextMajorVersion, 4);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlContextMinorVersion, 5);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlContextProfileMask,
+                Sdl.SdlGLprofile.SdlGlContextProfileCore);
             
             App.Logger.Log("Setting up the SDL OpenGL renderer...");
-            var ctx = SDL.SDL_GL_CreateContext(_sdlWindow);
+            var ctx = Sdl.SDL_GL_CreateContext(_sdlWindow);
             if (ctx == IntPtr.Zero)
             {
-                var err = SDL.SDL_GetError();
+                var err = Sdl.SDL_GetError();
                 App.Logger.Log(err, LogLevel.Error);
                 throw new Exception(err);
             }
@@ -75,13 +73,13 @@ namespace Thundershock.OpenGL
             App.Logger.Log("GL Context created.");
 
             // Make the newly created context the current one.
-            SDL.SDL_GL_MakeCurrent(_sdlWindow, _glContext);
+            Sdl.SDL_GL_MakeCurrent(_sdlWindow, _glContext);
 
             // Glue OpenGL and SDL2 together.
-            _gl = Silk.NET.OpenGL.GL.GetApi(SDL.SDL_GL_GetProcAddress);
+            _gl = GL.GetApi(Sdl.SDL_GL_GetProcAddress);
 #if DEBUG
             _gl.Enable(EnableCap.DebugOutput);
-            _gl.DebugMessageCallback(PrintGLError, 0);
+            _gl.DebugMessageCallback(PrintGlError, 0);
 #endif
             _graphicsProcessor = new GlGraphicsProcessor(_gl);
             
@@ -90,14 +88,14 @@ namespace Thundershock.OpenGL
             
             // Disable V-Sync for testing renderer optimizations.
             // TODO: Allow the engine to do this.
-            SDL.SDL_GL_SetSwapInterval(0);
+            Sdl.SDL_GL_SetSwapInterval(0);
             
             // Initialize the platform layer now that we have GL
-            GamePlatform.Initialize(new SDLGamePlatform(_gl, _audio));
+            GamePlatform.Initialize(new SdlGamePlatform(_gl, _audio));
         }
 
 #if DEBUG
-        private void PrintGLError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
+        private void PrintGlError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
         {
             var buf = new byte[length];
             Marshal.Copy(message, buf, 0, buf.Length);
@@ -119,7 +117,7 @@ namespace Thundershock.OpenGL
         
         private void PollEvents()
         {
-            while (SDL.SDL_PollEvent(out _event) != 0)
+            while (Sdl.SDL_PollEvent(out _event) != 0)
             {
                 HandleSdlEvent();
             }
@@ -135,14 +133,14 @@ namespace Thundershock.OpenGL
         {
             switch (_event.type)
             {
-                case SDL.SDL_EventType.SDL_WINDOWEVENT:
-                    if (_event.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                case Sdl.SdlEventType.SdlWindowevent:
+                    if (_event.window.windowEvent == Sdl.SdlWindowEventId.SdlWindoweventResized)
                     {
                         ReportClientSize(_event.window.data1, _event.window.data2);
                     }
 
                     break;
-                case SDL.SDL_EventType.SDL_QUIT:
+                case Sdl.SdlEventType.SdlQuit:
 
                     App.Logger.Log("SDL just told us to quit... Letting thundershock know about that.");
                     if (!App.Exit())
@@ -151,30 +149,30 @@ namespace Thundershock.OpenGL
                     }
 
                     break;
-                case SDL.SDL_EventType.SDL_KEYDOWN:
-                case SDL.SDL_EventType.SDL_KEYUP:
+                case Sdl.SdlEventType.SdlKeydown:
+                case Sdl.SdlEventType.SdlKeyup:
                     var key = (Keys) _event.key.keysym.sym;
                     var repeat = _event.key.repeat != 0;
-                    var isPressed = _event.key.state == SDL.SDL_PRESSED;
+                    var isPressed = _event.key.state == Sdl.SdlPressed;
 
                     // Dispatch the event to thundershock.
                     DispatchKeyEvent(key, '\0', isPressed, repeat, false);
                     break;
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                case Sdl.SdlEventType.SdlMousebuttondown:
+                case Sdl.SdlEventType.SdlMousebuttonup:
 
                     var button = MapSdlMouseButton(_event.button.button);
-                    var state = _event.button.state == SDL.SDL_PRESSED ? ButtonState.Pressed : ButtonState.Released;
+                    var state = _event.button.state == Sdl.SdlPressed ? ButtonState.Pressed : ButtonState.Released;
 
                     DispatchMouseButton(button, state);
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                case Sdl.SdlEventType.SdlMousewheel:
 
                     var xDelta = _event.wheel.x * 16;
                     var yDelta = _event.wheel.y * 16;
 
-                    if (_event.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                    if (_event.wheel.direction == (uint) Sdl.SdlMouseWheelDirection.SdlMousewheelFlipped)
                     {
                         xDelta = xDelta * -1;
                         yDelta = yDelta * -1;
@@ -193,12 +191,12 @@ namespace Thundershock.OpenGL
                     }
 
                     break;
-                case SDL.SDL_EventType.SDL_TEXTINPUT:
-                    var text = string.Empty;
+                case Sdl.SdlEventType.SdlTextinput:
+                    string text;
 
                     unsafe
                     {
-                        var count = SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE;
+                        var count = Sdl.SdlTextinputeventTextSize;
                         var end = 0;
                         while (end < count && _event.text.text[end] > 0)
                             end++;
@@ -217,7 +215,7 @@ namespace Thundershock.OpenGL
                     }
 
                     break;
-                case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                case Sdl.SdlEventType.SdlMousemotion:
                     ReportMousePosition(_event.motion.x, _event.motion.y);
                     break;
             }
@@ -227,18 +225,18 @@ namespace Thundershock.OpenGL
         {
             return button switch
             {
-                SDL.SDL_BUTTON_LEFT => MouseButton.Primary,
-                SDL.SDL_BUTTON_RIGHT => MouseButton.Secondary,
-                SDL.SDL_BUTTON_MIDDLE => MouseButton.Middle,
-                SDL.SDL_BUTTON_X1 => MouseButton.BrowserForward,
-                SDL.SDL_BUTTON_X2 => MouseButton.BrowserBack,
+                Sdl.SdlButtonLeft => MouseButton.Primary,
+                Sdl.SdlButtonRight => MouseButton.Secondary,
+                Sdl.SdlButtonMiddle => MouseButton.Middle,
+                Sdl.SdlButtonX1 => MouseButton.BrowserForward,
+                Sdl.SdlButtonX2 => MouseButton.BrowserBack,
                 _ => throw new NotSupportedException()
             };
         }
         
         protected override void OnWindowTitleChanged()
         {
-            SDL.SDL_SetWindowTitle(_sdlWindow, Title);
+            Sdl.SDL_SetWindowTitle(_sdlWindow, Title);
         }
 
         private uint GetWindowModeFlags()
@@ -247,15 +245,15 @@ namespace Thundershock.OpenGL
 
             if (IsBorderless)
             {
-                flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS;
+                flags |= (uint) Sdl.SdlWindowFlags.SdlWindowBorderless;
             }
 
             if (IsFullScreen)
             {
                 if (IsBorderless)
-                    flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+                    flags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreenDesktop;
                 else
-                    flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+                    flags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreen;
             }
 
             return flags;
@@ -268,16 +266,16 @@ namespace Thundershock.OpenGL
 
             var fsFlags = 0u;
             if (IsBorderless && IsFullScreen)
-                fsFlags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+                fsFlags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreen;
             else if (IsFullScreen)
-                fsFlags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+                fsFlags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreenDesktop;
             
-            SDL.SDL_SetWindowBordered(_sdlWindow, IsBorderless ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
-            SDL.SDL_SetWindowFullscreen(_sdlWindow, fsFlags);
+            Sdl.SDL_SetWindowBordered(_sdlWindow, IsBorderless ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
+            Sdl.SDL_SetWindowFullscreen(_sdlWindow, fsFlags);
 
             if (fsFlags > 0)
             {
-                SDL.SDL_SetWindowPosition(_sdlWindow, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
+                Sdl.SDL_SetWindowPosition(_sdlWindow, Sdl.SdlWindowposCentered, Sdl.SdlWindowposCentered);
             }
             
             base.OnWindowModeChanged();
@@ -286,8 +284,8 @@ namespace Thundershock.OpenGL
         protected override void OnClientSizeChanged()
         {
             // Resize the SDL window.
-            SDL.SDL_SetWindowSize(_sdlWindow, Width, Height);
-            SDL.SDL_SetWindowPosition(_sdlWindow, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
+            Sdl.SDL_SetWindowSize(_sdlWindow, Width, Height);
+            Sdl.SDL_SetWindowPosition(_sdlWindow, Sdl.SdlWindowposCentered, Sdl.SdlWindowposCentered);
 
             ReportClientSize(Width, Height);
             base.OnClientSizeChanged();
@@ -296,26 +294,26 @@ namespace Thundershock.OpenGL
         private void CreateSdlWindow()
         {
             var flags = GetWindowModeFlags();
-            flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
-            flags |= (uint) SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN;
+            flags |= (uint) Sdl.SdlWindowFlags.SdlWindowOpengl;
+            flags |= (uint) Sdl.SdlWindowFlags.SdlWindowShown;
             
             App.Logger.Log("Creating an SDL Window...");
-            _sdlWindow = SDL.SDL_CreateWindow(this.Title, 0, 0, Width, Height,
-                (SDL.SDL_WindowFlags) flags);
+            _sdlWindow = Sdl.SDL_CreateWindow(Title, 0, 0, Width, Height,
+                (Sdl.SdlWindowFlags) flags);
             App.Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
 
-            SetupGLRenderer();
+            SetupGlRenderer();
         }
 
         private void DestroySdlWindow()
         {
             App.Logger.Log("Destroying current GL renderer...");
-            SDL.SDL_GL_DeleteContext(_glContext);
+            Sdl.SDL_GL_DeleteContext(_glContext);
             _glContext = IntPtr.Zero;
             _graphicsProcessor = null;
             
             App.Logger.Log("Destroying the SDL window...");
-            SDL.SDL_DestroyWindow(_sdlWindow);
+            Sdl.SDL_DestroyWindow(_sdlWindow);
             
             // Fucking. STOP.
             _audio.Dispose();

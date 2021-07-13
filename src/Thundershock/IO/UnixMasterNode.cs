@@ -34,12 +34,12 @@ namespace Thundershock.IO
             
         public override void CreateDirectory(string name)
         {
-            Directory.CreateDirectory(Path.Combine(this.Name, name));
+            Directory.CreateDirectory(Path.Combine(Name, name));
         }
         
         public override Stream CreateFile(string name)
         {
-            return File.Create(Path.Combine(this.Name, name));
+            return File.Create(Path.Combine(Name, name));
         }
     }
 }

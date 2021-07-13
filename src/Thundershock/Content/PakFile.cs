@@ -5,7 +5,7 @@ namespace Thundershock.Content
 {
     public class PakFile
     {
-        private long _dataStart = 0;
+        private long _dataStart;
         private PakDirectory _directoryTree;
         private Stream _pakStream;
         private string _filePath;

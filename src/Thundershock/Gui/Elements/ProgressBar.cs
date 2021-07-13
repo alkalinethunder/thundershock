@@ -5,7 +5,7 @@ namespace Thundershock.Gui.Elements
 {
     public class ProgressBar : ContentElement
     {
-        private float _value = 0;
+        private float _value;
 
         public float Value
         {

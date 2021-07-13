@@ -6,123 +6,121 @@ namespace Thundershock.Core.Ecs
 {
     public struct View<T> : IEnumerable<uint>
     {
-        Registry registry;
+        Registry _registry;
 
-        public View(Registry registry) => this.registry = registry;
+        public View(Registry registry) => _registry = registry;
 
-        public IEnumerator<uint> GetEnumerator() => registry.Assure<T>().Set.GetEnumerator();
+        public IEnumerator<uint> GetEnumerator() => _registry.Assure<T>().Set.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    public struct View<T, U> : IEnumerable<uint>
+    public struct View<T1, T2> : IEnumerable<uint>
     {
         struct Enumerator : IEnumerator<uint>
         {
-            Registry registry;
-            IComponentStore store;
-            IEnumerator<uint> setEnumerator;
+            private IComponentStore _store;
+            private IEnumerator<uint> _setEnumerator;
 
             public Enumerator(Registry registry)
             {
-                this.registry = registry;
-                var store1 = registry.Assure<T>();
-                var store2 = registry.Assure<U>();
+                var store1 = registry.Assure<T1>();
+                var store2 = registry.Assure<T2>();
 
                 if (store1.Count > store2.Count)
                 {
-                    setEnumerator = store2.Entities.GetEnumerator();
-                    store = store1;
+                    _setEnumerator = store2.Entities.GetEnumerator();
+                    _store = store1;
                 }
                 else
                 {
-                    setEnumerator = store1.Entities.GetEnumerator();
-                    store = store2;
+                    _setEnumerator = store1.Entities.GetEnumerator();
+                    _store = store2;
                 }
             }
 
-            public uint Current => setEnumerator.Current;
+            public uint Current => _setEnumerator.Current;
 
-            object IEnumerator.Current => setEnumerator.Current;
+            object IEnumerator.Current => _setEnumerator.Current;
 
             public void Dispose()
             {}
 
             public bool MoveNext()
             {
-                while (setEnumerator.MoveNext())
+                while (_setEnumerator.MoveNext())
                 {
-                    var entityId = setEnumerator.Current;
-                    if (!store.Contains(entityId)) continue;
+                    var entityId = _setEnumerator.Current;
+                    if (!_store.Contains(entityId)) continue;
                     return true;
                 }
                 return false;
             }
 
-            public void Reset() => setEnumerator.Reset();
+            public void Reset() => _setEnumerator.Reset();
         }
 
-        Registry registry;
+        Registry _registry;
 
-        public View(Registry registry) => this.registry = registry;
+        public View(Registry registry) => _registry = registry;
 
-        public IEnumerator<uint> GetEnumerator() => new Enumerator(registry);
+        public IEnumerator<uint> GetEnumerator() => new Enumerator(_registry);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
     
     // Would U kindly move out of the way? You're blocking the T V.
-    public struct View<T, U, V> : IEnumerable<uint>
+    public struct View<T1, T2, T3> : IEnumerable<uint>
     {
         struct Enumerator : IEnumerator<uint>
         {
-            static IComponentStore[] sorter = new IComponentStore[3];
-            Registry registry;
-            IComponentStore store1;
-            IComponentStore store2;
-            IEnumerator<uint> setEnumerator;
+            
+            // ReSharper disable once StaticMemberInGenericType
+            private static readonly IComponentStore[] Sorter = new IComponentStore[3];
+
+            private IComponentStore _store1;
+            private IComponentStore _store2;
+            private IEnumerator<uint> _setEnumerator;
 
             public Enumerator(Registry registry)
             {
-                this.registry = registry;
+                Sorter[0] = registry.Assure<T1>();
+                Sorter[1] = registry.Assure<T2>();
+                Sorter[2] = registry.Assure<T3>();
+                Array.Sort(Sorter, (first, second) => first.Entities.Count.CompareTo(second.Entities.Count));
 
-                sorter[0] = registry.Assure<T>();
-                sorter[1] = registry.Assure<U>();
-                sorter[2] = registry.Assure<V>();
-                Array.Sort(sorter, (first, second) => first.Entities.Count.CompareTo(second.Entities.Count));
-
-                setEnumerator = sorter[0].Entities.GetEnumerator();
-                store1 = sorter[1];
-                store2 = sorter[2];
+                _setEnumerator = Sorter[0].Entities.GetEnumerator();
+                _store1 = Sorter[1];
+                _store2 = Sorter[2];
             }
 
-            public uint Current => setEnumerator.Current;
+            public uint Current => _setEnumerator.Current;
 
-            object IEnumerator.Current => setEnumerator.Current;
+            object IEnumerator.Current => _setEnumerator.Current;
 
             public void Dispose()
             {}
 
             public bool MoveNext()
             {
-                while (setEnumerator.MoveNext())
+                while (_setEnumerator.MoveNext())
                 {
-                    var entityId = setEnumerator.Current;
-                    if (!store1.Contains(entityId) || !store2.Contains(entityId)) continue;
+                    var entityId = _setEnumerator.Current;
+                    if (!_store1.Contains(entityId) || !_store2.Contains(entityId)) continue;
                     return true;
                 }
                 return false;
             }
 
-            public void Reset() => setEnumerator.Reset();
+            public void Reset() => _setEnumerator.Reset();
         }
 
 
-        Registry registry;
+        Registry _registry;
 
-        public View(Registry registry) => this.registry = registry;
+        public View(Registry registry) => _registry = registry;
 
-        public IEnumerator<uint> GetEnumerator() => new Enumerator(registry);
+        public IEnumerator<uint> GetEnumerator() => new Enumerator(_registry);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }}

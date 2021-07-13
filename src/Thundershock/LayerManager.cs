@@ -101,7 +101,7 @@ namespace Thundershock
             _layerIndex++;
             _overlayIndex++;
 
-            layer.Initialize(this._app);
+            layer.Initialize(_app);
         }
 
         public Layer PopLayer()
@@ -125,7 +125,7 @@ namespace Thundershock
             _layerIndex++;
             _overlayIndex++;
             
-            layer.Initialize(this._app);
+            layer.Initialize(_app);
         }
 
         public Layer PopOverlay()

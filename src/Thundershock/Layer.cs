@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using Thundershock.Core;
 using Thundershock.Core.Input;
-using Object = Atk.Object;
 
 namespace Thundershock
 {

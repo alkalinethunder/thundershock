@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.Net.Http;
 
 namespace Thundershock.Gui
 {
@@ -9,15 +8,15 @@ namespace Thundershock.Gui
     {
         #region Win32 constants
 
-        private const uint MB_OK = 0x00;
-        private const uint MB_OKCANCEL = 0x01;
-        private const uint MB_YESNO = 0x04;
-        private const uint MB_YESNOCANCEL = 0x03;
+        private const uint MbOk = 0x00;
+        private const uint MbOkcancel = 0x01;
+        private const uint MbYesno = 0x04;
+        private const uint MbYesnocancel = 0x03;
 
-        private const uint MB_ICONWARNING = 0x30;
-        private const uint MB_ICONINFORMATION = 0x40;
-        private const uint MB_ICONQUESTION = 0x20;
-        private const uint MB_ICONSTOP = 0x10;
+        private const uint MbIconwarning = 0x30;
+        private const uint MbIconinformation = 0x40;
+        private const uint MbIconquestion = 0x20;
+        private const uint MbIconstop = 0x10;
 
         #endregion
 
@@ -33,18 +32,18 @@ namespace Thundershock.Gui
 
                 var type = icon switch
                 {
-                    DialogBoxIcon.Information => MB_ICONINFORMATION,
-                    DialogBoxIcon.Warning => MB_ICONWARNING,
-                    DialogBoxIcon.Question => MB_ICONQUESTION,
-                    DialogBoxIcon.Error => MB_ICONSTOP,
-                    _ => MB_ICONINFORMATION
+                    DialogBoxIcon.Information => MbIconinformation,
+                    DialogBoxIcon.Warning => MbIconwarning,
+                    DialogBoxIcon.Question => MbIconquestion,
+                    DialogBoxIcon.Error => MbIconstop,
+                    _ => MbIconinformation
                 } | buttons switch
                 {
-                    DialogBoxButtons.Ok => MB_OK,
-                    DialogBoxButtons.OkCancel => MB_OKCANCEL,
-                    DialogBoxButtons.YesNo => MB_YESNO,
-                    DialogBoxButtons.YesNoCancel => MB_YESNOCANCEL,
-                    _ => MB_OK
+                    DialogBoxButtons.Ok => MbOk,
+                    DialogBoxButtons.OkCancel => MbOkcancel,
+                    DialogBoxButtons.YesNo => MbYesno,
+                    DialogBoxButtons.YesNoCancel => MbYesnocancel,
+                    _ => MbOk
                 };
 
                 var result = Win32MessageBox(mainWindow, message, title, type);

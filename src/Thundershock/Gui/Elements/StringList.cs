@@ -50,7 +50,7 @@ namespace Thundershock.Gui.Elements
             GuiSystem.Style.DrawStringListBackground(renderer, this);
 
             var pos = ContentRectangle.Location;
-            var font = GetFont();
+            GetFont();
             
             for (var i = 0; i < Count; i++)
             {

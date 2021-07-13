@@ -1,14 +1,8 @@
 using System;
-using System.Diagnostics;
-using System.Numerics;
 using Silk.NET.OpenGL;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
 using Thundershock.Core.Rendering;
-using Thundershock.Debugging;
-
-using Silk.NET.OpenGL;
-using Thundershock.OpenGL;
 using PrimitiveType = Thundershock.Core.Rendering.PrimitiveType;
 
 namespace Thundershock.OpenGL
@@ -16,9 +10,6 @@ namespace Thundershock.OpenGL
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
         private int[] _programTextureUnits;
-        private bool _programChangedSinceLastDrawCall = false;
-        
-        private bool _vaoReady = false;
         private uint _program;
         private GL _gl;
         private uint _fbo;
@@ -26,8 +17,6 @@ namespace Thundershock.OpenGL
         private int _viewportY;
         private int _viewportW;
         private int _viewportH;
-        private float[] _matrixBuffer = new float[4 * 4];
-        private float[] _vertexData = Array.Empty<float>();
         private uint _vertexBuffer;
         private uint _indexBuffer;
         private uint _vao;
@@ -72,13 +61,13 @@ namespace Thundershock.OpenGL
             _programTextureUnits = new int[_gl.GetInteger(GLEnum.MaxTextureImageUnits)];
 
             // Texture colllection
-            _textures = new GlTextureCollection(this, _gl);
+            _textures = new GlTextureCollection(_gl);
             
             // Vertex array object.
             CreateVertexArray();
             
             // generate the vertex buffer and index buffer objects.
-            _vertexBuffer = this.CreateVertexBuffer();
+            _vertexBuffer = CreateVertexBuffer();
             _indexBuffer = _gl.CreateBuffer();
             
             // bind the index buffer
@@ -166,7 +155,7 @@ namespace Thundershock.OpenGL
             {
                 nuint nullptr = UIntPtr.Zero;
                 _gl.DrawElements(type, (uint) (primitiveCount * primitiveSize), GLEnum.UnsignedInt,
-                    (void*) (nullptr + (uint) (int) (primitiveStart * sizeof(uint))));
+                    (void*) (nullptr + (uint) (primitiveStart * sizeof(uint))));
             }
         }
 
@@ -191,8 +180,8 @@ namespace Thundershock.OpenGL
             var vertSize = (uint) (posSize + colorSize + texSize);
             
             _gl.VertexArrayAttribFormat(_vao, 0, 3, GLEnum.Float, false, 0);
-            _gl.VertexArrayAttribFormat(_vao, 1, 4, GLEnum.Float, false, (uint) 0);
-            _gl.VertexArrayAttribFormat(_vao, 2, 2, GLEnum.Float, false, (uint) 0);
+            _gl.VertexArrayAttribFormat(_vao, 1, 4, GLEnum.Float, false, 0);
+            _gl.VertexArrayAttribFormat(_vao, 2, 2, GLEnum.Float, false, 0);
 
             // Set up the vertex array attributes.
             _gl.VertexArrayVertexBuffer(_vao, 0, vbo, IntPtr.Zero, vertSize);
@@ -238,7 +227,7 @@ namespace Thundershock.OpenGL
             
             unsafe
             {
-                _gl.NamedBufferData<Vertex>(_vertexBuffer, UIntPtr.Zero + (vertices.Length * sizeof(Vertex)),
+                _gl.NamedBufferData(_vertexBuffer, UIntPtr.Zero + (vertices.Length * sizeof(Vertex)),
                     vertices, GLEnum.StaticDraw);
             }
 
@@ -369,7 +358,7 @@ namespace Thundershock.OpenGL
             return _gl.CreateProgram();
         }
 
-        public override void CompileGLSL(uint program, ShaderCompilation type, string glslSource)
+        public override void CompileGlsl(uint program, ShaderCompilation type, string glslSource)
         {
             var shader = _gl.CreateShader(type == ShaderCompilation.VertexShader ? GLEnum.VertexShader : GLEnum.FragmentShader);
             _gl.ShaderSource(shader, glslSource);
@@ -441,7 +430,7 @@ namespace Thundershock.OpenGL
         {
             var location = _gl.GetUniformLocation(program.Id, name);
             if (location > -1)
-                return new GLEffectParameter(program.Id, name, location, _gl);
+                return new GlEffectParameter(program.Id, name, location, _gl);
             return null;
         }
 
@@ -449,11 +438,6 @@ namespace Thundershock.OpenGL
         {
             // Create the actual vertex array.
             _vao = _gl.CreateVertexArray();
-            
-            // Attribute formats.
-            var posSize = sizeof(float) * 3;
-            var colorSize = sizeof(float) * 4;
-            var texSize = sizeof(float) * 2;
         }
     }
 }

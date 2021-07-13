@@ -210,7 +210,7 @@ namespace Thundershock.IO
             return new FileSystem(hostNode);
         }
         
-        public static FileSystem FromHostOS()
+        public static FileSystem FromHostOs()
         {
             var node = null as Node;
 

@@ -13,13 +13,7 @@ namespace Thundershock.Gui.Elements
         public Texture2D Image
         {
             get => _image;
-            set
-            {
-                if (_image != value)
-                {
-                    _image = value;
-                }
-            }
+            set => _image = value;
         }
         
         public bool Tile { get; set; }

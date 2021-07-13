@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using Gtk;
-using System.Text;
-using MimeTypes.Core;
-using Thundershock.Core;
 
 #if WINDOWS
 using System.Windows.Forms;
@@ -16,7 +12,6 @@ namespace Thundershock.Gui
     {
         private string _title = "Open File";
         private List<AcceptedFileType> _acceptedTypes = new();
-        private AppBase _app;
         private string _path;
 
         public string SelectedFilePath => _path;
@@ -35,10 +30,8 @@ namespace Thundershock.Gui
             set => _title = value ?? "Open File";
         }
 
-        public FileChooser(AppBase app)
+        public FileChooser()
         {
-            _app = app;
-
             InitialDirectory = Environment.CurrentDirectory;
         }
 
@@ -120,14 +113,12 @@ namespace Thundershock.Gui
         }
 #endif
 
-        private ManualResetEvent _gtkReset = new ManualResetEvent(false);
-
         private ResponseType GtkShowDialog()
         {
-            Gtk.Application.Init();
+            Application.Init();
 
-            var result = Gtk.ResponseType.Ok;
-            var chooser = new Gtk.FileChooserDialog(Title, null, GetGtkAction(), GetGtkButtonData());
+            var result = ResponseType.Ok;
+            var chooser = new FileChooserDialog(Title, null, GetGtkAction(), GetGtkButtonData());
 
             chooser.SetCurrentFolder(InitialDirectory);
 
@@ -139,19 +130,19 @@ namespace Thundershock.Gui
                 chooser.AddFilter(filter);
             }
 
-            chooser.Response += (o, args) =>
+            chooser.Response += (_, args) =>
             {
                 _path = chooser.Filename;
                 result = args.ResponseId;
 
                 chooser.Hide();
 
-                Gtk.Application.Quit();
+                Application.Quit();
             };
 
             chooser.Show();
 
-            Gtk.Application.Run();
+            Application.Run();
 
             return result;
         }
@@ -162,7 +153,8 @@ namespace Thundershock.Gui
             {
                 FileOpenerType.Open => FileChooserAction.Open,
                 FileOpenerType.Save => FileChooserAction.Save,
-                Gui.FileOpenerType.FolderTree => FileChooserAction.SelectFolder
+                FileOpenerType.FolderTree => FileChooserAction.SelectFolder,
+                _ => throw new ArgumentOutOfRangeException()
             };
         }
 
@@ -170,12 +162,13 @@ namespace Thundershock.Gui
         {
             return FileOpenerType switch
             {
-                Gui.FileOpenerType.Open => new object[]
-                    {"Cancel", Gtk.ResponseType.Cancel, "Open", Gtk.ResponseType.Ok},
-                Gui.FileOpenerType.Save => new object[]
-                    {"Cancel", Gtk.ResponseType.Cancel, "Save", Gtk.ResponseType.Ok},
-                Gui.FileOpenerType.FolderTree => new object[]
-                    {"Cancel", Gtk.ResponseType.Cancel, "Choose Folder", Gtk.ResponseType.Ok},
+                FileOpenerType.Open => new object[]
+                    {"Cancel", ResponseType.Cancel, "Open", ResponseType.Ok},
+                FileOpenerType.Save => new object[]
+                    {"Cancel", ResponseType.Cancel, "Save", ResponseType.Ok},
+                FileOpenerType.FolderTree => new object[]
+                    {"Cancel", ResponseType.Cancel, "Choose Folder", ResponseType.Ok},
+                _ => throw new ArgumentOutOfRangeException()
             };
         }
 
@@ -190,7 +183,7 @@ namespace Thundershock.Gui
 
             return result switch
             {
-                ResponseType.Ok => FileOpenerResult.OK,
+                ResponseType.Ok => FileOpenerResult.Ok,
                 _ => FileOpenerResult.Cancelled
             };
 #endif

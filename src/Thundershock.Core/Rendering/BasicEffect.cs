@@ -21,7 +21,7 @@ namespace Thundershock.Core.Rendering
         {
             // Retrieve the built-in effect shader program.
             var text = string.Empty;
-            if (!Resource.TryGetString(this.GetType().Assembly, "Thundershock.Core.Resources.Effects.BasicEffect.glsl",
+            if (!Resource.TryGetString(GetType().Assembly, "Thundershock.Core.Resources.Effects.BasicEffect.glsl",
                 out text))
             {
                 throw new InvalidOperationException(

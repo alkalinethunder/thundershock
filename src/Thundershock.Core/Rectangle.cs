@@ -50,7 +50,10 @@ namespace Thundershock.Core
         
         public static bool operator ==(Rectangle a, Rectangle b)
         {
-            return (a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height);
+            return MathHelper.FloatEquality(a.X, b.X)
+                   && MathHelper.FloatEquality(a.Y, b.Y)
+                   && MathHelper.FloatEquality(a.Width, b.Width)
+                   && MathHelper.FloatEquality(a.Height, b.Height);
         }
 
         public static bool operator !=(Rectangle a, Rectangle b)
@@ -58,14 +61,14 @@ namespace Thundershock.Core
             return !(a == b);
         }
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             return obj is Rectangle rect && rect == this;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(X, Y, Width, Height);
+            return HashCode.Combine(Location, Size);
         }
 
         public override string ToString()
@@ -85,7 +88,7 @@ namespace Thundershock.Core
                 return new Rectangle(left, top, right - left, bottom - top);
             }
 
-            return Rectangle.Empty;
+            return Empty;
         }
     }
 }

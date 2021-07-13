@@ -1,15 +1,13 @@
-using SDL2;
 using Thundershock.Core;
 using Thundershock.Core.Audio;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
-using Thundershock.Debugging;
 
 namespace Thundershock
 {
     public sealed class GameLayer : Layer
     {
-        private Scene _currentScene = null;
+        private Scene _currentScene;
         
         public GameWindow Window => App.Window;
         

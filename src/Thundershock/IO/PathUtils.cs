@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 
 namespace Thundershock.IO
@@ -68,7 +67,7 @@ namespace Thundershock.IO
                     var j = part;
                     do
                     {
-                        var substr = j.Substring(0, j.IndexOf(Separator));
+                        var substr = j.Substring(0, j.IndexOf(Separator, StringComparison.Ordinal));
                         if (!string.IsNullOrEmpty(substr))
                         {
                             parts.Add(substr);

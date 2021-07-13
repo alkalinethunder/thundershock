@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Net.NetworkInformation;
 using System.Numerics;
 using FontStashSharp.Interfaces;
 
@@ -16,7 +13,7 @@ namespace Thundershock.Core.Rendering
         private int[] _ibo = new int[128];
         private int _indexPointer;
         private int _batchPointer;
-        private int _vertexPointer = 0;
+        private int _vertexPointer;
         private Vertex[] _vertexArray = new Vertex[128];
         private Effect _effect;
         private bool _running;
@@ -54,16 +51,6 @@ namespace Thundershock.Core.Rendering
             _effect = null;
         }
         
-        /// <summary>
-        /// Begins a new batch of polygons, using the given effect.
-        /// </summary>
-        /// <param name="effect">A pixel shader effect to apply to all polygons in the batch.</param>
-        public void Begin(Effect effect, Matrix4x4? projection = null)
-        {
-            Begin(projection);
-            _effect = effect;
-        }
-
         private RenderItem MakeRenderItem(Texture2D texture)
         {
             if (_running)
@@ -124,7 +111,7 @@ namespace Thundershock.Core.Rendering
                         {
                             _renderer.Textures[0] = tex;
 
-                            _renderer.ProjectionMatrix = this.ProjectionMatrix;
+                            _renderer.ProjectionMatrix = ProjectionMatrix;
                             _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
                         }
                     }
@@ -236,8 +223,6 @@ namespace Thundershock.Core.Rendering
         
         private void CreateLine(Vector2 p1, Vector2 p2, Color color, float lineWidth, out int v1, out int v2, out int v3, out int v4)
         {
-            var renderItem = MakeRenderItem(null);
-            
             var d = Vector2.Normalize(p2 - p1);
             var dt = new Vector2(-d.Y, d.X) * (lineWidth / 2f);
 
@@ -408,7 +393,6 @@ namespace Thundershock.Core.Rendering
             public int Triangles => _batchLength / 3;
 
             public int Start => _batchStart;
-            public int Length => _batchLength;
             
             public Texture2D Texture { get; set; }
             

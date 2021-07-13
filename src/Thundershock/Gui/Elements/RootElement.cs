@@ -21,7 +21,7 @@ namespace Thundershock.Gui.Elements
         
         public IEnumerable<Element> CollapseElements()
         {
-            if (this.Visibility == Visibility.Visible)
+            if (Visibility == Visibility.Visible)
                 yield return this;
 
             foreach (var element in Children.Collapse())

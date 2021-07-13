@@ -14,6 +14,11 @@ namespace Thundershock.Gui
         public int Height => Top + Bottom;
 
         public Vector2 Size => new Vector2(Width, Height);
+
+        private int X1 => Left;
+        private int X2 => Right;
+        private int Y1 => Top;
+        private int Y2 => Bottom;
         
         public Padding(int left, int top, int right, int bottom)
         {
@@ -51,7 +56,7 @@ namespace Thundershock.Gui
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Left, Top, Right, Bottom);
+            return HashCode.Combine(X1, Y1, X2, Y2);
         }
 
         public override string ToString()

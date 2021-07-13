@@ -45,7 +45,7 @@ namespace Thundershock.Core.Rendering
 
         public void Upload(ReadOnlySpan<byte> pixelData, Rectangle? bounds = null)
         {
-            var trueBounds = bounds ?? this.Bounds;
+            var trueBounds = bounds ?? Bounds;
             _gpu.UploadTextureData(_id, pixelData, (int) trueBounds.X, (int) trueBounds.Y, (int) trueBounds.Width,
                 (int) trueBounds.Height);
         }

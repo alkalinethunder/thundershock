@@ -53,19 +53,18 @@ namespace Thundershock
         private Effect.EffectProgram _gaussian;
         private Effect.EffectProgram _bloom;
         private Effect.EffectProgram _shadowmask;
-        private Effect _glitch;
-        
+
         #endregion
 
         #region Shader Constants
 
-        private const int KERNEL_SIZE = 15;
+        private const int KernelSize = 15;
 
         #endregion
 
         #region Shader Parameters - Gaussian Blur
 
-        private float[] _gaussianKernel = new float[KERNEL_SIZE]
+        private float[] _gaussianKernel =
         {
             0,
             0,
@@ -83,7 +82,7 @@ namespace Thundershock
             0,
             0
         };
-        private Vector2[] _offsets = new Vector2[KERNEL_SIZE];
+        private Vector2[] _offsets = new Vector2[KernelSize];
 
         #endregion
         
@@ -160,7 +159,6 @@ namespace Thundershock
             // null
             _bloom = null;
             _shadowmask = null;
-            _glitch = null;
             _intermediate = null;
             _effectBuffer1 = null;
             _effectBuffer2 = null;
@@ -168,7 +166,7 @@ namespace Thundershock
 
         public void LoadContent()
         {
-            if (Resource.TryGetString(this.GetType().Assembly, "Thundershock.Resources.Effects.PostProcessor.glsl",
+            if (Resource.TryGetString(GetType().Assembly, "Thundershock.Resources.Effects.PostProcessor.glsl",
                 out var text))
             {
                 _ppEffect = ShaderPipeline.CompileShader(_gpu, text);
@@ -212,7 +210,7 @@ namespace Thundershock
 
             float totalWeight = _gaussianKernel[0];
             
-            for (var i = 0; i < KERNEL_SIZE / 2; i++)
+            for (var i = 0; i < KernelSize / 2; i++)
             {
                 var weight = ComputeGaussian(i + 1);
                 var offset = i * 2 + 1.0f;
@@ -227,7 +225,7 @@ namespace Thundershock
                 _offsets[i * 2 + 2] = -delta;
             }
 
-            for (var i = 0; i < KERNEL_SIZE; i++)
+            for (var i = 0; i < KernelSize; i++)
             {
                 _gaussianKernel[i] /= totalWeight;
             }
@@ -246,8 +244,8 @@ namespace Thundershock
         
         private void PerformBloom(RenderTarget2D frame, Rectangle rect)
         {
-            var hWidth = (float) rect.Width;
-            var hHeight = (float) rect.Height;
+            var hWidth = rect.Width;
+            var hHeight = rect.Height;
 
             // change to the first effect buffer.
             _gpu.SetRenderTarget(_effectBuffer1);
@@ -341,7 +339,7 @@ namespace Thundershock
             _gpu.SetRenderTarget(null);
         }
 
-        private void NoEffect(RenderTarget2D renderTarget, Rectangle rect)
+        private void NoEffect(RenderTarget2D renderTarget)
         {
             // Bind the render target as a texture.
             _gpu.Textures[0] = renderTarget;
@@ -390,7 +388,7 @@ namespace Thundershock
             }
             else
             {
-                NoEffect(renderTarget, rect);
+                NoEffect(renderTarget);
             }
 
             if (Settings.EnableGlitch && _glitchIntensity > 0)
@@ -499,55 +497,55 @@ namespace Thundershock
         #region Cheats
 
         [Cheat("IgnoreCamera")]
-        private void IgnoreCamera(bool value)
+        public void IgnoreCamera(bool value)
         {
             _ignoreCamera = value;
         }
 
         [Cheat("Bloom")]
-        private void EnableBloomCheat(bool value)
+        public void EnableBloomCheat(bool value)
         {
             Settings.EnableBloom = value;
         }
 
         [Cheat("CRT")]
-        private void CrtCheat(bool value)
+        public void CrtCheat(bool value)
         {
             Settings.EnableShadowMask = value;
         }
 
         [Cheat("BloomThreshold")]
-        private void BloomThresholdCheat(float value)
+        public void BloomThresholdCheat(float value)
         {
             _bloomThreshold = value;
         }
         
         [Cheat("BloomIntensity")]
-        private void BloomIntensityCheat(float value)
+        public void BloomIntensityCheat(float value)
         {
             _bloomIntensity = value;
         }
 
         [Cheat("BloomSaturation")]
-        private void BloomSaturationCheat(float value)
+        public void BloomSaturationCheat(float value)
         {
             _bloomSaturation = value;
         }
 
         [Cheat("BloomBaseIntensity")]
-        private void BloomBaseIntensityCheat(float value)
+        public void BloomBaseIntensityCheat(float value)
         {
             _baseIntensity = value;
         }
 
         [Cheat("BloomBaseSaturation")]
-        private void BloomBaseSaturationCheat(float value)
+        public void BloomBaseSaturationCheat(float value)
         {
             _baseSaturation = value;
         }
 
         [Cheat("BloomBlur")]
-        private void BloomBlurCheat(float value)
+        public void BloomBlurCheat(float value)
         {
             _blurAmount = value;
         }

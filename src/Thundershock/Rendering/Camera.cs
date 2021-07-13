@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Thundershock.Core;
-using Thundershock.Core.Rendering;
 
 namespace Thundershock.Rendering
 {

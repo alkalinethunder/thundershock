@@ -6,7 +6,7 @@ namespace Thundershock.Core.Input
 
         public KeyCharEventArgs(Keys key, char character) : base(key)
         {
-            this.Character = character;
+            Character = character;
         }
     }
 }

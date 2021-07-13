@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using Cairo;
-using FontStashSharp;
 using Thundershock.Core;
 using Thundershock.Gui.Styling;
 using Rectangle = Thundershock.Core.Rectangle;
@@ -17,9 +15,8 @@ namespace Thundershock.Gui.Elements
         private Font _lastFont;
         private bool _textIsDirty = true;
         private List<Line> _lines = new();
-        private string _wrappedText;
         private string _text = string.Empty;
-        private TextAlign _textAlign = Gui.TextAlign.Left;
+        private TextAlign _textAlign = TextAlign.Left;
         private TextWrapMode _wrapMode = TextWrapMode.WordWrap;
         private float _lastWidth;
         
@@ -69,6 +66,9 @@ namespace Thundershock.Gui.Elements
 
         public static string LetterWrap(Font font, string text, float wrapWidth)
         {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
             if (wrapWidth <= 0)
                 return text;
 
@@ -93,6 +93,9 @@ namespace Thundershock.Gui.Elements
 
         public static string WordWrap(Font font, string text, float wrapWidth)
         {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+        
             if (wrapWidth <= 0)
                 return text;
             
@@ -153,7 +156,6 @@ namespace Thundershock.Gui.Elements
                         var last = letterLines.Last();
 
                         m = font.MeasureString(last).X;
-                        word = last;
 
                         sb.Append(letterWrapped);
                     }
@@ -180,8 +182,8 @@ namespace Thundershock.Gui.Elements
             {
                 pos.X = _textAlign switch
                 {
-                    Gui.TextAlign.Right => contentRectangle.Right - line.Measure.X,
-                    Gui.TextAlign.Center => contentRectangle.Left + ((contentRectangle.Width - line.Measure.X) / 2),
+                    TextAlign.Right => contentRectangle.Right - line.Measure.X,
+                    TextAlign.Center => contentRectangle.Left + ((contentRectangle.Width - line.Measure.X) / 2),
                     _ => contentRectangle.Left
                 };
 
@@ -209,7 +211,7 @@ namespace Thundershock.Gui.Elements
                     TextWrapMode.WordWrap => WordWrap(_lastFont, _text, alottedSize.X),
                     TextWrapMode.LetterWrap => LetterWrap(_lastFont, _text, alottedSize.X),
                     _ => _text
-                };
+                } ?? string.Empty;
 
                 _lines.Clear();
 

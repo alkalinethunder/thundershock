@@ -15,13 +15,7 @@ namespace Thundershock.Gui.Elements
         public StackDirection Direction
         {
             get => _direction;
-            set
-            {
-                if (_direction != value)
-                {
-                    _direction = value;
-                }
-            }
+            set => _direction = value;
         }
 
         private float GetFillPercentage(Element elem)

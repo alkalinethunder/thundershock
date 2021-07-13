@@ -41,7 +41,7 @@ namespace Thundershock.Debugging
             _commandEntry.TextCommitted += CommandEntryOnTextCommitted;
         }
 
-        private void CommandEntryOnTextCommitted(object? sender, EventArgs e)
+        private void CommandEntryOnTextCommitted(object sender, EventArgs e)
         {
             var text = _commandEntry.Text;
             _commandEntry.Text = string.Empty;
@@ -60,7 +60,7 @@ namespace Thundershock.Debugging
         {
             _gui.SetViewportSize(App.Window.Width, App.Window.Height);
             
-            _bg.FixedHeight = App.Window.Height / 2;
+            _bg.FixedHeight = App.Window.Height / 2f;
 
             _gui.Update(gameTime);
         }

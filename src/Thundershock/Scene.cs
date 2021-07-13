@@ -24,16 +24,14 @@ namespace Thundershock
         public const uint MaxEntityCount = 10000;
 
         private List<ISystem> _systems = new();
-        private bool _paused = false;
+        private bool _paused;
         private bool _noClip;
         private CameraManager _cameraManager;
         private GameLayer _gameLoop;
-        private Font _debugFont;
         private Renderer2D _renderer;
         private InputSystem _input = new();
         private Registry _registry;
         private Font _deathFont;
-        private Renderer2D _renderer2D;
         private GuiSystem _sceneGui;
         private PostProcessor _postProcessSystem;
         private RenderTarget2D _sceneRenderTarget;
@@ -80,11 +78,16 @@ namespace Thundershock
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
             _renderer = new Renderer2D(gameLoop.Graphics);
             _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
-            _debugFont = Font.GetDefaultFont(_gameLoop.Graphics);
+            Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
             _sceneGui = new GuiSystem(_gameLoop.Graphics);
-            _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
-            _postProcessSystem.LoadContent();
+            
+            // Enable and load the post-process system IF the engine's command-line arguments say we should.
+            if (!EntryPoint.GetBoolean(EntryBoolean.DisablePostProcessing))
+            {
+                _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
+                _postProcessSystem.LoadContent();
+            }
             
             // Help a playa out, spawn the default camera entity.
             var cam = SpawnObject();
@@ -284,8 +287,6 @@ namespace Thundershock
                 ref var transform2D = ref _registry.GetComponent<Transform2D>(renderable);
 
                 var transformMatrix = transform2D.GetTransformMatrix();
-
-                var viewProjectionMatrix = Camera.ProjectionMatrix;
 
                 Matrix4x4.Invert(transformMatrix, out var mvp);
                 mvp = transformMatrix * Camera.ProjectionMatrix;

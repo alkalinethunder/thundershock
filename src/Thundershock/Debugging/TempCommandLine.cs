@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Input;

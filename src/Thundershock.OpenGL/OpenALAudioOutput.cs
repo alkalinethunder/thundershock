@@ -1,13 +1,8 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
-using SDL2;
 using Silk.NET.OpenAL;
-using StbTrueTypeSharp;
 using Thundershock.Core.Audio;
 using Thundershock.Core.Debugging;
 
@@ -48,8 +43,7 @@ namespace Thundershock.OpenGL
         {
             get
             {
-                var vol = 0f;
-                _al.GetSourceProperty(_source, SourceFloat.Gain, out vol);
+                _al.GetSourceProperty(_source, SourceFloat.Gain, out var vol);
                 return vol;
             }
             set
@@ -76,7 +70,7 @@ namespace Thundershock.OpenGL
             _al.SetSourceProperty(_source, SourceBoolean.Looping, false);
             ThrowOnError();
 
-            new Thread(bufferThread).Start();
+            new Thread(BufferThread).Start();
         }
 
         protected override void Dispose(bool disposing)
@@ -117,7 +111,7 @@ namespace Thundershock.OpenGL
                 _currentBuffer = buffer;
             }
             
-            _al.SourceQueueBuffers(_source, new uint[] {buffer.Id});
+            _al.SourceQueueBuffers(_source, new[] {buffer.Id});
         }
 
         private void ThrowOnError()
@@ -127,7 +121,7 @@ namespace Thundershock.OpenGL
                 throw new InvalidOperationException("OpenAL threw an error: " + error);
         }
 
-        private void bufferThread()
+        private void BufferThread()
         {
             unsafe
             {
@@ -135,8 +129,8 @@ namespace Thundershock.OpenGL
 
                 while (!_teardown)
                 {
-                    _al.GetSourceProperty(_source, GetSourceInteger.SourceState, out int state);
-                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersProcessed, out int processed);
+                    _al.GetSourceProperty(_source, GetSourceInteger.SourceState, out _);
+                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersProcessed, out var processed);
 
                     if (processed > 0)
                     {
@@ -159,7 +153,7 @@ namespace Thundershock.OpenGL
                         processed--;
                     }
 
-                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersQueued, out int queued);
+                    _al.GetSourceProperty(_source, GetSourceInteger.BuffersQueued, out _);
                 }
             }
 

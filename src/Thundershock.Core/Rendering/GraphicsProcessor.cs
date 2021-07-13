@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Numerics;
 
 namespace Thundershock.Core.Rendering
@@ -43,7 +42,7 @@ namespace Thundershock.Core.Rendering
         protected abstract void UseRenderTarget(RenderTarget target);
 
         public abstract uint CreateShaderProgram();
-        public abstract void CompileGLSL(uint program, ShaderCompilation type, string glslSource);
+        public abstract void CompileGlsl(uint program, ShaderCompilation type, string glslSource);
 
         public abstract void SetActiveShaderProgram(uint program);
         

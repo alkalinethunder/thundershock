@@ -21,7 +21,7 @@ namespace Thundershock.Flumberboozles
 
         public void SetValue<T>(T value)
         {
-            SetValue<T>(typeof(T).FullName, value);
+            SetValue(typeof(T).FullName, value);
         }
         
         public T GetValue<T>(string name)

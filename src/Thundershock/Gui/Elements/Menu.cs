@@ -36,7 +36,7 @@ namespace Thundershock.Gui.Elements
             _item.Updated -= ItemOnUpdated;
         }
 
-        private void ItemOnUpdated(object? sender, EventArgs e)
+        private void ItemOnUpdated(object sender, EventArgs e)
         {
             Build();
         }
@@ -88,7 +88,7 @@ namespace Thundershock.Gui.Elements
             }
         }
 
-        private void ButtonOnMouseUp(object? sender, MouseButtonEventArgs e)
+        private void ButtonOnMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (e.Button == MouseButton.Primary)
             {
@@ -104,7 +104,7 @@ namespace Thundershock.Gui.Elements
             }
         }
 
-        private void MenuItemMouseEnter(object? sender, MouseMoveEventArgs e)
+        private void MenuItemMouseEnter(object sender, MouseMoveEventArgs e)
         {
             if (sender is Button button)
             {
@@ -127,8 +127,6 @@ namespace Thundershock.Gui.Elements
             foreach (var button in _menuList.Children.OfType<Button>())
             {
                 var menu = button.Properties.GetValue<Menu>("menu");
-
-                var size = menu.ActualSize;
 
                 var buttRect = button.BoundingBox;
 

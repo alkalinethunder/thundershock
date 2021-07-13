@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Rendering;
 
@@ -10,8 +9,7 @@ namespace Thundershock.Gui
         private float _opacity;
         private Color _masterTint;
         private Renderer2D _spriteBatch;
-        private Rectangle _clipRect;
-        
+
         private Color GetProperTint(Color tint)
         {
             var r = tint.R;

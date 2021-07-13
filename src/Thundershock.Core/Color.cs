@@ -1,5 +1,4 @@
 using System;
-using System.Drawing.Printing;
 using System.Numerics;
 
 namespace Thundershock.Core
@@ -11,7 +10,10 @@ namespace Thundershock.Core
         public float B;
         public float A;
 
-        public float Alpha => A;
+        private float Alpha => A;
+        private float RValue => R;
+        private float GValue => G;
+        private float BValue => B;
         
         public Color(float r, float g, float b, float alpha = 1)
         {
@@ -23,10 +25,10 @@ namespace Thundershock.Core
 
         public Color(Color color, float alpha)
         {
-            this.R = color.R;
-            this.G = color.G;
-            this.B = color.B;
-            this.A = alpha;
+            R = color.R;
+            G = color.G;
+            B = color.B;
+            A = alpha;
         }
         
         public Color(int r, int g, int b, int a = 0xff) : this(r / 255f, g / 255f, b / 255f, a / 255f) {}
@@ -61,7 +63,11 @@ namespace Thundershock.Core
 
         public static bool operator ==(Color a, Color b)
         {
-            return a.R == b.R && a.G == b.G && a.B == b.B && a.Alpha == b.Alpha;
+            return MathHelper.FloatEquality(a.R, b.R)
+                   && MathHelper.FloatEquality(a.G, b.G)
+                   && MathHelper.FloatEquality(a.B, b.B)
+                   && MathHelper.FloatEquality(a.A, b.A);
+
         }
 
         public static bool operator !=(Color a, Color b)
@@ -69,7 +75,7 @@ namespace Thundershock.Core
             return !(a == b);
         }
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             return obj is Color c && c == this;
         }
@@ -78,10 +84,10 @@ namespace Thundershock.Core
         {
             return $"(R={R},G={G},B={B}, alpha={Alpha})";
         }
-
+        
         public override int GetHashCode()
         {
-            return HashCode.Combine(R, G, B, Alpha);
+            return HashCode.Combine(RValue, GValue, BValue, Alpha);
         }
 
         

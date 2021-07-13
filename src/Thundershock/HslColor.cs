@@ -3,18 +3,6 @@ using Thundershock.Core;
 
 namespace Thundershock
 {
-    /// <summary>
-    /// Represents a color in the HSL (hua, saturation, luminance) color space.
-    /// </summary>
-    /// <remarks>
-    /// This structure stores a color as represented by it's hue, saturation and luminance.  This
-    /// structure provides functionality for converting RGBA values to HSL values and back.  This is an
-    /// implementation of the HSL color structure found at https://gist.github.com/profexorgeek/a407c0c96f69a37a2f2554b43491e247.
-    ///
-    /// Unlike the code in the above link, this structure can also store an alpha value allowing an RGBA color's
-    /// translucency to be retained when converting to HSL and back.  This structure's functionality is used to implement
-    /// the <see cref="PlatformUtils.Lighten" /> and <see cref="PlatformUtils.Darken" /> extension methods. 
-    /// </remarks>
     public struct HslColor
     {
         /// <summary>

@@ -1,24 +1,21 @@
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Numerics;
 using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Input;
-using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
 
 namespace Thundershock
 {
     public abstract class GraphicalAppBase : AppBase
     {
-        private bool _borderless = false;
-        private bool _fullscreen = false;
+        private bool _borderless;
+        private bool _fullscreen;
         private int _width;
         private int _height;
         private GameWindow _gameWindow;
-        private bool _aboutToExit = false;
+        private bool _aboutToExit;
         private Stopwatch _frameTimer = new();
         private TimeSpan _totalGameTime;
         private LayerManager _layerManager;
@@ -129,32 +126,32 @@ namespace Thundershock
             OnPreInit();
         }
 
-        private void GameWindowOnMouseScroll(object? sender, MouseScrollEventArgs e)
+        private void GameWindowOnMouseScroll(object sender, MouseScrollEventArgs e)
         {
             _layerManager.FireMouseScroll(e);
         }
 
-        private void GameWindowOnMouseMove(object? sender, MouseMoveEventArgs e)
+        private void GameWindowOnMouseMove(object sender, MouseMoveEventArgs e)
         {
             _layerManager.FireMouseMove(e);
         }
 
-        private void GameWindowOnMouseUp(object? sender, MouseButtonEventArgs e)
+        private void GameWindowOnMouseUp(object sender, MouseButtonEventArgs e)
         {
             _layerManager.FireMouseUp(e);
         }
 
-        private void GameWindowOnMouseDown(object? sender, MouseButtonEventArgs e)
+        private void GameWindowOnMouseDown(object sender, MouseButtonEventArgs e)
         {
             _layerManager.FireMouseDown(e);
         }
 
-        private void GameWindowOnKeyChar(object? sender, KeyCharEventArgs e)
+        private void GameWindowOnKeyChar(object sender, KeyCharEventArgs e)
         {
             _layerManager.FireKeyChar(e);
         }
 
-        private void GameWindowOnKeyUp(object? sender, KeyEventArgs e)
+        private void GameWindowOnKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Keys.BackQuote)
             {
@@ -169,7 +166,7 @@ namespace Thundershock
             _layerManager.FireKeyUp(e);
         }
 
-        private void GameWindowOnKeyDown(object? sender, KeyEventArgs e)
+        private void GameWindowOnKeyDown(object sender, KeyEventArgs e)
         {
             _layerManager.FireKeyDown(e);
         }

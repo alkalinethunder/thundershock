@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Rendering;
@@ -23,7 +24,7 @@ namespace Thundershock.Debugging
 
         protected override void OnUpdate(GameTime gameTime)
         {
-            _fps = Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds).ToString();
+            _fps = Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds).ToString(CultureInfo.InvariantCulture);
         }
 
         protected override void OnRender(GameTime gameTime)

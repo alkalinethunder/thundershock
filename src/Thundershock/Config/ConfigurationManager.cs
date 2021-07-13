@@ -10,7 +10,7 @@ namespace Thundershock.Config
     public class ConfigurationManager : GlobalComponent
     {
         private FileSystem _fs;
-        private GameConfiguration _gameConfig = null;
+        private GameConfiguration _gameConfig;
 
         public event EventHandler ConfigurationLoaded;
         
@@ -23,7 +23,7 @@ namespace Thundershock.Config
         
         public DisplayMode GetDisplayMode()
         {
-            return GamePlatform.GetDisplayMode(this.ActiveConfig.Resolution, ActiveConfig.Monitor);
+            return GamePlatform.GetDisplayMode(ActiveConfig.Resolution, ActiveConfig.Monitor);
         }
         
         public void ResetToDefaults()

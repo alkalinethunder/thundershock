@@ -58,7 +58,7 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
-            this.GuiSystem.Style.DrawButton(renderer, this);
+            GuiSystem.Style.DrawButton(renderer, this);
         }
 
     }

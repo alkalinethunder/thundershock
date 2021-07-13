@@ -7,7 +7,7 @@ namespace Thundershock.OpenGL
 {
     internal sealed class OpenAlAudioBuffer : IAudioBuffer
     {
-        private const double sc16 = 0x7FFF + 0.4999999999999999;
+        private const double Sc16 = 0x7FFF + 0.4999999999999999;
 
         private double _power = double.NegativeInfinity;
         private AL _al;
@@ -67,7 +67,7 @@ namespace Thundershock.OpenGL
                     {
                         var sample = (ushort) *(ptr + i + 1);
                         sample += (ushort) ((*(ptr + i)) << 8);
-                        doubleFault[j] = (double) (sample / sc16);
+                        doubleFault[j] = (sample / Sc16);
                         j++;
                     }
                 }

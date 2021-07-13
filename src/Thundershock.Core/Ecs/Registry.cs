@@ -9,20 +9,20 @@ namespace Thundershock.Core.Ecs
         {
             public int HashCode;
             public SparseSet Entities;
-            IComponentStore[] componentStores;
+            IComponentStore[] _componentStores;
 
             public GroupData(Registry registry, int hashCode, params IComponentStore[] components)
             {
                 HashCode = hashCode;
-                Entities = new SparseSet(registry.maxEntities);
-                componentStores = components;
+                Entities = new SparseSet(registry._maxEntities);
+                _componentStores = components;
             }
 
             internal void OnEntityAdded(uint entityId)
             {
                 if (!Entities.Contains(entityId))
                 {
-                    foreach (var store in componentStores)
+                    foreach (var store in _componentStores)
                         if (!store.Contains(entityId)) return;
                     Entities.Add(entityId);
                 }
@@ -34,28 +34,28 @@ namespace Thundershock.Core.Ecs
             }
         }
 
-        readonly uint maxEntities;
-        Dictionary<Type, IComponentStore> data = new Dictionary<Type, IComponentStore>();
-        uint nextEntity = 0;
-        List<GroupData> Groups = new List<GroupData>();
+        private readonly uint _maxEntities;
+        private Dictionary<Type, IComponentStore> _data = new();
+        private uint _nextEntity;
+        private readonly List<GroupData> _groups = new();
 
-        public Registry(uint maxEntities) => this.maxEntities = maxEntities;
+        public Registry(uint maxEntities) => _maxEntities = maxEntities;
 
         public ComponentStore<T> Assure<T>()
         {
             var type = typeof(T);
-            if (data.TryGetValue(type, out var store)) return (ComponentStore<T>)data[type];
+            if (_data.TryGetValue(type, out _)) return (ComponentStore<T>)_data[type];
 
-            var newStore = new ComponentStore<T>(maxEntities);
-            data[type] = newStore;
+            var newStore = new ComponentStore<T>(_maxEntities);
+            _data[type] = newStore;
             return newStore;
         }
 
-        public Entity Create() => new Entity(nextEntity++);
+        public Entity Create() => new Entity(_nextEntity++);
 
         public void Destroy(Entity entity)
         {
-            foreach (var store in data.Values)
+            foreach (var store in _data.Values)
                 store.RemoveIfContains(entity.Id);
         }
 
@@ -85,51 +85,51 @@ namespace Thundershock.Core.Ecs
 
         public View<T> View<T>() => new View<T>(this);
 
-        public View<T, U> View<T, U>() => new View<T, U>(this);
+        public View<T1, T2> View<T1, T2>() => new View<T1, T2>(this);
 
-        public View<T, U, V> View<T, U, V>() => new View<T, U, V>(this);
+        public View<T1, T2, T3> View<T1, T2, T3>() => new View<T1, T2, T3>(this);
 
-        public Group Group<T, U>()
+        public Group Group<T1, T2>()
         {
-            var hash = System.HashCode.Combine(typeof(T), typeof(U));
+            var hash = HashCode.Combine(typeof(T1), typeof(T2));
 
-            foreach (var group in Groups)
-                if (group.HashCode == hash) return new Group(this, group);
+            foreach (var group in _groups)
+                if (group.HashCode == hash) return new Group(group);
 
-            var groupData = new GroupData(this, hash, Assure<T>(), Assure<U>());
-            Groups.Add(groupData);
+            var groupData = new GroupData(this, hash, Assure<T1>(), Assure<T2>());
+            _groups.Add(groupData);
 
-            Assure<T>().OnAdd += groupData.OnEntityAdded;
-            Assure<U>().OnAdd += groupData.OnEntityAdded;
+            Assure<T1>().OnAdd += groupData.OnEntityAdded;
+            Assure<T2>().OnAdd += groupData.OnEntityAdded;
 
-            Assure<T>().OnRemove += groupData.OnEntityRemoved;
-            Assure<U>().OnRemove += groupData.OnEntityRemoved;
+            Assure<T1>().OnRemove += groupData.OnEntityRemoved;
+            Assure<T2>().OnRemove += groupData.OnEntityRemoved;
 
-            foreach (var entityId in View<T, U>()) groupData.Entities.Add(entityId);
+            foreach (var entityId in View<T1, T2>()) groupData.Entities.Add(entityId);
 
-            return new Group(this, groupData);
+            return new Group(groupData);
         }
 
-        public Group Group<T, U, V>()
+        public Group Group<T1, T2, T3>()
         {
-            var hash = System.HashCode.Combine(typeof(T), typeof(U), typeof(V));
+            var hash = HashCode.Combine(typeof(T1), typeof(T2), typeof(T3));
 
-            foreach (var group in Groups)
-                if (group.HashCode == hash) return new Group(this, group);
+            foreach (var group in _groups)
+                if (group.HashCode == hash) return new Group(group);
 
-            var groupData = new GroupData(this, hash, Assure<T>(), Assure<U>(), Assure<V>());
-            Groups.Add(groupData);
+            var groupData = new GroupData(this, hash, Assure<T1>(), Assure<T2>(), Assure<T3>());
+            _groups.Add(groupData);
 
-            Assure<T>().OnAdd += groupData.OnEntityAdded;
-            Assure<U>().OnAdd += groupData.OnEntityAdded;
-            Assure<V>().OnAdd += groupData.OnEntityAdded;
+            Assure<T1>().OnAdd += groupData.OnEntityAdded;
+            Assure<T2>().OnAdd += groupData.OnEntityAdded;
+            Assure<T3>().OnAdd += groupData.OnEntityAdded;
 
-            Assure<T>().OnRemove += groupData.OnEntityRemoved;
-            Assure<U>().OnRemove += groupData.OnEntityRemoved;
-            Assure<V>().OnRemove += groupData.OnEntityRemoved;
+            Assure<T1>().OnRemove += groupData.OnEntityRemoved;
+            Assure<T2>().OnRemove += groupData.OnEntityRemoved;
+            Assure<T3>().OnRemove += groupData.OnEntityRemoved;
 
-            foreach (var entityId in View<T, U, V>()) groupData.Entities.Add(entityId);
+            foreach (var entityId in View<T1, T2, T3>()) groupData.Entities.Add(entityId);
 
-            return new Group(this, groupData);
+            return new Group(groupData);
         }
     }}

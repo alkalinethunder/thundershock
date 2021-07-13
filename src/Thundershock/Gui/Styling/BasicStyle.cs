@@ -99,7 +99,7 @@ namespace Thundershock.Gui.Styling
 
             var color = ((isActive ? stringList.ItemsActiveColor : stringList.ItemsColor) ?? StyleColor.Default)
                 .GetColor(isActive ? Color.White : Color.Black);
-            var font = stringList.Font.GetFont(this.GetFont(stringList));
+            var font = stringList.Font.GetFont(GetFont(stringList));
             
             renderer.DrawString(font, text, bounds.Location, color);
         }

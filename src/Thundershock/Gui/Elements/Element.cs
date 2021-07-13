@@ -2,9 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Numerics;
-using Gtk;
 using Thundershock.Flumberboozles;
 using Thundershock.Gui.Styling;
 using Thundershock.Core.Input;
@@ -25,8 +23,6 @@ namespace Thundershock.Gui.Elements
         private float _maxHeight;
         private float _fixedWidth;
         private float _fixedHeight;
-        private float _widthUnitRounding;
-        private float _heightUnitRounding;
         private string _name;
         private PropertySet _props;
         private StyleFont _font = StyleFont.Default;
@@ -58,22 +54,10 @@ namespace Thundershock.Gui.Elements
         public StyleFont Font
         {
             get => _font;
-            set
-            {
-                if (_font != value)
-                {
-                    _font = value;
-                }
-            }
+            set => _font = value; 
         }
 
         public PropertySet Properties => _props;
-
-        public float WidthUnitRounding
-        {
-            get => _widthUnitRounding;
-            set => _widthUnitRounding = value;
-        }
         
         public GuiSystem GuiSystem
             => _guiSystem;
@@ -82,7 +66,7 @@ namespace Thundershock.Gui.Elements
             => _bounds;
 
         private string DefaultName
-            => $"{this.GetType().Name}_{GetHashCode()}";
+            => $"{GetType().Name}_{GetHashCode()}";
         
         public string Name
         {
@@ -93,25 +77,13 @@ namespace Thundershock.Gui.Elements
         public HorizontalAlignment HorizontalAlignment
         {
             get => _hAlign;
-            set
-            {
-                if (_hAlign != value)
-                {
-                    _hAlign = value;
-                }
-            }
+            set => _hAlign = value;
         }
 
         public VerticalAlignment VerticalAlignment
         {
             get => _vAlign;
-            set
-            {
-                if (_vAlign != value)
-                {
-                    _vAlign = value;
-                }
-            }
+            set => _vAlign = value;
         }
 
         public float Opacity
@@ -151,25 +123,13 @@ namespace Thundershock.Gui.Elements
         public Padding Padding
         {
             get => _padding;
-            set
-            {
-                if (_padding != value)
-                {
-                    _padding = value;
-                }
-            }
+            set => _padding = value;
         }
 
         public Padding Margin
         {
             get => _margin;
-            set
-            {
-                if (_margin != value)
-                {
-                    _margin = value;
-                }
-            }
+            set => _margin = value;
         }
         
         public float FixedWidth
@@ -223,13 +183,7 @@ namespace Thundershock.Gui.Elements
         public Visibility Visibility
         {
             get => _visibility;
-            set
-            {
-                if (_visibility != value)
-                {
-                    _visibility = value;
-                }
-            }
+            set => _visibility = value;
         }
         
         public float MaximumWidth
@@ -338,7 +292,7 @@ namespace Thundershock.Gui.Elements
             if (_maxHeight > 0)
                 alottedSize.Y = _maxHeight;
             
-            var measure = this.MeasureOverride(alottedSize);
+            var measure = MeasureOverride(alottedSize);
 
             if (_fixedWidth > 0)
                 measure.X = _fixedWidth;
@@ -357,17 +311,7 @@ namespace Thundershock.Gui.Elements
 
             if (_maxHeight > 0)
                 measure.Y = MathF.Min(_maxHeight, measure.Y);
-
-            // Apply width and height clamping.
-            if (_widthUnitRounding > 0)
-            {
-                measure.X = MathF.Ceiling(measure.X / _widthUnitRounding) * _widthUnitRounding;
-            }
-            if (_heightUnitRounding > 0)
-            {
-                measure.Y = MathF.Ceiling(measure.Y / _heightUnitRounding) * _heightUnitRounding;
-            }
-
+            
             measure += Margin.Size + Padding.Size;
             
             ActualSize = measure;
@@ -400,7 +344,7 @@ namespace Thundershock.Gui.Elements
 
             public void SetBounds(Rectangle rectangle)
             {
-                var contentSize = this.GetContentSize(rectangle.Size);
+                var contentSize = GetContentSize(rectangle.Size);
 
                 // Apply padding.
                 rectangle.X += _owner.Padding.Left;
@@ -436,7 +380,7 @@ namespace Thundershock.Gui.Elements
                         bounds.Height = (int) Math.Round(contentSize.Y);
                         bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
                         break;
-                    case Gui.VerticalAlignment.Top:
+                    case VerticalAlignment.Top:
                         bounds.Height = (int) Math.Round(contentSize.Y);
                         bounds.Y = rectangle.Top;
                         break;
@@ -715,11 +659,11 @@ namespace Thundershock.Gui.Elements
             if (_isRenderDataDirty)
             {
                 // This is simple. All we need is our current opacity and tint (enabled = white, disabled = gray)
-                var opacity = this.Opacity;
+                var opacity = Opacity;
                 var tint = Enabled ? Color.White : Color.Gray;
                 
                 // And our parent.
-                var parent = this.Parent;
+                var parent = Parent;
                 
                 // Recurse through the ancestry tree.
                 while (parent != null)

@@ -11,13 +11,7 @@ namespace Thundershock.Gui.Elements
         public StackDirection Orientation
         {
             get => _orientation;
-            set
-            {
-                if (_orientation != value)
-                {
-                    _orientation = value;
-                }
-            }
+            set => _orientation = value;
         }
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
@@ -107,8 +101,8 @@ namespace Thundershock.Gui.Elements
 
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
-            var x = (float) ContentRectangle.Left;
-            var y = (float) ContentRectangle.Top;
+            var x = ContentRectangle.Left;
+            var y = ContentRectangle.Top;
             var line = 0f;
             foreach (var elem in Children)
             {

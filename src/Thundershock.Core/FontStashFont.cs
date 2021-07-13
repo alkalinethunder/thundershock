@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using FontStashSharp;
 using Thundershock.Core.Fonts;
 using Thundershock.Core.Rendering;
@@ -9,8 +8,6 @@ namespace Thundershock.Core
     internal class FontStashFont : Font
     {
         private FontSystem _fontSystem;
-        private GraphicsProcessor _gpu;
-        private FontTextureManager _texManager;
         private int _fontSize;
         
         public override int Size
@@ -39,9 +36,8 @@ namespace Thundershock.Core
         
         public FontStashFont(GraphicsProcessor gpu, byte[] ttfData, int defaultSize)
         {
-            _gpu = gpu ?? throw new ArgumentNullException(nameof(gpu));
-            _texManager = new FontTextureManager(gpu);
-            _fontSystem = new FontSystem(_texManager, 1024, 1024, 0, 0, false);
+            var texManager = new FontTextureManager(gpu);
+            _fontSystem = new FontSystem(texManager, 1024, 1024, 0, 0, false);
 
             _fontSystem.UseKernings = true;
             

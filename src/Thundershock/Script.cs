@@ -8,6 +8,9 @@ namespace Thundershock
         private Scene _scene;
         private SceneObject _sceneObject;
 
+        protected Scene Scene => _scene;
+        protected SceneObject SceneObject => _sceneObject;
+
         internal void Init(Scene scene, SceneObject obj)
         {
             _scene = scene;

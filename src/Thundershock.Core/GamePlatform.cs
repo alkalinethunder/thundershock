@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Thundershock.Core.Audio;
 using Thundershock.Core.Debugging;
-using Thundershock.Debugging;
 
 namespace Thundershock.Core
 {
@@ -108,7 +107,7 @@ namespace Thundershock.Core
         }
 
         [Cheat("GPUName")]
-        private static void PrintGPUInfo()
+        public static void PrintGpuInfo()
         {
             Logger.GetLogger().Log(GraphicsCardDescription);
         }

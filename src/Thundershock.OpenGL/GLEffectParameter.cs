@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Numerics;
 using Thundershock.Core.Rendering;
 
@@ -7,7 +6,7 @@ using Silk.NET.OpenGL;
 
 namespace Thundershock.OpenGL
 {
-    public class GLEffectParameter : EffectParameter
+    public class GlEffectParameter : EffectParameter
     {
         private GL _gl;
         private string _name;
@@ -102,50 +101,50 @@ namespace Thundershock.OpenGL
         
         public override byte GetValueByte()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override int GetValueInt32()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override uint GetValueUInt32()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override float GetValueFloat()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override double GetValueDouble()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override Vector2 GetVector2()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override Vector3 GetVector3()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override Vector4 GetVector4()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public override Matrix4x4 GetMatric4x4()
+        public override Matrix4x4 GetMatrix4X4()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public GLEffectParameter(uint program, string name, int location, GL gl)
+        public GlEffectParameter(uint program, string name, int location, GL gl)
         {
             _gl = gl;
             _program = program;

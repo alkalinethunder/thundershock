@@ -1,7 +1,6 @@
 using System.IO;
 using System.Reflection;
 using Thundershock.Core.Debugging;
-using Thundershock.Debugging;
 
 namespace Thundershock.Core
 {
@@ -18,7 +17,7 @@ namespace Thundershock.Core
             }
 
             Logger.GetLogger()
-                .Log($"Retrieving embedded resource " + resourceName + " from assembly " + ass.ToString());
+                .Log($"Retrieving embedded resource " + resourceName + " from assembly " + ass);
 
             stream = ass.GetManifestResourceStream(resourceName);
             

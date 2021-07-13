@@ -9,8 +9,6 @@ namespace Thundershock.Core
 {
     public abstract class Font
     {
-        private GraphicsProcessor _gpu;
-
         public abstract int Size { get; set; }
         public abstract int LineSpacing { get; set; }
         public int LineHeight => Size + LineSpacing;
@@ -38,11 +36,8 @@ namespace Thundershock.Core
 
         public static Font GetDefaultFont(GraphicsProcessor gpu)
         {
-            var result = false;
-
             if (Resource.GetStream(typeof(Font).Assembly, "Thundershock.Core.Resources.BuiltinFont.ttf", out Stream stream))
             {
-                result = true;
                 return FromTtfStream(gpu, stream);
             }
 

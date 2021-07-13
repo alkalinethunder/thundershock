@@ -10,7 +10,7 @@ namespace Thundershock
     {
         protected override GameWindow CreateGameWindow()
         {
-            return new SDLGameWindow();
+            return new SdlGameWindow();
         }
 
         protected override void OnPreInit()
@@ -26,7 +26,7 @@ namespace Thundershock
             OnLoad();
         }
 
-        private void OnConfigurationLoaded(object? sender, EventArgs e)
+        private void OnConfigurationLoaded(object sender, EventArgs e)
         {
             ApplyConfig();
         }

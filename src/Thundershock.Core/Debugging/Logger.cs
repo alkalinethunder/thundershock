@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Thundershock.Debugging;
 
 namespace Thundershock.Core.Debugging
 {
@@ -47,7 +46,7 @@ namespace Thundershock.Core.Debugging
         public void AddOutput(ILogOutput output)
         {
             _outputs.Add(output);
-            Log($"Added logger output: {output.ToString()}");
+            Log($"Added logger output: {output}");
         }
 
         public void Log(string message, LogLevel logLevel = LogLevel.Info, [CallerMemberName] string member = "", [CallerLineNumber] int ln = 0, [CallerFilePath] string path = "")

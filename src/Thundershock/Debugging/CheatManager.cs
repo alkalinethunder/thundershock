@@ -88,7 +88,7 @@ namespace Thundershock.Debugging
             }
         }
         
-        protected override void OnUpdate(Thundershock.Core.GameTime gameTime)
+        protected override void OnUpdate(GameTime gameTime)
         {
             while (_pendingCommands.TryDequeue(out string cmd))
             {
@@ -132,13 +132,13 @@ namespace Thundershock.Debugging
 
                     var fullname = $"{name}.{cheatName}";
 
-                    AddCheat(fullname, method, null);
+                    AddCheat(fullname, method);
                 }
             }
         }
 
         [Cheat]
-        private void Help()
+        public void Help()
         {
             Logger.GetLogger().Log("Available commands:");
             Logger.GetLogger().Log("");

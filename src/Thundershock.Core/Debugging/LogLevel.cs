@@ -1,4 +1,4 @@
-﻿namespace Thundershock.Debugging
+﻿namespace Thundershock.Core.Debugging
 {
     public enum LogLevel
     {

@@ -7,7 +7,7 @@ namespace Thundershock.Gui.Elements
 {
     public class TextEntry : ContentElement
     {
-        private int _inputPos = 0;
+        private int _inputPos;
         private string _text = string.Empty;
         private string _hint = "Enter text...";
 
@@ -107,7 +107,7 @@ namespace Thundershock.Gui.Elements
 
         protected override bool OnKeyChar(KeyCharEventArgs e)
         {
-            var f = GetFont();
+            GetFont();
 
             _text = _text.Insert(_inputPos, e.Character.ToString());
             TextChanged?.Invoke(this, EventArgs.Empty);

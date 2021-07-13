@@ -1,7 +1,5 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Thundershock.Core;
-using Thundershock.Core.Rendering;
 using Thundershock.Gui;
 
 namespace Thundershock.Components

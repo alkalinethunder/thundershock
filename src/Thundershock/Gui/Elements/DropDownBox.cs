@@ -15,7 +15,7 @@ namespace Thundershock.Gui.Elements
         private StringList _itemList = new();
         private ScrollPanel _scrollPanel = new();
 
-        private bool _isOpen = false;
+        private bool _isOpen;
 
         public string SelectedItem => _itemList.SelectedItem;
 
@@ -60,7 +60,7 @@ namespace Thundershock.Gui.Elements
             _itemList.Blurred += ItemListOnBlurred;
         }
 
-        private void ItemListOnBlurred(object? sender, FocusChangedEventArgs e)
+        private void ItemListOnBlurred(object sender, FocusChangedEventArgs e)
         {
             if (_isOpen)
             {
@@ -69,7 +69,7 @@ namespace Thundershock.Gui.Elements
             }
         }
 
-        private void ItemListOnSelectedIndexChanged(object? sender, EventArgs e)
+        private void ItemListOnSelectedIndexChanged(object sender, EventArgs e)
         {
             if (_itemList.SelectedIndex != _lastIndex && _isOpen)
             {
@@ -81,7 +81,7 @@ namespace Thundershock.Gui.Elements
             }
         }
 
-        private void ActivatorOnMouseUp(object? sender, MouseButtonEventArgs e)
+        private void ActivatorOnMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (_isOpen)
             {
@@ -95,8 +95,8 @@ namespace Thundershock.Gui.Elements
                 _scrollPanel.Properties.SetValue(FreePanel.AutoSizeProperty, true);
 
                 var anchor = FreePanel.CanvasAnchor.TopLeft;
-                anchor.Left = BoundingBox.Left / (float) GuiSystem.BoundingBox.Width;
-                anchor.Top = BoundingBox.Bottom / (float) GuiSystem.BoundingBox.Height;
+                anchor.Left = BoundingBox.Left / GuiSystem.BoundingBox.Width;
+                anchor.Top = BoundingBox.Bottom / GuiSystem.BoundingBox.Height;
                 
                 _scrollPanel.Properties.SetValue(FreePanel.AnchorProperty, anchor);
                 
