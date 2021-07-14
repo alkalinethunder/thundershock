@@ -9,6 +9,9 @@ using Thundershock.Debugging;
 
 namespace Thundershock
 {
+    /// <summary>
+    /// Provides the base functionality for all graphics-capable Thundershock applications.
+    /// </summary>
     public abstract class GraphicalAppBase : AppBase
     {
         private bool _borderless;
@@ -23,32 +26,59 @@ namespace Thundershock
         private GameLayer _gameLayer;
         private MusicPlayer _musicPlayer;
 
+        /// <summary>
+        /// Gets an instance of the graphics processor.
+        /// </summary>
         public GraphicsProcessor Graphics => Window.GraphicsProcessor;
         
+        /// <summary>
+        /// Gets an instance of the game window.
+        /// </summary>
         public GameWindow Window => _gameWindow;
+        
+        /// <summary>
+        /// Gets an instance of the engine's layer manager.
+        /// </summary>
         public LayerManager LayerManager => _layerManager;
         
+        /// <summary>
+        /// Gets or sets a value indicating whether the primary mouse button is the left or right mouse button.
+        /// </summary>
         public bool SwapMouseButtons
         {
             get => _gameWindow.PrimaryMouseButtonIsRightMouseButton;
             set => _gameWindow.PrimaryMouseButtonIsRightMouseButton = value;
         }
         
+        /// <summary>
+        /// Gets or sets a value indicating whether the game window has window decorations.
+        /// </summary>
         public bool IsBorderless
         {
             get => _borderless;
             protected set => _borderless = value;
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the game window is full-screen/maximizedd.
+        /// </summary>
         public bool IsFullScreen
         {
             get => _fullscreen;
             protected set => _fullscreen = value;
         }
 
+        /// <summary>
+        /// Gets the current screen width.
+        /// </summary>
         public int ScreenWidth => _width;
+        
+        /// <summary>
+        /// Gets the current screen height.
+        /// </summary>
         public int ScreenHeight => _height;
         
+        /// <inheritdoc />
         protected sealed override void Bootstrap()
         {
             Logger.Log("Creating the game window...");
@@ -98,6 +128,7 @@ namespace Thundershock
             }
         }
 
+        /// <inheritdoc />
         protected override void BeforeExit(AppExitEventArgs args)
         {
             // call the base method to dispatch the event to the rest of the engine.
@@ -195,6 +226,9 @@ namespace Thundershock
             _frameTimer.Start();
         }
 
+        /// <summary>
+        /// Applies the current application settings to the game window.
+        /// </summary>
         protected void ApplyGraphicsChanges()
         {
             _gameWindow.IsBorderless = _borderless;
@@ -205,6 +239,12 @@ namespace Thundershock
             _gameWindow.Height = _height;
         }
 
+        /// <summary>
+        /// Sets the desired screen size.
+        /// </summary>
+        /// <param name="width">The desired screen width.</param>
+        /// <param name="height">The desired screen height.</param>
+        /// <param name="apply">Whether the given settings should be immediately applied.</param>
         protected void SetScreenSize(int width, int height, bool apply = false)
         {
             _width = width;
@@ -213,13 +253,31 @@ namespace Thundershock
             if (apply) ApplyGraphicsChanges();
         }
         
+        /// <summary>
+        /// Called before the application initializes the game framework.
+        /// </summary>
         protected virtual void OnPreInit() {}
+        
+        /// <summary>
+        /// Called during initialization of the game framework.
+        /// </summary>
         protected virtual void OnInit() {}
+        
+        /// <summary>
+        /// Called after the engine has been fully initialized.
+        /// </summary>
         protected virtual void OnPostInit() {}
 
-
+        /// <summary>
+        /// When overridden in a derived class, creates the game window.
+        /// </summary>
+        /// <returns>An instance of the newly created game window.</returns>
         protected abstract GameWindow CreateGameWindow();
 
+        /// <summary>
+        /// Loads and activates a new scene.
+        /// </summary>
+        /// <typeparam name="T">The type of scene to load.</typeparam>
         protected void LoadScene<T>() where T : Scene, new()
         {
             _gameLayer.LoadScene<T>();

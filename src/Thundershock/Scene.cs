@@ -5,7 +5,6 @@ using System.Numerics;
 using Thundershock.Components;
 using Thundershock.Core;
 using Thundershock.Core.Ecs;
-using Thundershock.Core.Audio;
 using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
@@ -18,10 +17,13 @@ using Thundershock.Rendering;
 
 namespace Thundershock
 {
+    /// <summary>
+    /// Provides functionality for the creation of a game world.
+    /// </summary>
     [CheatAlias("Scene")]
     public abstract class Scene
     {
-        public const uint MaxEntityCount = 10000;
+        private const uint MaxEntityCount = 10000;
 
         private List<ISystem> _systems = new();
         private bool _paused;
@@ -36,38 +38,63 @@ namespace Thundershock
         private PostProcessor _postProcessSystem;
         private RenderTarget2D _sceneRenderTarget;
         
+        /// <summary>
+        /// Gets an instance of the all-seeing, all-knowing <see cref="GameLayer"/> that manages this scene.
+        /// </summary>
         public GameLayer Game => _gameLoop;
+        
+        /// <summary>
+        /// Gets an instance of this scene's input system.
+        /// </summary>
         public InputSystem InputSystem => _input;
 
+        /// <summary>
+        /// Gets a rectangle value indicating the bounds of the game's screen.
+        /// </summary>
         public Rectangle Screen => new Rectangle(
             0,
             0,
             _gameLoop.Window.Width,
             _gameLoop.Window.Height
         );
+
+        private Camera Camera => _cameraManager.ActiveCamera;
         
+        /// <summary>
+        /// Gets an instance of the GUI system for this scene.
+        /// </summary>
         public GuiSystem Gui => _sceneGui;
-        
-        public Camera Camera
-        {
-            get => _cameraManager.ActiveCamera;
-            set => _cameraManager.ActiveCamera = value;
-        }
-        public AudioBackend Audio => _gameLoop.Audio;
+
+        /// <summary>
+        /// Gets a rectangle value indicating the game's viewport bounds.
+        /// </summary>
         public Rectangle ViewportBounds
             => _gameLoop.ViewportBounds;
         
+        /// <summary>
+        /// Gets an instance of the game's graphics processor.
+        /// </summary>
         public GraphicsProcessor Graphics => _gameLoop.Graphics;
 
+        /// <summary>
+        /// Gets an instance of the game's primary camera.
+        /// </summary>
         protected CameraComponent PrimaryCameraSettings => PrimaryCamera.GetComponent<CameraComponent>();
         
-        public Scene()
+        /// <summary>
+        /// Creates a new instance of the Scene class.
+        /// </summary>
+        protected Scene()
         {
             // Create the camera manager for this scene.
             _cameraManager = new(this);
             _registry = new Registry(MaxEntityCount);
         }
         
+        /// <summary>
+        /// Loads a new scene.
+        /// </summary>
+        /// <typeparam name="T">The type of scene to load.</typeparam>
         public void GoToScene<T>() where T : Scene, new ()
         {
             _gameLoop.LoadScene<T>();
@@ -202,7 +229,7 @@ namespace Thundershock
             }
         }
         
-        public void Unload()
+        internal void Unload()
         {
             // Teardown all of the systems.
             while (_systems.Any())
@@ -252,7 +279,7 @@ namespace Thundershock
             }
         }
 
-        public void Draw(GameTime gameTime)
+        internal void Draw(GameTime gameTime)
         {
             // Switch the GPU to our scene render target for the first render pass where we
             // draw all scene elements.
@@ -277,7 +304,7 @@ namespace Thundershock
 
                 _postProcessSystem.SettingsFromCameraComponent(cameraComponent);
 
-                _gameLoop.Graphics.Clear(cameraComponent.BackgroundColor);
+                _gameLoop.Graphics.Clear(cameraComponent.SkyColor);
             }
             else
             {
@@ -369,6 +396,9 @@ namespace Thundershock
             _postProcessSystem.Process(_sceneRenderTarget);
         }
 
+        /// <summary>
+        /// Gets an instance of the scene's primary camera object.
+        /// </summary>
         protected SceneObject PrimaryCamera
         {
             get
@@ -382,24 +412,27 @@ namespace Thundershock
             }
         }
         
+        /// <summary>
+        /// Called every time the engine ticks.
+        /// </summary>
+        /// <param name="gameTime">A value representing the time since last tick.</param>
         protected virtual void OnUpdate(GameTime gameTime) {}
-        protected virtual void OnLoad() {}
-        protected virtual void OnUnload() {}
-
-        #region  CordinateHelpers
-
-        public Vector2 ViewportToScreen(Vector2 coordinates)
-        {
-            return coordinates;
-        }
-
-        public Vector2 ScreenToViewport(Vector2 coordinates)
-        {
-            return coordinates;
-        }
         
-        #endregion
-
+        /// <summary>
+        /// Called when the scene loads.
+        /// </summary>
+        protected virtual void OnLoad() {}
+        
+        /// <summary>
+        /// Called when the scene un-loads.
+        /// </summary>
+        protected virtual void OnUnload() {}
+        
+        /// <summary>
+        /// Finds a scene object by name.
+        /// </summary>
+        /// <param name="name">The name of the object to find.</param>
+        /// <returns>The first matching object, or null if none was found.</returns>
         public SceneObject FindObjectByName(string name)
         {
             var nameView = _registry.View<string>();
@@ -413,6 +446,10 @@ namespace Thundershock
             return null;
         }
         
+        /// <summary>
+        /// Spawns a new scene object.
+        /// </summary>
+        /// <returns>The newly created empty scene object.</returns>
         public SceneObject SpawnObject()
         {
             var entity = _registry.Create();
@@ -451,31 +488,31 @@ namespace Thundershock
         }
 
         [Cheat]
-        protected void NoClip(bool value)
+        internal void NoClip(bool value)
         {
             _noClip = value;
         }
 
         [Cheat]
-        protected void Play()
+        internal void Play()
         {
             _paused = false;
         }
 
         [Cheat]
-        protected void PrimaryCamPos()
+        internal void PrimaryCamPos()
         {
             Logger.GetLogger().Log(PrimaryCamera.GetComponent<Transform>().ToString());
         }
         
         [Cheat]
-        protected void Pause()
+        internal void Pause()
         {
             _paused = true;
         }
         
         [Cheat]
-        protected void SetCamMode(CameraProjectionType mode)
+        internal void SetCamMode(CameraProjectionType mode)
         {
             PrimaryCamera.GetComponent<CameraComponent>().ProjectionType = mode;
         }
@@ -486,6 +523,11 @@ namespace Thundershock
             system.Init(this);
         }
         
+        /// <summary>
+        /// Creates and registers a new system for use only in this scene.
+        /// </summary>
+        /// <typeparam name="T">The type of system to create.</typeparam>
+        /// <returns>An instance of the newly created system.</returns>
         protected T RegisterSystem<T>() where T : ISystem, new()
         {
             var system = new T();
@@ -493,17 +535,14 @@ namespace Thundershock
             return system;
         }
 
+        /// <summary>
+        /// Gets an instance of a given type of system.
+        /// </summary>
+        /// <typeparam name="T">The type of system to find.</typeparam>
+        /// <returns>An instance of the found system.</returns>
         public T GetSystem<T>() where T : ISystem
         {
             return _systems.OfType<T>().First();
         }
-    }
-
-    public interface ISystem
-    {
-        void Init(Scene scene);
-        void Unload();
-        void Update(GameTime gameTime);
-        void Render(GameTime gameTime);
     }
 }

@@ -6,13 +6,18 @@ using Thundershock.OpenGL;
 
 namespace Thundershock
 {
+    /// <summary>
+    /// Provides all application functionality needed for a Thundershock Engine game.
+    /// </summary>
     public abstract class NewGameAppBase : GraphicalAppBase
     {
+        /// <inheritdoc />
         protected override GameWindow CreateGameWindow()
         {
             return new SdlGameWindow();
         }
 
+        /// <inheritdoc />
         protected override void OnPreInit()
         {
             GetComponent<ConfigurationManager>().ConfigurationLoaded += OnConfigurationLoaded;
@@ -20,6 +25,7 @@ namespace Thundershock
             base.OnPreInit();
         }
 
+        /// <inheritdoc />
         protected sealed override void OnPostInit()
         {
             base.OnPostInit();
@@ -93,6 +99,9 @@ namespace Thundershock
             }
         }
         
+        /// <summary>
+        /// Called when it's time for the game to load.
+        /// </summary>
         protected virtual void OnLoad() {}
     }
 }
