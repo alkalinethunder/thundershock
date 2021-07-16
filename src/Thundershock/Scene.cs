@@ -104,7 +104,7 @@ namespace Thundershock
         {
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
             _renderer = new Renderer2D(gameLoop.Graphics);
-            _gameLoop = gameLoop ?? throw new ArgumentNullException(nameof(gameLoop));
+            _gameLoop = gameLoop;
             Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
             _sceneGui = new GuiSystem(_gameLoop.Graphics);

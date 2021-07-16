@@ -63,7 +63,7 @@ namespace Thundershock.Gui.Elements
                 }
                 
                 // Perform layout.
-                GetLayoutManager().SetChildBounds(Children.First(), new Rectangle(contentRectangle.Left, contentRectangle.Top - _scrollOffset, contentRectangle.Width, (int) measure.Y));
+                MyLayout.SetChildBounds(Children.First(), new Rectangle(contentRectangle.Left, contentRectangle.Top - _scrollOffset, contentRectangle.Width, (int) measure.Y));
             }
         }
 

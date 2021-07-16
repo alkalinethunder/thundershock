@@ -9,7 +9,7 @@ namespace Thundershock.Gui.Elements
         protected override bool SupportsChildren => true;
 
         public LayoutManager RootLayoutManager
-            => GetLayoutManager();
+            => MyLayout;
         
         internal RootElement(GuiSystem gui)
         {

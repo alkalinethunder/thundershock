@@ -10,6 +10,9 @@ using Thundershock.Core;
 
 namespace Thundershock.Gui.Elements
 {
+    /// <summary>
+    /// Provides the base functionality for all GUI elements.
+    /// </summary>
     public abstract class Element : IPropertySetOwner
     {
         private bool _isRenderDataDirty = true;
@@ -38,54 +41,105 @@ namespace Thundershock.Gui.Elements
         private Rectangle _contentRect;
         private Rectangle _clipRect;
         
+        /// <summary>
+        /// Gets a rectangle representing the area on the screen where this element is allowed to render.
+        /// </summary>
         public Rectangle ClipBounds => _clipRect;
 
+        /// <summary>
+        /// Gets a value representing the opacity of this element, taking in account the opacity
+        /// of all parent elements as well.
+        /// </summary>
         public float ComputedOpacity => _computedOpacity;
+        
+        /// <summary>
+        /// Gets a value representing the tint of this element, taking in account the tint of
+        /// all parents as well.
+        /// </summary>
         public Color ComputedTint => _computedTint;
         
+        /// <summary>
+        /// Gets or sets a value indicating whether this UI element can receive keyboard focus.
+        /// </summary>
         public bool CanFocus { get; set; }
         
+        /// <summary>
+        /// Gets a rectangle representing the area where this UI element's children or content can be placed. 
+        /// </summary>
         public Rectangle ContentRectangle => _contentRect;
         
+        /// <summary>
+        /// Gets or sets a value indicating whether this UI element receives mouse events or not.
+        /// </summary>
         public bool IsInteractable { get; set; }
         
+        /// <summary>
+        /// Gets or sets the text that appears when the mouse hovers
+        /// over this UI element or any of its children.
+        /// </summary>
         public string ToolTip { get; set; }
 
+        /// <summary>
+        /// Gets or sets the font used by this GUI element when
+        /// drawing text.
+        /// </summary>
         public StyleFont Font
         {
             get => _font;
             set => _font = value; 
         }
 
+        /// <summary>
+        /// Gets an instance of this element's PropertySet, for storing attached properties for use
+        /// by other elements.
+        /// </summary>
         public PropertySet Properties => _props;
         
+        /// <summary>
+        /// Gets an instance of the GUI system this element belongs to.
+        /// </summary>
         public GuiSystem GuiSystem
             => _guiSystem;
         
+        /// <summary>
+        /// Gets a rectangle representing the bounding box of this UI element.
+        /// </summary>
         public Rectangle BoundingBox
             => _bounds;
 
         private string DefaultName
             => $"{GetType().Name}_{GetHashCode()}";
         
+        /// <summary>
+        /// Gets or sets the name of this element as shown in the editor and debugging tools.
+        /// </summary>
         public string Name
         {
             get => _name;
             set => _name = value ?? DefaultName;
         }
         
+        /// <summary>
+        /// Gets or sets the horizontal content alignment of this element.
+        /// </summary>
         public HorizontalAlignment HorizontalAlignment
         {
             get => _hAlign;
             set => _hAlign = value;
         }
 
+        /// <summary>
+        /// Gets or sets the vertical content alignment of this element.
+        /// </summary>
         public VerticalAlignment VerticalAlignment
         {
             get => _vAlign;
             set => _vAlign = value;
         }
 
+        /// <summary>
+        /// Gets or sets a value representing the opacity of this UI element.
+        /// </summary>
         public float Opacity
         {
             get => _opacity;
@@ -101,37 +155,71 @@ namespace Thundershock.Gui.Elements
             }
         }
         
+        /// <summary>
+        /// Gets a value representing whether this element can paint on the screen.
+        /// </summary>
         public abstract bool CanPaint { get; }
         
+        /// <summary>
+        /// Gets or sets a value indicating whether this UI element is enabled or disabled.
+        /// </summary>
         public bool Enabled { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets a value representing the foreground color of this element.
+        /// </summary>
         public StyleColor ForeColor { get; set; } = StyleColor.Default;
         
+        /// <summary>
+        /// Gets the parent element that owns this element.
+        /// </summary>
         public Element Parent
         {
             get => _parent;
             set => _parent = value;
         }
 
+        /// <summary>
+        /// Gets a value representing whether this element supports having child UI elements.
+        /// </summary>
         protected virtual bool SupportsChildren => false;
 
+        /// <summary>
+        /// Gets a modifiable and enumerable list of this element's children.
+        /// </summary>
         public ElementCollection Children => _children;
 
+        /// <summary>
+        /// Gets a value indicating whether this element currently has keyboard focus.
+        /// </summary>
         public bool IsFocused => GuiSystem.FocusedElement == this;
+        
+        /// <summary>
+        /// Gets a value indicating whether this or any child element currently has keyboard focus.
+        /// </summary>
         public bool HasAnyFocus => IsFocused || _children.Any(x => x.HasAnyFocus);
 
+        /// <summary>
+        /// Gets or sets a value indicating the space between the parent bounds and this element's bounding box.
+        /// </summary>
         public Padding Padding
         {
             get => _padding;
             set => _padding = value;
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating the space between this element's bounding box and the content rectangle.
+        /// </summary>
         public Padding Margin
         {
             get => _margin;
             set => _margin = value;
         }
         
+        /// <summary>
+        /// Gets or sets the fixed width of this UI element. Default is 0 meaning that width is determined based on content size.
+        /// </summary>
         public float FixedWidth
         {
             get => _fixedWidth;
@@ -144,6 +232,9 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating the fixed height of this UI element. Default is 0 meaning that height is determined by content size.
+        /// </summary>
         public float FixedHeight
         {
             get => _fixedHeight;
@@ -156,6 +247,9 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        /// <summary>
+        /// Gets or sets the minimum content width.
+        /// </summary>
         public float MinimumWidth
         {
             get => _minWidth;
@@ -168,6 +262,9 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        /// <summary>
+        /// Gets or sets the minimum content height.
+        /// </summary>
         public float MinimumHeight
         {
             get => _minHeight;
@@ -180,12 +277,18 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        /// <summary>
+        /// Gets or sets the visibility of this UI element.
+        /// </summary>
         public Visibility Visibility
         {
             get => _visibility;
             set => _visibility = value;
         }
         
+        /// <summary>
+        /// Gets or sets the maximum content width.
+        /// </summary>
         public float MaximumWidth
         {
             get => _maxWidth;
@@ -198,6 +301,9 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        /// <summary>
+        /// Gets or sets the maximum content height.
+        /// </summary>
         public float MaximumHeight
         {
             get => _maxHeight;
@@ -210,8 +316,14 @@ namespace Thundershock.Gui.Elements
             }
         }
         
+        /// <summary>
+        /// Gets a value representing the actual size of the element's content.
+        /// </summary>
         public Vector2 ActualSize { get; private set; }
         
+        /// <summary>
+        /// Creates a new instance of the <se cref="Element" /> class.
+        /// </summary>
         public Element()
         {
             _children = new ElementCollection(this);
@@ -221,7 +333,7 @@ namespace Thundershock.Gui.Elements
             _props = new(this);
         }
 
-        protected void SetGuiSystem(GuiSystem gui)
+        protected internal void SetGuiSystem(GuiSystem gui)
         {
             if (_guiSystem != null)
                 throw new InvalidOperationException("You can only set the GuiSystem of the Root Element.");
@@ -229,14 +341,24 @@ namespace Thundershock.Gui.Elements
             _guiSystem = gui;
         }
         
+        /// <summary>
+        /// Called when the element's content rectangle has been calculated. Use this method
+        /// to place child elements and content within the content rectangle.
+        /// </summary>
+        /// <param name="contentRectangle">The calculated content rectangle of the element.</param>
         protected virtual void ArrangeOverride(Rectangle contentRectangle)
         {
             foreach (var child in Children)
             {
-                child.GetLayoutManager().SetBounds(contentRectangle);
+                child.MyLayout.SetBounds(contentRectangle);
             }
         }
         
+        /// <summary>
+        /// Called during layout to calculate the size of the element's children or content.
+        /// </summary>
+        /// <param name="alottedSize">A suggested size that all content should fit within. Zero means that there is no limit.</param>
+        /// <returns>The calculated size of the element.</returns>
         protected virtual Vector2 MeasureOverride(Vector2 alottedSize)
         {
             var size = Vector2.Zero;
@@ -250,12 +372,16 @@ namespace Thundershock.Gui.Elements
             
             return size;
         }
-        
-        protected LayoutManager GetLayoutManager()
-        {
-            return _layout;
-        }
 
+        /// <summary>
+        /// Gets an instance of this element's Layout Manager.
+        /// </summary>
+        protected LayoutManager MyLayout => _layout;
+        
+        /// <summary>
+        /// Called on every tick if the element is enabled. Allows the element to update itself and any animations.
+        /// </summary>
+        /// <param name="gameTime">The time since last tick.</param>
         public void Update(GameTime gameTime)
         {
             OnUpdate(gameTime);
@@ -265,11 +391,21 @@ namespace Thundershock.Gui.Elements
             }
         }
 
+        /// <summary>
+        /// Paints the element on the screen if painting is enabled.
+        /// </summary>
+        /// <param name="gameTime">Time since last tick.</param>
+        /// <param name="renderer">An instance of the GUI renderer for this element.</param>
         public void Paint(GameTime gameTime, GuiRenderer renderer)
         {
             OnPaint(gameTime, renderer);
         }
 
+        /// <summary>
+        /// Calculates the size of this element's content.
+        /// </summary>
+        /// <param name="alottedSize">The desired maximum size of the element.</param>
+        /// <returns>The calculated element size.</returns>
         public Vector2 Measure(Vector2 alottedSize = default)
         {
             // If the UI element is collapsed, report a measurement of zero.
@@ -319,10 +455,23 @@ namespace Thundershock.Gui.Elements
             return measure;
         }
         
+        
+        /// <summary>
+        /// Called when it's time for the GUI element to paint.
+        /// </summary>
+        /// <param name="gameTime">Time since the last tick.</param>
+        /// <param name="renderer">An instance of this GUI element's renderer.</param>
         protected virtual void OnPaint(GameTime gameTime, GuiRenderer renderer) {}
+        
+        /// <summary>
+        /// Called when it's time for this element to update.
+        /// </summary>
+        /// <param name="gameTime">Time since the last tick.</param>
         protected virtual void OnUpdate(GameTime gameTime) {}
-        protected virtual void OnPaint(GuiRenderer renderer) {}
 
+        /// <summary>
+        /// Provides functionality for performing layout operations on GUI elements.
+        /// </summary>
         public class LayoutManager
         {
             private Element _owner;
@@ -332,14 +481,14 @@ namespace Thundershock.Gui.Elements
                 return _owner.Measure(alottedSize);
             }
             
-            public LayoutManager(Element element)
+            internal LayoutManager(Element element)
             {
                 _owner = element;
             }
 
             public void SetChildBounds(Element elem, Rectangle rect)
             {
-                elem.GetLayoutManager().SetBounds(rect);
+                elem.MyLayout.SetBounds(rect);
             }
 
             public void SetBounds(Rectangle rectangle)

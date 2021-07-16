@@ -177,7 +177,7 @@ namespace Thundershock.Gui.Elements
                 }
                 
                 // position, my child!
-                GetLayoutManager().SetChildBounds(elem.Element, rect);
+                MyLayout.SetChildBounds(elem.Element, rect);
                 
                 // You've been...
                 //

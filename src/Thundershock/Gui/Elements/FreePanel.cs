@@ -133,7 +133,7 @@ namespace Thundershock.Gui.Elements
                 if (rect.Width <= 0) rect.Width = size.X;
                 if (rect.Height <= 0) rect.Height = size.Y;
                 
-                GetLayoutManager().SetChildBounds(elem, rect);
+                MyLayout.SetChildBounds(elem, rect);
             }
         }
     }
