@@ -1,2 +1,2 @@
-# [Articles](articles/getting-started.md)
-# [API](api/index.md)
+# [Articles](./articles/getting-started.md)
+# [API](./api/index.md)
