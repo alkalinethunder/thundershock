@@ -11,6 +11,17 @@ namespace Thundershock
     public sealed class GameLayer : Layer
     {
         private Scene _currentScene;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the engine will override the viewport rectangle using
+        /// <see cref="ViewportOverrideBounds"/>. This is off by default and is mainly used by the editor.
+        /// </summary>
+        public bool OverrideViewport { get; set; }
+        
+        /// <summary>
+        /// Gets or sets a rectangle representing the overridden viewport bounds.
+        /// </summary>
+        public Rectangle ViewportOverrideBounds { get; set; }
         
         /// <summary>
         /// Gets an instance of the game window.
@@ -26,7 +37,8 @@ namespace Thundershock
         /// Gets a rectangle representing the bounds of the screen.
         /// </summary>
         public Rectangle ViewportBounds
-            => new Rectangle(0, 0, Window.Width, Window.Height);
+            => OverrideViewport ? ViewportOverrideBounds :
+                new(0, 0, Window.Width, Window.Height);
         
         /// <inheritdoc />
         protected override void OnRender(GameTime gameTime)
@@ -83,10 +95,11 @@ namespace Thundershock
         /// Loads a new scene.
         /// </summary>
         /// <typeparam name="T">The type of scene to load.</typeparam>
-        public void LoadScene<T>() where T : Scene, new()
+        public T LoadScene<T>() where T : Scene, new()
         {
             var scene = new T();
             LoadSceneInternal(scene);
+            return scene;
         }
 
         /// <summary>

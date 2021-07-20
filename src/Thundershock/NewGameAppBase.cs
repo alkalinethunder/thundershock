@@ -86,9 +86,9 @@ namespace Thundershock
             // }
 
             // fullscreen mode
-            if (IsFullScreen != config.ActiveConfig.IsFullscreen)
+            if (Window.IsFullScreen != config.ActiveConfig.IsFullscreen)
             {
-                IsFullScreen = config.ActiveConfig.IsFullscreen;
+                Window.IsFullScreen = config.ActiveConfig.IsFullscreen;
                 applyGraphicsChanges = true;
             }
 

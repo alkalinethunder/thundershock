@@ -14,6 +14,11 @@ namespace Thundershock
         
         private GraphicalAppBase _app;
 
+        public T GetFirstLayer<T>() where T : Layer
+        {
+            return _layers.OfType<T>().First();
+        }
+        
         public LayerManager(GraphicalAppBase app)
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));

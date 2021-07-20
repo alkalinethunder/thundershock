@@ -14,8 +14,6 @@ namespace Thundershock
     /// </summary>
     public abstract class GraphicalAppBase : AppBase
     {
-        private bool _borderless;
-        private bool _fullscreen;
         private int _width;
         private int _height;
         private GameWindow _gameWindow;
@@ -50,24 +48,6 @@ namespace Thundershock
             set => _gameWindow.PrimaryMouseButtonIsRightMouseButton = value;
         }
         
-        /// <summary>
-        /// Gets or sets a value indicating whether the game window has window decorations.
-        /// </summary>
-        public bool IsBorderless
-        {
-            get => _borderless;
-            protected set => _borderless = value;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the game window is full-screen/maximizedd.
-        /// </summary>
-        public bool IsFullScreen
-        {
-            get => _fullscreen;
-            protected set => _fullscreen = value;
-        }
-
         /// <summary>
         /// Gets the current screen width.
         /// </summary>
@@ -231,9 +211,6 @@ namespace Thundershock
         /// </summary>
         protected void ApplyGraphicsChanges()
         {
-            _gameWindow.IsBorderless = _borderless;
-            _gameWindow.IsFullScreen = _fullscreen;
-            
             // TODO: V-Sync, Fixed Time Stepping, Monitor Positioning
             _gameWindow.Width = _width;
             _gameWindow.Height = _height;
@@ -278,9 +255,9 @@ namespace Thundershock
         /// Loads and activates a new scene.
         /// </summary>
         /// <typeparam name="T">The type of scene to load.</typeparam>
-        protected void LoadScene<T>() where T : Scene, new()
+        protected T LoadScene<T>() where T : Scene, new()
         {
-            _gameLayer.LoadScene<T>();
+            return _gameLayer.LoadScene<T>();
         }
     }
 }

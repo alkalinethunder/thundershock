@@ -11,6 +11,7 @@ namespace Thundershock.Core
         private int _mouseY;
         private AppBase _app;
         private string _windowTitle = "Thundershock Engine";
+        private bool _canResize = true;
         private bool _borderless;
         private bool _fullscreen;
         private int _width = 640;
@@ -55,6 +56,21 @@ namespace Thundershock.Core
                 }
             }
         }
+        
+        public bool CanResize
+        {
+            get => _canResize;
+            set
+            {
+                if (_canResize != value)
+                {
+                    _canResize = value;
+                    if (_app != null)
+                        OnWindowModeChanged();
+                }
+            }
+        }
+
 
         public bool IsBorderless
         {

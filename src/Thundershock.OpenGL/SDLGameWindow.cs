@@ -270,6 +270,7 @@ namespace Thundershock.OpenGL
             else if (IsFullScreen)
                 fsFlags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreenDesktop;
             
+            Sdl.SDL_SetWindowResizable(_sdlWindow, CanResize ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
             Sdl.SDL_SetWindowBordered(_sdlWindow, IsBorderless ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
             Sdl.SDL_SetWindowFullscreen(_sdlWindow, fsFlags);
 
@@ -277,6 +278,7 @@ namespace Thundershock.OpenGL
             {
                 Sdl.SDL_SetWindowPosition(_sdlWindow, Sdl.SdlWindowposCentered, Sdl.SdlWindowposCentered);
             }
+
             
             base.OnWindowModeChanged();
         }
@@ -298,10 +300,12 @@ namespace Thundershock.OpenGL
             flags |= (uint) Sdl.SdlWindowFlags.SdlWindowShown;
             
             App.Logger.Log("Creating an SDL Window...");
-            _sdlWindow = Sdl.SDL_CreateWindow(Title, 0, 0, Width, Height,
+            _sdlWindow = Sdl.SDL_CreateWindow(Title, Sdl.SDL_WINDOWPOS_CENTERED_DISPLAY(0), Sdl.SDL_WINDOWPOS_CENTERED_DISPLAY(0), Width, Height,
                 (Sdl.SdlWindowFlags) flags);
             App.Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
 
+            Sdl.SDL_SetWindowResizable(_sdlWindow, CanResize ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
+            
             SetupGlRenderer();
         }
 
