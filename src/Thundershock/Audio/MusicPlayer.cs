@@ -232,5 +232,10 @@ namespace Thundershock.Audio
                 bufCount--;
             }
         }
+
+        public static void Stop()
+        {
+            GetInstance().StopInternal();
+        }
     }
 }
