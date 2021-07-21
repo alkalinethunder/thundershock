@@ -7,13 +7,12 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class Menu : LayoutElement
+    public class Menu : ContentElement
     {
         private MenuItem _item;
 
         private List<Menu> _submenus = new();
 
-        private Panel _bg = new();
         private Stacker _menuList = new();
 
         public MenuItem Item => _item;
@@ -23,9 +22,8 @@ namespace Thundershock.Gui.Elements
             _item = item ?? throw new ArgumentNullException(nameof(item));
 
             _menuList.Padding = 2;
-            _bg.Children.Add(_menuList);
-            Children.Add(_bg);
-
+            Children.Add(_menuList);
+            
             Build();
 
             _item.Updated += ItemOnUpdated;
@@ -52,11 +50,11 @@ namespace Thundershock.Gui.Elements
             }
         }
 
-        public void Open()
+        public bool Open()
         {
             Close();
 
-            _item.Activate();
+            return _item.Items.Any() || _item.Activate();
         }
 
         private void Build()
@@ -69,7 +67,7 @@ namespace Thundershock.Gui.Elements
             foreach (var item in _item.Items)
             {
                 var menu = new Menu(item);
-                var button = new Button();
+                var button = new MenuItemButton();
 
                 button.Enabled = item.Enabled;
 
@@ -92,30 +90,36 @@ namespace Thundershock.Gui.Elements
         {
             if (e.Button == MouseButton.Primary)
             {
-                if (sender is Button button)
+                if (sender is MenuItemButton button)
                 {
                     // close all submenus
                     foreach (var submenu in _submenus)
                         submenu.Close();
 
                     var menu = button.Properties.GetValue<Menu>("menu");
-                    menu.Open();
+                    if (!menu.Open())
+                    {
+                        Close();
+                    }
                 }
             }
         }
 
         private void MenuItemMouseEnter(object sender, MouseMoveEventArgs e)
         {
-            if (sender is Button button)
+            if (sender is MenuItemButton button)
             {
                 // close all submenus
                 foreach (var submenu in _submenus)
                     submenu.Close();
 
                 var menu = button.Properties.GetValue<Menu>("menu");
-
+                
                 // open the submenu WITHOUT activating the item.
-                GuiSystem.AddToViewport(menu);
+                if (menu._item.Items.Any())
+                {
+                    GuiSystem.AddToViewport(menu);
+                }
             }
         }
 
@@ -124,7 +128,7 @@ namespace Thundershock.Gui.Elements
             base.ArrangeOverride(contentRectangle);
 
             // This works a lot like MenuBar does except that we align the menus a little differently.
-            foreach (var button in _menuList.Children.OfType<Button>())
+            foreach (var button in _menuList.Children.OfType<MenuItemButton>())
             {
                 var menu = button.Properties.GetValue<Menu>("menu");
 
@@ -160,6 +164,11 @@ namespace Thundershock.Gui.Elements
                 // Now we can position the menu.
                 menu.Properties.SetValue(FreePanel.PositionProperty, menuRect.Location);
             }
+        }
+
+        protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
+        {
+            GuiSystem.Style.PaintMenu(this, gameTime, renderer);
         }
     }
 }

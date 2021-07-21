@@ -74,5 +74,27 @@ namespace Thundershock.Gui.Styling
         {
             return DefaultFont;
         }
+
+        public abstract void PaintElementBackground(Element element, GameTime gameTime, GuiRenderer renderer);
+        
+        public virtual void PaintMenuBar(MenuBar menuBar, GameTime gameTime, GuiRenderer renderer)
+        {
+            PaintElementBackground(menuBar, gameTime, renderer);
+        }
+        
+        public virtual void PaintMenu(Menu menu, GameTime gameTime, GuiRenderer renderer)
+        {
+            PaintElementBackground(menu, gameTime, renderer);
+        }
+
+        public virtual void PaintMenuBarItemBackground(Element element, GameTime gameTime, GuiRenderer renderer,
+            SelectionStyle selectionStyle)
+        {
+            DrawSelectionBox(renderer, element.BoundingBox, selectionStyle);
+        }
+
+        public abstract void PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text,
+            Font font,
+            Vector2 textPos, SelectionStyle selectionStyle);
     }
 }

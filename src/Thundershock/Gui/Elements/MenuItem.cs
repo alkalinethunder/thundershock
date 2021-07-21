@@ -229,6 +229,11 @@ namespace Thundershock.Gui.Elements
             Items = new MenuItemCollection(this);
         }
 
+        public MenuItem(string text) : this()
+        {
+            this.Text = text;
+        }
+
         private void BubbleUpdate()
         {
             if (Parent != null)
@@ -240,9 +245,15 @@ namespace Thundershock.Gui.Elements
                 _menuBar.Rebuild();
         }
 
-        public void Activate()
+        public bool Activate()
         {
-            Activated?.Invoke(this, EventArgs.Empty);
+            if (Activated != null)
+            {
+                Activated(this, EventArgs.Empty);
+                return true;
+            }
+
+            return false;
         }
 
         public event EventHandler Activated;

@@ -1,4 +1,5 @@
 ﻿using Thundershock.Core;
+using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Gui;
 using Thundershock.Gui.Elements;
@@ -45,6 +46,32 @@ namespace Thundershock.Editor
         private Stacker _rightStack = new();
         
         #endregion
+
+        #region Menu Items
+
+        private MenuItem _fileMenu = new("File");
+        private MenuItem _editMenu = new("Edit");
+        private MenuItem _viewMenu = new("View");
+        private MenuItem _windowMenu = new("Window");
+        private MenuItem _helpMenu = new("Help");
+
+        #endregion
+
+        #region Menu: File
+
+        private MenuItem _newScene = new("New Scene...");
+        private MenuItem _openScene = new("Open Scene");
+        private MenuItem _saveScene = new("save Scene");
+        private MenuItem _saveSceneAs = new("Save Scene As...");
+        private MenuItem _newProject = new("New Project...");
+        private MenuItem _openProject = new("Open Project...");
+        private MenuItem _saveAllAssets = new("Save All Goodies...");
+        private MenuItem _importAsset = new("Import Goodie...");
+        private MenuItem _exportAssets = new("Export Goodie...");
+        private MenuItem _publish = new("Publish Game...");
+        private MenuItem _exit = new("Exit");
+
+        #endregion
         
         #region Layer Implementation
         
@@ -59,7 +86,10 @@ namespace Thundershock.Editor
             _editorRenderer = new Renderer2D(App.Graphics);
             _gui = new GuiSystem(App.Graphics);
 
+            _gui.LoadStyle<EditorStyle>();
+
             BuildGui();
+            BuildMenu();
         }
 
         protected override void OnUnload()
@@ -125,6 +155,61 @@ namespace Thundershock.Editor
             _master.Children.Add(_editorStack);
 
             _gui.AddToViewport(_master);
+        }
+
+        private void BuildMenu()
+        {
+            _menuBar.Items.Add(_fileMenu);
+            _menuBar.Items.Add(_editMenu);
+            _menuBar.Items.Add(_viewMenu);
+            _menuBar.Items.Add(_windowMenu);
+            _menuBar.Items.Add(_helpMenu);
+ 
+            _fileMenu.Items.Add(_newProject);
+            _fileMenu.Items.Add(_openProject);
+            _fileMenu.Items.Add(_saveAllAssets);
+            _fileMenu.Items.Add(_newScene);
+            _fileMenu.Items.Add(_openScene);
+            _fileMenu.Items.Add(_saveScene);
+            _fileMenu.Items.Add(_saveSceneAs);
+            _fileMenu.Items.Add(_importAsset);
+            _fileMenu.Items.Add(_exportAssets);
+            _fileMenu.Items.Add(_publish);
+            _fileMenu.Items.Add(_exit);
+        }
+
+        #endregion
+
+        #region Layer Events
+
+        public override bool MouseDown(MouseButtonEventArgs e)
+        {
+            return _gui.MouseDown(e);
+        }
+
+        public override bool MouseMove(MouseMoveEventArgs e)
+        {
+            return _gui.MouseMove(e);
+        }
+
+        public override bool MouseUp(MouseButtonEventArgs e)
+        {
+            return _gui.MouseUp(e);
+        }
+
+        public override bool KeyDown(KeyEventArgs e)
+        {
+            return _gui.KeyDown(e);
+        }
+
+        public override bool KeyUp(KeyEventArgs e)
+        {
+            return _gui.KeyUp(e);
+        }
+
+        public override bool KeyChar(KeyCharEventArgs e)
+        {
+            return _gui.KeyChar(e);
         }
 
         #endregion

@@ -6,9 +6,8 @@ using Thundershock.Core.Input;
 
 namespace Thundershock.Gui.Elements
 {
-    public class MenuBar : LayoutElement
+    public class MenuBar : ContentElement
     {
-        private Panel _menuBackground = new();
         private Stacker _menuStacker = new();
         private List<Menu> _menus = new();
         private static readonly string MenuBarItemTag = "menubar.item";
@@ -23,8 +22,7 @@ namespace Thundershock.Gui.Elements
             _menuStacker.Direction = StackDirection.Horizontal;
             _menuStacker.Padding = new Padding(2, 4);
 
-            _menuBackground.Children.Add(_menuStacker);
-            Children.Add(_menuBackground);
+            Children.Add(_menuStacker);
         }
 
         public void Rebuild()
@@ -41,10 +39,9 @@ namespace Thundershock.Gui.Elements
                 if (!item.Enabled)
                     continue;
 
-                var button = new Button();
+                var button = new MenuBarButton();
                 button.Properties.SetValue(MenuBarItemTag, item);
                 button.Text = item.Text;
-                button.Padding = new Padding(1, 0);
                 _menuStacker.Children.Add(button);
 
                 button.MouseUp += MenuButtonOnMouseUp;
@@ -64,12 +61,20 @@ namespace Thundershock.Gui.Elements
         {
             if (e.Button == MouseButton.Primary)
             {
-                if (sender is Button button)
+                if (sender is MenuBarButton button)
                 {
                     var menu = button.Properties.GetValue<Menu>(MenuBarMenuTag);
-                    menu.Open();
 
-                    GuiSystem.AddToViewport(menu);
+                    foreach (var item in _menuStacker.Children.OfType<MenuBarButton>())
+                    {
+                        var otherMenu = item.Properties.GetValue<Menu>(MenuBarMenuTag);
+                        otherMenu.Close();
+                    }
+                    
+                    if (menu.Open())
+                    {
+                        GuiSystem.AddToViewport(menu);
+                    }
                 }
             }
         }
@@ -80,7 +85,7 @@ namespace Thundershock.Gui.Elements
 
             // This is where we get to go through our buttons
             // and position the menus they're associated with.
-            foreach (var button in _menuStacker.Children.OfType<Button>())
+            foreach (var button in _menuStacker.Children.OfType<MenuBarButton>())
             {
                 var menu = button.Properties.GetValue<Menu>(MenuBarMenuTag);
 
@@ -114,6 +119,11 @@ namespace Thundershock.Gui.Elements
                 // We now know where the menu should be.
                 menu.Properties.SetValue(FreePanel.PositionProperty, new Vector2(menuRect.Left, menuRect.Top));
             }
+        }
+
+        protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
+        {
+            GuiSystem.Style.PaintMenuBar(this, gameTime, renderer);
         }
     }
 }

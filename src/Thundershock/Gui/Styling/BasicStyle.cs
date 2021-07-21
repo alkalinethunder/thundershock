@@ -6,6 +6,7 @@ namespace Thundershock.Gui.Styling
 {
     public class BasicStyle : GuiStyle
     {
+        private Color _bgColor = Color.White;
         private Color _selectionColor = Color.Blue;
         private Color _buttonColor = ThundershockPlatform.HtmlColor("#343434");
         private Color _activeButtonColor = ThundershockPlatform.HtmlColor("#1baaf7");
@@ -102,6 +103,19 @@ namespace Thundershock.Gui.Styling
             var font = stringList.Font.GetFont(GetFont(stringList));
             
             renderer.DrawString(font, text, bounds.Location, color);
+        }
+
+        public override void PaintElementBackground(Element element, GameTime gameTime, GuiRenderer renderer)
+        {
+            renderer.FillRectangle(element.BoundingBox, _bgColor);
+        }
+
+        public override void PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text, Font font,
+            Vector2 textPos, SelectionStyle selectionStyle)
+        {
+            var color = (selectionStyle == SelectionStyle.None) ? Color.Black : Color.White;
+
+            renderer.DrawString(font, text, textPos, color);
         }
     }
 }
