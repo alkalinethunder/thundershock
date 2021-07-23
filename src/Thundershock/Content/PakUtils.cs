@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
+using Thundershock.Debugging;
 
 namespace Thundershock.Content
 {

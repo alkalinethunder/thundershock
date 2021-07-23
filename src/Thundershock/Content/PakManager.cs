@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
+using Thundershock.Debugging;
 using Thundershock.Gui;
 using Thundershock.IO;
 
