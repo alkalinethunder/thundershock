@@ -54,7 +54,7 @@ namespace Thundershock.Gui.Elements
         {
             Close();
 
-            return _item.Items.Any() || _item.Activate();
+            return _item.Items.Any() || !_item.Activate();
         }
 
         private void Build()
