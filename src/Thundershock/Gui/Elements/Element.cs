@@ -69,6 +69,11 @@ namespace Thundershock.Gui.Elements
         public Rectangle ContentRectangle => _contentRect;
         
         /// <summary>
+        /// Gets or sets the background color of the UI element.
+        /// </summary>
+        public Color BackColor { get; set; } = Color.White;
+
+        /// <summary>
         /// Gets or sets a value indicating whether this UI element receives mouse events or not.
         /// </summary>
         public bool IsInteractable { get; set; }
