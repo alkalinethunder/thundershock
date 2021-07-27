@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Numerics;
+using Thundershock.Core;
 
 namespace Thundershock.Gui
 {
     public struct Padding
     {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
+        public float Left;
+        public float Top;
+        public float Right;
+        public float Bottom;
 
-        public int Width => Left + Right;
-        public int Height => Top + Bottom;
+        public float Width => Left + Right;
+        public float Height => Top + Bottom;
 
         public Vector2 Size => new Vector2(Width, Height);
 
-        private int X1 => Left;
-        private int X2 => Right;
-        private int Y1 => Top;
-        private int Y2 => Bottom;
+        private float X1 => Left;
+        private float X2 => Right;
+        private float Y1 => Top;
+        private float Y2 => Bottom;
         
-        public Padding(int left, int top, int right, int bottom)
+        public Padding(float left, float top, float right, float bottom)
         {
             Left = left;
             Top = top;
@@ -28,20 +29,23 @@ namespace Thundershock.Gui
             Bottom = bottom;
         }
 
-        public Padding(int h, int v) : this(h, v, h, v)
+        public Padding(float h, float v) : this(h, v, h, v)
         {
         }
 
-        public Padding(int all) : this(all, all)
+        public Padding(float all) : this(all, all)
         {
         }
 
-        public static implicit operator Padding(int all)
+        public static implicit operator Padding(float all)
             => new Padding(all);
 
         public static bool operator ==(Padding a, Padding b)
         {
-            return (a.Left == b.Left && a.Top == b.Top && a.Right == b.Right && a.Bottom == b.Bottom);
+            return MathHelper.FloatEquality(a.Left, b.Left)
+                   && MathHelper.FloatEquality(a.Top, b.Top)
+                   && MathHelper.FloatEquality(a.Right, b.Right)
+                   && MathHelper.FloatEquality(a.Bottom, b.Bottom);
         }
 
         public static bool operator !=(Padding a, Padding b)

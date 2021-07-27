@@ -66,5 +66,17 @@ namespace Thundershock.Gui
 
             _spriteBatch.DrawString(font, text, position, tint);
         }
+
+        public void FillCircle(Vector2 center, float radius, Color color)
+            => FillCircle(center, radius, null, color);
+        
+        public void FillCircle(Vector2 center, float radius, Texture2D texture, Color tint)
+        {
+            var color = GetProperTint(tint);
+            if (color.A <= 0)
+                return;
+            
+            _spriteBatch.FillCircle(center, radius, color, texture);
+        }
     }
 }

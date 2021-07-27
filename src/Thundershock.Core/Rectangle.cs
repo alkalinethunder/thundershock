@@ -90,5 +90,27 @@ namespace Thundershock.Core
 
             return Empty;
         }
+
+        public static Rectangle FromHalfExtents(Vector2 center, float extent)
+        {
+            var t = center.Y - extent;
+            var l = center.X - extent;
+
+            return new Rectangle(l, t, extent * 2, extent * 2);
+        }
+
+        public static Vector2 MapVec2(Vector2 vector, Rectangle source, Rectangle dest)
+        {
+            var sx = vector.X - source.Left;
+            var sy = vector.Y - source.Top;
+
+            var xNormal = sx / source.Width;
+            var yNormal = sy / source.Height;
+
+            var x = dest.Left + (xNormal * dest.Width);
+            var y = dest.Top + (yNormal * dest.Height);
+
+            return new Vector2(x, y);
+        }
     }
 }

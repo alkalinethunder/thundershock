@@ -289,19 +289,39 @@ namespace Thundershock.Core.Rendering
 
         }
         
-        private void FillTriangleFan(Vector2 center, ReadOnlySpan<Vector2> vs, Color color)
+        private void FillTriangleFan(Vector2 center, ReadOnlySpan<Vector2> vs, Color color, Texture2D texture)
         {
             var c = vs.Length;
             if (c < 2)
                 throw new ArgumentException(@"Need at least 3 vertices for a triangle fan.", nameof(vs));
 
-            var renderItem = MakeRenderItem(null);
+            var renderItem = MakeRenderItem(texture);
 
-            var centerIndex = AddVertex(center, color, Vector2.Zero);
-            var v1 = AddVertex(vs[0], color, Vector2.Zero);
+            var texWidth = texture?.Width ?? 1;
+            var texHeight = texture?.Height ?? 1;
+            var texDiameter = (float) Math.Min(texWidth, texHeight);
+            var u = texDiameter / (float) texWidth;
+            var v = texDiameter / (float) texHeight;
+
+            var ul = (1f - u) / 2;
+            var ut = (1f - v) / 2;
+
+            var point5 = new Vector2(0.5f, 0.5f);
+            var centerIndex = AddVertex(center, color, point5);
+            
+            var rs = Vector2.Distance(center, vs[0]);
+
+            var imageRect = Rectangle.FromHalfExtents(center, rs);
+            var uvRect = new Rectangle(ul, ut, u, v);
+
+            var uv1 = Rectangle.MapVec2(vs[0], imageRect, uvRect);
+
+            var v1 = AddVertex(vs[0], color, uv1);
+
             for (var i = 1; i < c; i++)
             {
-                var v2 = AddVertex(vs[i], color, Vector2.Zero);
+                var uv = Rectangle.MapVec2(vs[i], imageRect, uvRect);
+                var v2 = AddVertex(vs[i], color, uv);
                 renderItem.AddIndex(centerIndex);
                 renderItem.AddIndex(v1);
                 renderItem.AddIndex(v2);
@@ -318,7 +338,12 @@ namespace Thundershock.Core.Rendering
         /// <param name="maxError">https://youtu.be/hQ3GW7lVBWY</param>
         public void FillCircle(Vector2 center, float radius, Color color, float maxError = .25f)
         {
-            FillCircleSegment(center, radius, RightStartAngle, RightEndAngle, color, maxError);
+            FillCircle(center, radius, color, null, maxError);
+        }
+
+        public void FillCircle(Vector2 center, float radius, Color color, Texture2D texture, float maxError = 0.25f)
+        {
+            FillCircleSegment(center, radius, RightStartAngle, RightEndAngle, color, texture, maxError);
         }
         
         void IFontStashRenderer.Draw(object texture, Vector2 pos, System.Drawing.Rectangle? src, System.Drawing.Color color, float rotation, Vector2 origin, Vector2 scale,
@@ -367,14 +392,14 @@ namespace Thundershock.Core.Rendering
                 result[i] = center + new Vector2((float) (radius * Math.Cos(end)), (float) (radius * Math.Sin(end)));
         }
         
-        private void FillCircleSegment(Vector2 center, float radius, float start, float end, Color color, float maxError)
+        private void FillCircleSegment(Vector2 center, float radius, float start, float end, Color color, Texture2D texture, float maxError)
         {
             ComputeCircleSegments(radius, maxError, end - start, out var step, out var segments);
 
             Span<Vector2> points = stackalloc Vector2[segments + 1];
             CreateCircleSegment(center, radius, step, start, end, ref points);
             
-            FillTriangleFan(center, points, color);
+            FillTriangleFan(center, points, color, texture);
         }
         
         private void ComputeCircleSegments(float radius, float maxError, float range, out float step, out int segments)
