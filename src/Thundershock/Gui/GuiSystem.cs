@@ -118,7 +118,7 @@ namespace Thundershock.Gui
         public bool MouseScroll(MouseScrollEventArgs e)
         {
             var pos = ScreenToViewport(new Vector2(e.X, e.Y));
-            var hovered = FindElement((int) pos.X, (int) pos.Y);
+            var hovered = FindElement((int) pos.X, (int) pos.Y, false);
             return Bubble(hovered, x => x.FireMouseScroll(e));
         }
 
@@ -283,12 +283,12 @@ namespace Thundershock.Gui
             }
         }
 
-        private Element FindElement(int x, int y)
+        private Element FindElement(int x, int y, bool requireInteractible = true)
         {
-            return FindElement(_rootElement, x, y);
+            return FindElement(_rootElement, x, y, requireInteractible);
         }
 
-        private Element FindElement(Element elem, int x, int y)
+        private Element FindElement(Element elem, int x, int y, bool requireInteractible = true)
         {
             foreach (var child in elem.Children.ToArray().Reverse())
             {
@@ -299,7 +299,7 @@ namespace Thundershock.Gui
 
             var b = elem.BoundingBox;
 
-            if (elem.IsInteractable && x >= b.Left && x <= b.Right && y >= b.Top && y <= b.Bottom)
+            if ((elem.IsInteractable || !requireInteractible) && x >= b.Left && x <= b.Right && y >= b.Top && y <= b.Bottom)
             {
                 return elem;
             }
