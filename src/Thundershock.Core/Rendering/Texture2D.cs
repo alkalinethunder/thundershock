@@ -24,6 +24,12 @@ namespace Thundershock.Core.Rendering
                 throw new InvalidOperationException("Resource not found.");
             }
         }
+
+        public static Texture2D FromFile(GraphicsProcessor gpu, string path)
+        {
+            using var file = File.OpenRead(path);
+            return FromStream(gpu, file);
+        }
         
         public static Texture2D FromStream(GraphicsProcessor gpu, Stream stream)
         {
