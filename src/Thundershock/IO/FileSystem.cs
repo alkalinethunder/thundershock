@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Thundershock.Content;
 
 namespace Thundershock.IO
 {
@@ -107,7 +108,7 @@ namespace Thundershock.IO
 
             if (node != null)
             {
-                if (node.CanWrite)
+                if (node.CanRead)
                 {
                     return node.Open(append);
                 }
@@ -229,6 +230,15 @@ namespace Thundershock.IO
         public static FileSystem FromNode(Node rootfs)
         {
             return new FileSystem(rootfs);
+        }
+
+        public static FileSystem FromPak(PakFile pak)
+        {
+            var node = new PakNode(null, "<root>", pak, pak.RootDirectory, true);
+
+            var vfs = new FileSystem(node);
+
+            return vfs;
         }
     }
 }
