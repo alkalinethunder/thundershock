@@ -2,8 +2,10 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net.Mime;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Thundershock.Core.Rendering
 {
@@ -78,6 +80,22 @@ namespace Thundershock.Core.Rendering
             
             // Return the texture!
             return texture;
+        }
+
+        public static Texture2D FromPak(GraphicsProcessor gpu, Stream stream)
+        {
+            using var reader = new BinaryReader(stream, Encoding.UTF8);
+
+            var width = reader.ReadInt32();
+            var height = reader.ReadInt32();
+
+            var pixels = reader.ReadBytes((width * 4) * height);
+
+            reader.Close();
+
+            var tex = new Texture2D(gpu, width, height);
+            tex.Upload(pixels);
+            return tex;
         }
     }
 }

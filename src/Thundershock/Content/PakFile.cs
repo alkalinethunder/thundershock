@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Thundershock.Content
 {
-    public class PakFile
+    public class PakFile : IDisposable
     {
         private long _dataStart;
         private PakDirectory _directoryTree;
@@ -23,6 +23,9 @@ namespace Thundershock.Content
 
         public Stream LoadData(PakDirectory directory)
         {
+            if (_pakStream == null)
+                throw new ObjectDisposedException("PakFile");
+            
             if (directory == null)
                 throw new ArgumentNullException(nameof(directory));
 
@@ -46,6 +49,15 @@ namespace Thundershock.Content
             memStream.Seek(0, SeekOrigin.Begin);
 
             return memStream;
+        }
+
+        public void Dispose()
+        {
+            _dataStart = 0;
+            _directoryTree = null;
+            _filePath = null;
+            _pakStream?.Dispose();
+            _pakStream = null;
         }
     }
 }
