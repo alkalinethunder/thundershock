@@ -290,20 +290,29 @@ namespace Thundershock.Gui
 
         private Element FindElement(Element elem, int x, int y, bool requireInteractible = true)
         {
+            // check the visibility of the element. If it's not visible, return.
+            if (elem.Visibility != Visibility.Visible)
+                return null;
+            
+            // If the element is disabled, return.
+            if (!elem.Enabled)
+                return null;
+            
+            // Check the bounds of the element. If the cursor's not inside them, return.
+            var b = elem.BoundingBox;
+            if (!(x >= b.Left && x <= b.Right && y >= b.Top && y <= b.Bottom))
+                return null;
+            
             foreach (var child in elem.Children.ToArray().Reverse())
             {
                 var f = FindElement(child, x, y);
                 if (f != null)
                     return f;
             }
-
-            var b = elem.BoundingBox;
-
-            if ((elem.IsInteractable || !requireInteractible) && x >= b.Left && x <= b.Right && y >= b.Top && y <= b.Bottom)
-            {
-                return elem;
-            }
             
+            if (elem.IsInteractable || !requireInteractible)
+                return elem;
+
             return null;
         }
 

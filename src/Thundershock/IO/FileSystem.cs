@@ -137,6 +137,7 @@ namespace Thundershock.IO
             using var s = OpenFile(path);
             s.SetLength(0);
             s.Write(bytes, 0, bytes.Length);
+            s.Close();
         }
 
         public void WriteAllText(string path, string text)

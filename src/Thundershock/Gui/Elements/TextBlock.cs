@@ -15,7 +15,7 @@ namespace Thundershock.Gui.Elements
         private Font _lastFont;
         private bool _textIsDirty = true;
         private List<Line> _lines = new();
-        private string _text = string.Empty;
+        private string _text = "Text Block";
         private TextAlign _textAlign = TextAlign.Left;
         private TextWrapMode _wrapMode = TextWrapMode.WordWrap;
         private float _lastWidth;
