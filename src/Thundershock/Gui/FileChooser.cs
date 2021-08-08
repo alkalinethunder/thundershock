@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using Gtk;
 
-#if WINDOWS
-using System.Windows.Forms;
-#endif
-
 namespace Thundershock.Gui
 {
-    public class FileChooser
+    public partial class FileChooser
     {
         private string _title = "Open File";
         private List<AcceptedFileType> _acceptedTypes = new();
@@ -174,24 +170,23 @@ namespace Thundershock.Gui
 
         public FileOpenerResult Activate()
         {
-#if WINDOWS
-            var result = ShowWindowsDialog();
-
-            return MapDialogResult(result);
-#else
-            var result = GtkShowDialog();
-
-            return result switch
+            if (ThundershockPlatform.IsPlatform(Platform.Windows))
+                return Win32AskForFile();
+            else
             {
-                ResponseType.Ok => FileOpenerResult.Ok,
-                _ => FileOpenerResult.Cancelled
-            };
-#endif
+                var result = GtkShowDialog();
+
+                return result switch
+                {
+                    ResponseType.Ok => FileOpenerResult.Ok,
+                    _ => FileOpenerResult.Cancelled
+                };
+            }
         }
     }
-
+    
     public class AcceptedFileType
-    {
+    { 
         public string Extension { get; set; }
         public string Name { get; set; }
     }
