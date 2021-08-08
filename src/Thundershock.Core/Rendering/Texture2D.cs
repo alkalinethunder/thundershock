@@ -89,7 +89,9 @@ namespace Thundershock.Core.Rendering
             var width = reader.ReadInt32();
             var height = reader.ReadInt32();
 
-            var pixels = reader.ReadBytes((width * 4) * height);
+            var depth = reader.ReadByte();
+            
+            var pixels = reader.ReadBytes((width * depth) * height);
 
             reader.Close();
 
