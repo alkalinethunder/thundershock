@@ -22,22 +22,6 @@ namespace Thundershock.GameFramework
             _entity = entity;
             _registry = new WeakReference<Registry>(registry);
         }
-
-        public void AddScript<T>() where T : Script, new()
-        {
-            if (!HasComponent<ScriptComponent>())
-            {
-                AddComponent(new ScriptComponent());
-            }
-
-            var scp = GetComponent<ScriptComponent>();
-
-            var script = new T();
-
-            scp.AddScript(script);
-            
-            script.Init(_scene, this);
-        }
         
         public bool HasComponent<T>()
         {

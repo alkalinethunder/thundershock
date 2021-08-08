@@ -25,6 +25,7 @@ namespace Thundershock
     {
         private const uint MaxEntityCount = 10000;
 
+        private ScriptSystem _scriptSystem;
         private List<ISystem> _systems = new();
         private bool _paused;
         private bool _noClip;
@@ -42,6 +43,8 @@ namespace Thundershock
         /// Gets an instance of the all-seeing, all-knowing <see cref="GameLayer"/> that manages this scene.
         /// </summary>
         public GameLayer Game => _gameLoop;
+
+        public Registry Registry => _registry;
         
         /// <summary>
         /// Gets an instance of this scene's input system.
@@ -89,6 +92,10 @@ namespace Thundershock
             // Create the camera manager for this scene.
             _cameraManager = new(this);
             _registry = new Registry(MaxEntityCount);
+            
+            // Allows scripts to run code when the level loads up.
+            // Also allows us to implement a level script.
+            _scriptSystem = RegisterSystem<ScriptSystem>();
         }
         
         /// <summary>
@@ -131,6 +138,10 @@ namespace Thundershock
             _gameLoop.GetComponent<CheatManager>().AddObject(_registry);
 
             OnLoad();
+            
+            // Trigger ISystem.OnLoad hook.
+            foreach (var sys in _systems)
+                sys.Load();
         }
 
         internal bool MouseDown(MouseButtonEventArgs e)
@@ -267,13 +278,6 @@ namespace Thundershock
                 
                 // Update the scene's GUI
                 _sceneGui.Update(gameTime);
-
-                // Update scripts.
-                foreach (var entity in _registry.View<ScriptComponent>())
-                {
-                    var script = _registry.GetComponent<ScriptComponent>(entity);
-                    script.Update(gameTime);
-                }
                 
                 OnUpdate(gameTime);
             }
