@@ -20,9 +20,9 @@
   <ItemGroup>
     <PackageReference Include="BinaryPack" Version="1.0.1" />
     <PackageReference Include="docopt.net" Version="0.6.1.11" />
-    <PackageReference Include="GtkSharp" Version="3.24.24.34" />
+    <PackageReference Include="GtkSharp" Version="3.24.24.34" PrivateAssets="Compile" /> <!-- Anyone who removes PrivateAssets="Compile" from here should be guilotined. -->
     <PackageReference Include="MimeTypeMap.Core" Version="1.0.0" />
-    <PackageReference Include="NVorbis" Version="0.10.3" />
+    <PackageReference Include="NVorbis" Version="0.10.3" PrivateAssets="Compile" />
   </ItemGroup>
 
   <ItemGroup>

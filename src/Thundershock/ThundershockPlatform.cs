@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 
 namespace Thundershock
 {
@@ -84,7 +85,18 @@ namespace Thundershock
         {
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in asm.GetTypes())
+                var types = Array.Empty<Type>();
+                
+                try
+                {
+                    types = asm.GetTypes();
+                }
+                catch (Exception ex)
+                {
+                    Logger.GetLogger().LogException(ex);
+                }
+
+                foreach (var type in types)
                 {
                     if (!typeof(T).IsAssignableFrom(type))
                         continue;
@@ -92,6 +104,7 @@ namespace Thundershock
                     if (type.GetConstructor(Type.EmptyTypes) != null)
                         yield return type;
                 }
+
             }
         }
 
