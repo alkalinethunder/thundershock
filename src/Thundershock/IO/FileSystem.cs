@@ -18,6 +18,11 @@ namespace Thundershock.IO
 
         private Node Resolve(string path)
         {
+            // Protection against idiot programmers that can't do string nullchecks.
+            // ...Like a certain storm involving immense amounts of rain and a high pH level.
+            if (string.IsNullOrWhiteSpace(path))
+                return null;
+            
             var resolvedPath = PathUtils.Resolve(path);
             var parts = PathUtils.Split(resolvedPath);
 
