@@ -10,6 +10,7 @@ namespace Thundershock.Core.Rendering
     /// </summary>
     public sealed class Renderer2D : IFontStashRenderer
     {
+        private Rectangle _clipBounds;
         private int[] _ibo = new int[128];
         private int _indexPointer;
         private int _batchPointer;
@@ -49,6 +50,25 @@ namespace Thundershock.Core.Rendering
             _indexPointer = 0;
             _vertexPointer = 0;
             _effect = null;
+        }
+
+        public void SetClipBounds(Rectangle? bounds)
+        {
+            var realBounds = bounds ?? Rectangle.Empty;
+
+            if (_clipBounds != realBounds)
+            {
+                var wasRunning = _running;
+                if (_running)
+                    End();
+
+                _renderer.Graphics.ScissorRectangle = realBounds;
+                _renderer.Graphics.EnableScissoring = (realBounds.Width * realBounds.Height) > 0;
+                _clipBounds = realBounds;
+                
+                if (wasRunning)
+                    Begin();
+            }
         }
         
         private RenderItem MakeRenderItem(Texture2D texture)

@@ -13,6 +13,8 @@ namespace Thundershock.Core.Rendering
         private BasicEffect _defaultEffect;
         
         public bool IsRendering => _isRendering;
+
+        public GraphicsProcessor Graphics => _gpu;
         
         public TextureCollection Textures => _gpu.Textures;
 

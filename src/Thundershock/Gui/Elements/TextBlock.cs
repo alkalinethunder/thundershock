@@ -32,6 +32,7 @@ namespace Thundershock.Gui.Elements
                 {
                     _text = value;
                     _textIsDirty = true;
+                    InvalidateLayout();
                 }
             }
         }
@@ -45,6 +46,7 @@ namespace Thundershock.Gui.Elements
                 {
                     _textAlign = value;
                     _textIsDirty = true;
+                    InvalidateLayout();
                 }
             }
         }
@@ -58,6 +60,7 @@ namespace Thundershock.Gui.Elements
                 {
                     _wrapMode = value;
                     _textIsDirty = true;
+                    InvalidateLayout();
                 }
             }
         }

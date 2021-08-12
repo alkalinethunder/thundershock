@@ -64,7 +64,7 @@ namespace Thundershock.Gui.Elements
         {
             if (_isOpen)
             {
-                _scrollPanel.Parent.Children.Remove(_scrollPanel);
+                _scrollPanel.RemoveFromParent();
                 _isOpen = false;
             }
         }
@@ -75,7 +75,7 @@ namespace Thundershock.Gui.Elements
             {
                 SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
 
-                _scrollPanel.Parent.Children.Remove(_scrollPanel);
+                _scrollPanel.RemoveFromParent();
 
                 _isOpen = false;
             }
@@ -85,7 +85,7 @@ namespace Thundershock.Gui.Elements
         {
             if (_isOpen)
             {
-                _scrollPanel.Parent.Children.Remove(_scrollPanel);
+                _scrollPanel.RemoveFromParent();
                 _isOpen = false;
             }
             else
@@ -97,8 +97,8 @@ namespace Thundershock.Gui.Elements
                 var anchor = FreePanel.CanvasAnchor.TopLeft;
                 anchor.Left = BoundingBox.Left / GuiSystem.BoundingBox.Width;
                 anchor.Top = BoundingBox.Bottom / GuiSystem.BoundingBox.Height;
-                
-                _scrollPanel.Properties.SetValue(FreePanel.AnchorProperty, anchor);
+
+                _scrollPanel.ViewportAnchor = anchor;
                 
                 _scrollPanel.MaximumHeight = 300;
                 

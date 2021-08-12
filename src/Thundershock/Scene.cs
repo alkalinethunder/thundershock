@@ -312,7 +312,8 @@ namespace Thundershock
             // Switch the GPU to our scene render target for the first render pass where we
             // draw all scene elements.
             _gameLoop.Graphics.SetRenderTarget(_sceneRenderTarget);
-            
+            _gameLoop.Graphics.Clear(Color.Black);
+
             var cameras = _registry.View<CameraComponent, Transform>();
             if (cameras.Any())
             {

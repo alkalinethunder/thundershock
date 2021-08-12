@@ -15,6 +15,7 @@ namespace Thundershock.Gui.Elements
         public ScrollPanel()
         {
             IsInteractable = true;
+            Clip = true;
         }
         
         protected override Vector2 MeasureOverride(Vector2 alottedSize)

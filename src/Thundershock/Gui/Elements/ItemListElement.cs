@@ -52,7 +52,11 @@ namespace Thundershock.Gui.Elements
             get => _items[index];
             set
             {
-                _items[index] = value;
+                if (_items[index].GetHashCode() != value.GetHashCode())
+                {
+                    _items[index] = value;
+                    InvalidateLayout();
+                }
             }
         }
         
@@ -63,6 +67,7 @@ namespace Thundershock.Gui.Elements
 
         public void Clear()
         {
+            InvalidateLayout();
             _items.Clear();
             _selectedItem = -1;
         }
@@ -72,6 +77,7 @@ namespace Thundershock.Gui.Elements
             if (!_items.Contains(value))
             {
                 _items.Add(value);
+                InvalidateLayout();
             }
         }
 
@@ -81,6 +87,8 @@ namespace Thundershock.Gui.Elements
             {
                 var i = _items.IndexOf(value);
 
+                InvalidateLayout();
+                
                 _items.Remove(value);
                 if (SelectedIndex >= i)
                 {
