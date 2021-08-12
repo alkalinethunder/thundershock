@@ -322,5 +322,12 @@ namespace Thundershock.OpenGL
             // Fucking. STOP.
             _audio.Dispose();
         }
+
+        protected override void UpdateVSync()
+        {
+            App.Logger.Log("V-Sync status: " + (VSync ? "On" : "Off"));
+
+            Sdl.SDL_GL_SetSwapInterval(VSync ? 1 : 0);
+        }
     }
 }

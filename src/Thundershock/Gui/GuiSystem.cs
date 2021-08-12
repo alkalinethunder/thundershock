@@ -13,6 +13,8 @@ namespace Thundershock.Gui
     {
         private static Type _defaultStyleType;
 
+        private GuiRendererState _guiRendererState;
+        private GuiRenderer _guiRenderer;
         private float _viewWidth = 1600;
         private float _viewHeight = 900;
         private GraphicsProcessor _gpu;
@@ -48,6 +50,9 @@ namespace Thundershock.Gui
         public GuiSystem(GraphicsProcessor gpu)
         {
             _gpu = gpu;
+            _renderer = new Renderer2D(_gpu);
+            _guiRendererState = new GuiRendererState(this);
+            _guiRenderer = new GuiRenderer(_renderer, _guiRendererState);
             
             _debugFont = Font.GetDefaultFont(_gpu);
             _rootElement = new RootElement(this);
@@ -61,7 +66,6 @@ namespace Thundershock.Gui
                 LoadStyle<BasicStyle>();
             }
 
-            _renderer = new Renderer2D(_gpu);
         }
         
         private void LoadStyle(Type styleType)
@@ -233,7 +237,6 @@ namespace Thundershock.Gui
         public void Update(GameTime gameTime)
         {
             PerformLayout();
-            
             _rootElement.Update(gameTime);
         }
         
@@ -389,7 +392,8 @@ namespace Thundershock.Gui
                 var tint = element.ComputedTint;
 
                 // Set up the GUI renderer.
-                var gRenderer = new GuiRenderer(_renderer, element.ComputedOpacity, tint);
+                _guiRendererState.Opacity = element.ComputedOpacity;
+                _guiRendererState.Tint = tint;
 
                 // Set up the scissor testing for the element.
                 _gpu.EnableScissoring = true;
@@ -399,23 +403,8 @@ namespace Thundershock.Gui
                 _renderer.Begin();
 
                 // Paint, damn you.
-                element.Paint(gameTime, gRenderer);
-
-                // Debug rects if they're enabled.
-                if (_debugShowBounds)
-                {
-                    var debugRenderer = new GuiRenderer(_renderer, 1, Color.White);
-
-                    debugRenderer.DrawRectangle(element.BoundingBox, Color.White, 1);
-
-                    var text = $"{element.Name}{Environment.NewLine}BoundingBox={element.BoundingBox}";
-                    var measure = _debugFont.MeasureString(text);
-                    var pos = new Vector2((element.BoundingBox.Left + ((element.BoundingBox.Width - measure.X) / 2)),
-                        element.BoundingBox.Top + ((element.BoundingBox.Height - measure.Y) / 2));
-
-                    debugRenderer.DrawString(_debugFont, text, pos, Color.White, 2);
-                }
-
+                element.Paint(gameTime, _guiRenderer);
+                
                 // End the batch.
                 _renderer.End();
 
@@ -429,6 +418,18 @@ namespace Thundershock.Gui
                 // Paint the child.
                 PaintElements(gameTime, child);
             }
+        }
+
+        internal class GuiRendererState
+        {
+            internal GuiRendererState(GuiSystem owner)
+            {
+                if (owner._guiRendererState != null)
+                    throw new InvalidOperationException("Gui renderer state already bound.");
+            }
+
+            public float Opacity { get; set; } = 1;
+            public Color Tint { get; set; }
         }
     }
 }
