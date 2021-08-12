@@ -13,6 +13,8 @@ namespace Thundershock.Gui.Elements
 
         public Color BorderColor { get; set; } = Color.White;
 
+        public HorizontalContentAlignment ImageAlignment { get; set; }
+        
         public int BorderWidth { get; set; } = 0;
         
         public Texture2D Image
@@ -49,7 +51,16 @@ namespace Thundershock.Gui.Elements
         {
             if (Image == null)
             {
-                renderer.FillRectangle(ContentRectangle, Tint);
+                if (ImageMode == ImageMode.Rounded)
+                {
+                    var radius = (Math.Min(ContentRectangle.Width, ContentRectangle.Height) / 2);
+                    renderer.FillCircle(ContentRectangle.Center, radius, Tint);
+                }
+                else
+                {
+                    renderer.FillRectangle(ContentRectangle, Tint);
+                }
+
                 return;
             }
 
@@ -86,7 +97,7 @@ namespace Thundershock.Gui.Elements
                 var scaledHeight = Image.Height * scale;
                 var scaledWidth = scaledHeight * aspectRatio;
 
-                var x = ContentRectangle.Left + ((ContentRectangle.Width - scaledWidth) / 2);
+                var x = GetImageLocX(scaledWidth);
                 var y = ContentRectangle.Top + ((ContentRectangle.Height - scaledHeight) / 2);
 
                 var rect = new Rectangle(x, y, scaledWidth, scaledHeight);
@@ -153,6 +164,18 @@ namespace Thundershock.Gui.Elements
                 renderer.FillCircle(center, radius, Image, Tint);
             }
         }
+
+        private float GetImageLocX(float imageWidth)
+        {
+            return ImageAlignment switch
+            {
+                HorizontalContentAlignment.Left => ContentRectangle.Left,
+                HorizontalContentAlignment.Center => ContentRectangle.Left +
+                                                     ((ContentRectangle.Width - imageWidth) / 2),
+                HorizontalContentAlignment.Right => ContentRectangle.Right - imageWidth,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
     }
 
     public enum ImageMode
@@ -162,5 +185,19 @@ namespace Thundershock.Gui.Elements
         Tile,
         Zoom,
         Rounded
+    }
+
+    public enum VerticalContentAlignment
+    {
+        Top,
+        Center,
+        Bottom
+    }
+
+    public enum HorizontalContentAlignment
+    {
+        Left,
+        Center,
+        Right
     }
 }

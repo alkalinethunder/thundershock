@@ -34,13 +34,7 @@ namespace Thundershock
                 TitleName);
 
         public static readonly string Community = "https://community.mvanoverbeek.me/";
-
-        public static Color HtmlColor(string html)
-        {
-            var gdiColor = System.Drawing.ColorTranslator.FromHtml(html);
-            return gdiColor;
-        }
-
+        
         public static Platform GetCurrentPlatform()
         {
             switch (Environment.OSVersion.Platform)

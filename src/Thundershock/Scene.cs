@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Thundershock.Components;
+using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Ecs;
 using Thundershock.Core.Debugging;
@@ -25,6 +26,7 @@ namespace Thundershock
     {
         private const uint MaxEntityCount = 10000;
 
+        private ConfigurationManager _config;
         private ScriptSystem _scriptSystem;
         private List<ISystem> _systems = new();
         private bool _paused;
@@ -109,6 +111,7 @@ namespace Thundershock
         
         internal void Load(GameLayer gameLoop)
         {
+            _config = gameLoop.GetComponent<ConfigurationManager>();
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
             _renderer = new Renderer2D(gameLoop.Graphics);
             _gameLoop = gameLoop;
@@ -121,6 +124,11 @@ namespace Thundershock
             {
                 _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
                 _postProcessSystem.LoadContent();
+
+                _postProcessSystem.EnableBloom = _config.ActiveConfig.Effects.Bloom;
+                _postProcessSystem.EnableShadowMask = _config.ActiveConfig.Effects.ShadowMask;
+                
+                _config.ConfigurationLoaded += ConfigOnConfigurationLoaded;
             }
             
             // Help a playa out, spawn the default camera entity.
@@ -142,6 +150,15 @@ namespace Thundershock
             // Trigger ISystem.OnLoad hook.
             foreach (var sys in _systems)
                 sys.Load();
+        }
+
+        private void ConfigOnConfigurationLoaded(object? sender, EventArgs e)
+        {
+            if (_postProcessSystem != null)
+            {
+                _postProcessSystem.EnableBloom = _config.ActiveConfig.Effects.Bloom;
+                _postProcessSystem.EnableShadowMask = _config.ActiveConfig.Effects.ShadowMask;
+            }
         }
 
         internal bool MouseDown(MouseButtonEventArgs e)
@@ -242,6 +259,11 @@ namespace Thundershock
         
         internal void Unload()
         {
+            if (_postProcessSystem != null)
+            {
+                _config.ConfigurationLoaded -= ConfigOnConfigurationLoaded;
+            }
+            
             // Teardown all of the systems.
             while (_systems.Any())
             {
@@ -268,7 +290,9 @@ namespace Thundershock
             EnsureSceneRenderTargetSize();
 
             // Set the scene GUI viewport to match ours.
-            _sceneGui.SetViewportSize(_gameLoop.Window.Width, _gameLoop.Window.Height);
+            var windowAspect = (float) Game.Window.Width / (float) Game.Window.Height;
+            var guiSize = 900;
+            _sceneGui.SetViewportSize(guiSize * windowAspect, guiSize);
 
             if (!_paused)
             {
@@ -471,7 +495,7 @@ namespace Thundershock
             if (_sceneRenderTarget == null)
             {
                 _sceneRenderTarget =
-                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point);
                 
                 // Tell the post-processor to resize its buffers.
                 _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
@@ -483,7 +507,7 @@ namespace Thundershock
                 {
                     _sceneRenderTarget.Dispose();
                     _sceneRenderTarget =
-                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point);
                     
                     // Tell the post-processor to resize its buffers.
                     _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);

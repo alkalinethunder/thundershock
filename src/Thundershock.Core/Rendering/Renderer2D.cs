@@ -31,8 +31,8 @@ namespace Thundershock.Core.Rendering
         public Renderer2D(GraphicsProcessor gpu)
         {
             _renderer = new Renderer(gpu);
-            
-            _blankTexture = new Texture2D(gpu, 1, 1);
+
+            _blankTexture = new Texture2D(gpu, 1, 1, TextureFilteringMode.Point);
             _blankTexture.Upload(new byte[] {0xff, 0xff, 0xff, 0xff});
         }
         
@@ -289,7 +289,7 @@ namespace Thundershock.Core.Rendering
 
         }
         
-        private void FillTriangleFan(Vector2 center, ReadOnlySpan<Vector2> vs, Color color, Texture2D texture)
+        private void FillTriangleFan(Vector2 center, ref Span<Vector2> vs, Color color, Texture2D texture)
         {
             var c = vs.Length;
             if (c < 2)
@@ -336,12 +336,12 @@ namespace Thundershock.Core.Rendering
         /// <param name="radius">The radius of the circle.</param>
         /// <param name="color">The color to draw the circle with.</param>
         /// <param name="maxError">https://youtu.be/hQ3GW7lVBWY</param>
-        public void FillCircle(Vector2 center, float radius, Color color, float maxError = .25f)
+        public void FillCircle(Vector2 center, float radius, Color color, float maxError = 0.25f)
         {
             FillCircle(center, radius, color, null, maxError);
         }
 
-        public void FillCircle(Vector2 center, float radius, Color color, Texture2D texture, float maxError = 0.25f)
+        public void FillCircle(Vector2 center, float radius, Color color, Texture2D texture, float maxError = 0.000001f)
         {
             FillCircleSegment(center, radius, RightStartAngle, RightEndAngle, color, texture, maxError);
         }
@@ -388,18 +388,27 @@ namespace Thundershock.Core.Rendering
             for (theta = start; theta < end; theta += step)
                 result[i++] = new Vector2((float) (center.X + radius * Math.Cos(theta)), (float) (center.Y + radius * Math.Sin(theta)));
 
-            if (Math.Abs(theta - end) > 0.00001f)
+            if (theta != end)
                 result[i] = center + new Vector2((float) (radius * Math.Cos(end)), (float) (radius * Math.Sin(end)));
         }
         
         private void FillCircleSegment(Vector2 center, float radius, float start, float end, Color color, Texture2D texture, float maxError)
         {
+            if (radius <= 0)
+                return;
+
+            if (color.A <= 0)
+                return;
+            
             ComputeCircleSegments(radius, maxError, end - start, out var step, out var segments);
 
+            if (segments <= 0)
+                return;
+            
             Span<Vector2> points = stackalloc Vector2[segments + 1];
             CreateCircleSegment(center, radius, step, start, end, ref points);
             
-            FillTriangleFan(center, points, color, texture);
+            FillTriangleFan(center, ref points, color, texture);
         }
         
         private void ComputeCircleSegments(float radius, float maxError, float range, out float step, out int segments)

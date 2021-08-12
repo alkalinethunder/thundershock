@@ -36,7 +36,7 @@ namespace Thundershock.Debugging
 
             _bg.VerticalAlignment = VerticalAlignment.Top;
 
-            _commandEntry.ForeColor = ThundershockPlatform.HtmlColor("#80ff80");
+            _commandEntry.ForeColor = Color.FromHtml("#80ff80");
             
             _commandEntry.TextCommitted += CommandEntryOnTextCommitted;
         }

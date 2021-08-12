@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using Esprima.Ast;
 using Jint;
 using Jint.Native;
 using Thundershock.Core.Debugging;
+using TypeReference = Jint.Runtime.Interop.TypeReference;
 
 namespace Thundershock.Core.Scripting
 {
@@ -28,6 +30,11 @@ namespace Thundershock.Core.Scripting
             DefineCoreMethods();
         }
 
+        public bool IsDefined(string name)
+        {
+            return _engine.GetValue(name) != JsValue.Undefined;
+        }
+        
         private void Preconfigure(Options options)
         {
             // Limit how much memory a script can allocate. Scripts should not be doing
@@ -84,7 +91,7 @@ namespace Thundershock.Core.Scripting
 
             stream.Close();
         }
-
+        
         public void CallIfDefined(string name, params object[] args)
         {
             var values = args.Select(x => JsValue.FromObject(_engine, x)).ToArray();
@@ -101,6 +108,14 @@ namespace Thundershock.Core.Scripting
             foreach (var lib in _libraries)
             {
                 _engine.SetValue(lib.Name, lib.Reference);
+            }
+
+            foreach (var type in _types)
+            {
+                var actualType = type.Type;
+                var name = type.Name;
+
+                _engine.SetValue(name, TypeReference.CreateTypeReference(_engine, actualType));
             }
             
             // Here's where we get to define core global methods that all scripts must have access to.
@@ -133,6 +148,8 @@ namespace Thundershock.Core.Scripting
 
         private static bool _hasInitialized = false;
         private static List<ScriptLibrary> _libraries = new List<ScriptLibrary>();
+        private static List<ScriptLibrary> _types = new();
+        
         public static void StaticInit()
         {
             if (!_hasInitialized)
@@ -152,21 +169,34 @@ namespace Thundershock.Core.Scripting
 
                     foreach (var type in types)
                     {
-                        if (type.GetConstructor(Type.EmptyTypes) == null)
-                            continue;
-
+                        var scriptType = type.GetCustomAttributes(true).OfType<ScriptTypeAttribute>().FirstOrDefault();
                         var scriptLibAttrib = type.GetCustomAttributes(false).OfType<ScriptStaticLibraryAttribute>()
                             .FirstOrDefault();
 
-                        if (scriptLibAttrib == null)
+                        if (scriptLibAttrib != null)
+                        {
+                            if (type.GetConstructor(Type.EmptyTypes) == null)
+                                continue;
+
+                            if (string.IsNullOrWhiteSpace(scriptLibAttrib.Name))
+                                continue;
+
+                            var obj = Activator.CreateInstance(type, null);
+
+                            _libraries.Add(new ScriptLibrary(scriptLibAttrib.Name, type, obj));
                             continue;
+                        }
 
-                        if (string.IsNullOrWhiteSpace(scriptLibAttrib.Name))
-                            continue;
+                        if (scriptType != null)
+                        {
+                            var name = scriptType.Name;
+                            if (string.IsNullOrWhiteSpace(name))
+                                name = type.Name;
 
-                        var obj = Activator.CreateInstance(type, null);
+                            var library = new ScriptLibrary(name, type, null);
 
-                        _libraries.Add(new ScriptLibrary(scriptLibAttrib.Name, type, obj));
+                            _types.Add(library);
+                        }
                     }
                 }
                 

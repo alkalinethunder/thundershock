@@ -1,19 +1,36 @@
-﻿using Thundershock.Core.Scripting;
+﻿using System;
+using Thundershock.Core.Scripting;
 using Thundershock.Gui;
 
 namespace Thundershock.ScriptLibraries
 {
-    [ScriptStaticLibrary("Platform")]
-    public class ScriptPlatformLibrary
+    [ScriptType("Platform")]
+    public static class ScriptPlatformLibrary
     {
-        public void ShowMessage(string title, string message)
+        public static void ShowMessage(string title, string message)
         {
             DialogBox.Show(title, message, DialogBoxIcon.Information, DialogBoxButtons.Ok);
         }
 
-        public void ShowError(string title, string message)
+        public static void ShowError(string title, string message)
         {
             DialogBox.ShowError(title, message);
+        }
+
+        public static void AskForFile(bool save, Action<string> callback)
+        {
+            var chooser = new FileChooser();
+            chooser.AllowAnyFileType = true;
+
+            if (save)
+                chooser.FileOpenerType = FileOpenerType.Save;
+            
+            var result = chooser.Activate();
+
+            if (result == FileOpenerResult.Ok)
+            {
+                callback?.Invoke(chooser.SelectedFilePath);
+            }
         }
     }
 }

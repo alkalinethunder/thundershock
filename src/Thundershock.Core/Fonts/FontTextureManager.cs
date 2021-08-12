@@ -15,7 +15,7 @@ namespace Thundershock.Core.Fonts
         
         public object CreateTexture(int width, int height)
         {
-            return new Texture2D(_gpu, width, height);
+            return new Texture2D(_gpu, width, height, TextureFilteringMode.Point);
         }
 
         public void SetTextureData(object texture, System.Drawing.Rectangle bounds, byte[] data)

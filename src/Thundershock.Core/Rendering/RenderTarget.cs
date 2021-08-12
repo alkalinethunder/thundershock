@@ -7,7 +7,7 @@ namespace Thundershock.Core.Rendering
         
         public uint RenderTargetId => _rtId;
         
-        public RenderTarget(GraphicsProcessor gpu, int width, int height) : base(gpu, width, height)
+        public RenderTarget(GraphicsProcessor gpu, int width, int height, TextureFilteringMode filterMode) : base(gpu, width, height, filterMode)
         {
             _gpu = gpu;
             _rtId = gpu.CreateRenderTarget(Id);

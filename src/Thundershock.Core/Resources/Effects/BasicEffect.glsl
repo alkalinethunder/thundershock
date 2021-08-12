@@ -33,7 +33,7 @@
             color = texture(tex0, fragTexture) * fragColor;
         }
     #pragma ts end
-
+    
     #pragma ts compile vert VertexShader
     #pragma ts compile frag FragmentShader
 #pragma ts end

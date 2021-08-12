@@ -246,5 +246,38 @@ namespace Thundershock.IO
 
             return vfs;
         }
+
+        public void BulkCopy(FileSystem destfs, string sourceFolder, string destFolder)
+        {
+            foreach (var subdir in GetDirectories(sourceFolder))
+            {
+                var dname = PathUtils.GetFileName(subdir);
+
+                if (dname == "." || dname == "..")
+                    continue;
+                
+                var destpath = PathUtils.Combine(destFolder, dname);
+
+                if (!destfs.DirectoryExists(destpath))
+                    destfs.CreateDirectory(destpath);
+                
+                BulkCopy(destfs, subdir, destpath);
+            }
+
+            foreach (var file in GetFiles(sourceFolder))
+            {
+                var fname = Path.GetFileName(file);
+
+                var destpath = PathUtils.Combine(destFolder, fname);
+
+                using var destStream = destfs.OpenFile(destpath);
+                using var srcStream = OpenFile(file);
+                
+                srcStream.CopyTo(destStream);
+
+                destStream.Close();
+                srcStream.Close();
+            }
+        }
     }
 }

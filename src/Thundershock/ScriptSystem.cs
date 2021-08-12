@@ -122,6 +122,10 @@ namespace Thundershock
                 _sys = sys;
                 _entity = entity;
                 _script = new ScriptEngine();
+
+                _script.SetGlobal("Scene", _sys._scene);
+                _script.SetGlobal("Gui", _sys._scene.Gui);
+                
                 _script.ExecuteStream(scriptStream);
             }
 

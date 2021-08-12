@@ -7,12 +7,14 @@ using Thundershock.Flumberboozles;
 using Thundershock.Gui.Styling;
 using Thundershock.Core.Input;
 using Thundershock.Core;
+using Thundershock.Core.Scripting;
 
 namespace Thundershock.Gui.Elements
 {
     /// <summary>
     /// Provides the base functionality for all GUI elements.
     /// </summary>
+    [ScriptType]
     public abstract class Element : IPropertySetOwner
     {
         private bool _isRenderDataDirty = true;

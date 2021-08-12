@@ -1,7 +1,9 @@
 ﻿using Thundershock.Core;
+using Thundershock.Core.Scripting;
 
 namespace Thundershock.Gui.Styling
 {
+    [ScriptType]
     public class StyleColor
     {
         private Color _realColor;
@@ -29,7 +31,7 @@ namespace Thundershock.Gui.Styling
         
         public static implicit operator StyleColor(string htmlColor)
         {
-            return new(ThundershockPlatform.HtmlColor(htmlColor));
+            return FromHtml(htmlColor);
         }
 
         public Color GetColor(Color defaultColor)
@@ -40,5 +42,15 @@ namespace Thundershock.Gui.Styling
         }
         
         public static StyleColor Default => new StyleColor();
+
+        public static StyleColor FromLinearColor(Color color)
+        {
+            return new(color);
+        }
+
+        public static StyleColor FromHtml(string html)
+        {
+            return FromLinearColor(Core.Color.FromHtml(html));
+        }
     }
 }

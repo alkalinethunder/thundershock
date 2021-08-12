@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Silk.NET.OpenGL;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
@@ -9,6 +10,7 @@ namespace Thundershock.OpenGL
 {
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
+        private Dictionary<ulong, uint> _shaderCache = new();
         private int[] _programTextureUnits;
         private uint _program;
         private GL _gl;
@@ -249,14 +251,21 @@ namespace Thundershock.OpenGL
             */
         }
 
-        public override uint CreateTexture(int width, int height)
+        public override uint CreateTexture(int width, int height, TextureFilteringMode filterMode)
         {
             var id = _gl.GenTexture();
 
             _gl.BindTexture(GLEnum.Texture2D, id);
 
-            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int) GLEnum.Linear);
-            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int) GLEnum.Linear);
+            var glFilterMode = filterMode switch
+            {
+                TextureFilteringMode.Point => GLEnum.Nearest,
+                TextureFilteringMode.Linear => GLEnum.Linear,
+                _ => throw new ArgumentOutOfRangeException(nameof(filterMode), filterMode, null)
+            };
+            
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int) glFilterMode);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int) glFilterMode);
             _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapS, (int) GLEnum.ClampToEdge);
             _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapT, (int) GLEnum.ClampToEdge);
 
@@ -360,36 +369,57 @@ namespace Thundershock.OpenGL
 
         public override void CompileGlsl(uint program, ShaderCompilation type, string glslSource)
         {
-            var shader = _gl.CreateShader(type == ShaderCompilation.VertexShader ? GLEnum.VertexShader : GLEnum.FragmentShader);
-            _gl.ShaderSource(shader, glslSource);
-            _gl.CompileShader(shader);
-            
-            int result = 0;
-            _gl.GetShader(shader, GLEnum.CompileStatus, out result);
-            
-            var log = _gl.GetShaderInfoLog(shader);
-            if (!string.IsNullOrEmpty(log))
+            // we can save some GPU memory if we make sure not to compile the same program twice.
+            //
+            // we should compute a trimmed hash of the source code, and store that in an associative
+            // array of hashes to shader programs. If the hash is already in that cache then we can
+            // reuse that program.
+            var hash = Crypto.KnuthHash(glslSource.Trim());
+            if (_shaderCache.ContainsKey(hash))
             {
-                var lines = log.Split(Environment.NewLine);
-                foreach (var line in lines)
+                var shader = _shaderCache[hash];
+                Logger.GetLogger()
+                    .Log($"re-using cached shader {shader} in program {program}, have some free GPU memory :)",
+                        LogLevel.Trace);
+                _gl.AttachShader(program, shader);
+            }
+            else
+            {
+
+                var shader = _gl.CreateShader(type == ShaderCompilation.VertexShader
+                    ? GLEnum.VertexShader
+                    : GLEnum.FragmentShader);
+                _gl.ShaderSource(shader, glslSource);
+                _gl.CompileShader(shader);
+
+                int result = 0;
+                _gl.GetShader(shader, GLEnum.CompileStatus, out result);
+
+                var log = _gl.GetShaderInfoLog(shader);
+                if (!string.IsNullOrEmpty(log))
                 {
-                    if (line.Contains("warning"))
-                        Logger.GetLogger().Log(line, LogLevel.Warning);
-                    else if (line.Contains("error"))
-                        Logger.GetLogger().Log(line, LogLevel.Error);
-                    else
-                        Logger.GetLogger().Log(line);
+                    var lines = log.Split(Environment.NewLine);
+                    foreach (var line in lines)
+                    {
+                        if (line.Contains("warning"))
+                            Logger.GetLogger().Log(line, LogLevel.Warning);
+                        else if (line.Contains("error"))
+                            Logger.GetLogger().Log(line, LogLevel.Error);
+                        else
+                            Logger.GetLogger().Log(line);
+                    }
                 }
-            }
 
-            if (result == (int) GLEnum.False)
-            {
-                Logger.GetLogger().Log("Shader compilation failed.", LogLevel.Error);
-                _gl.DeleteShader(shader);
-                return;
-            }
+                if (result == (int) GLEnum.False)
+                {
+                    Logger.GetLogger().Log("Shader compilation failed.", LogLevel.Error);
+                    _gl.DeleteShader(shader);
+                    return;
+                }
 
-            _gl.AttachShader(program, shader);
+                _gl.AttachShader(program, shader);
+                _shaderCache.Add(hash, shader);
+            }
         }
 
         public override void VerifyShaderProgram(uint program)
@@ -438,6 +468,25 @@ namespace Thundershock.OpenGL
         {
             // Create the actual vertex array.
             _vao = _gl.CreateVertexArray();
+        }
+
+        public override byte[] DownloadTextureData(uint id, int x, int y, int width, int height)
+        {
+            var pixelData = new byte[(width * 4) * height];
+
+
+            unsafe
+            {
+                var len = pixelData.Length;
+
+                fixed (void* ptr = pixelData)
+                {
+                    _gl.GetTextureSubImage(id, 0, x, y, 0, (uint) width, (uint) height, 0, GLEnum.Rgba8, GLEnum.Rgba,
+                        (uint) len, ptr);
+                }
+            }
+
+            return pixelData;
         }
     }
 }

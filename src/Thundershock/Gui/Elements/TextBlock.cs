@@ -19,6 +19,9 @@ namespace Thundershock.Gui.Elements
         private TextAlign _textAlign = TextAlign.Left;
         private TextWrapMode _wrapMode = TextWrapMode.WordWrap;
         private float _lastWidth;
+
+        public float FontSize =>
+            GetFont().Size;
         
         public string Text
         {
