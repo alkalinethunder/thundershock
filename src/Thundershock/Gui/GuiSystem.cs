@@ -306,6 +306,11 @@ namespace Thundershock.Gui
                 _renderer.End();
             }
 
+            _renderer.ProjectionMatrix = projection;
+            
+            _guiRendererState.Offset = Vector2.Zero;
+            _guiRendererState.Clip = _gpu.ViewportBounds;
+            
             _renderer.SetClipBounds(null);
             
             if (!string.IsNullOrWhiteSpace(_tooltip))

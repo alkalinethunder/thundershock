@@ -155,6 +155,54 @@ namespace Thundershock.Gui.Elements
 
         private string DefaultName
             => $"{GetType().Name}_{GetHashCode()}";
+
+        public Vector2 GetOnScreenLocation()
+        {
+            var anchor = this.ViewportAnchor;
+            var alignment = this.ViewportAlignment;
+            var pos = this.ViewportPosition;
+            var screen = GuiSystem.BoundingBox;
+            var size = MyLayout.GetContentSize();
+
+            var anchorLocation = screen.Size * new Vector2(anchor.Left, anchor.Top);
+            var aSize = screen.Size * new Vector2(anchor.Right, anchor.Bottom);
+
+            if (aSize.X * aSize.Y <= 0)
+            {
+                if (aSize.X <= 0)
+                    aSize.X = size.X;
+
+                if (aSize.Y <= 0)
+                    aSize.Y = size.Y;
+            }
+
+            var aPos = aSize * alignment;
+
+            anchorLocation -= aPos;
+
+            return pos + anchorLocation;
+        }
+        
+        public Element TopLevel
+        {
+            get
+            {
+                var p = Parent;
+
+                if (p is RootElement)
+                    return this;
+                
+                while (p != null)
+                {
+                    if (p.Parent is RootElement)
+                        return p;
+                    
+                    p = p.Parent;
+                }
+
+                return p;
+            }
+        }
         
         /// <summary>
         /// Gets or sets the name of this element as shown in the editor and debugging tools.

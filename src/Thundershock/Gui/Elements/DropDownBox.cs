@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Input;
 
@@ -92,13 +93,10 @@ namespace Thundershock.Gui.Elements
             {
                 GuiSystem.AddToViewport(_scrollPanel);
 
-                _scrollPanel.Properties.SetValue(FreePanel.AutoSizeProperty, true);
-
-                var anchor = FreePanel.CanvasAnchor.TopLeft;
-                anchor.Left = BoundingBox.Left / GuiSystem.BoundingBox.Width;
-                anchor.Top = BoundingBox.Bottom / GuiSystem.BoundingBox.Height;
-
-                _scrollPanel.ViewportAnchor = anchor;
+                _scrollPanel.IsInteractable = true;
+                _scrollPanel.ViewportAnchor = FreePanel.CanvasAnchor.TopLeft;
+                _scrollPanel.ViewportPosition =
+                    TopLevel.GetOnScreenLocation() + new Vector2(BoundingBox.Left, BoundingBox.Bottom);
                 
                 _scrollPanel.MaximumHeight = 300;
                 
