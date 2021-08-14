@@ -496,7 +496,7 @@ namespace Thundershock
             if (_sceneRenderTarget == null)
             {
                 _sceneRenderTarget =
-                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point);
+                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point, DepthFormat.Depth24Stencil8);
                 
                 // Tell the post-processor to resize its buffers.
                 _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
@@ -508,7 +508,7 @@ namespace Thundershock
                 {
                     _sceneRenderTarget.Dispose();
                     _sceneRenderTarget =
-                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point);
+                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point, DepthFormat.Depth24Stencil8);
                     
                     // Tell the post-processor to resize its buffers.
                     _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);

@@ -85,11 +85,7 @@ namespace Thundershock.OpenGL
             
             // Set the viewport size.
             _graphicsProcessor.SetViewportArea(0, 0, Width, Height);
-            
-            // Disable V-Sync for testing renderer optimizations.
-            // TODO: Allow the engine to do this.
-            Sdl.SDL_GL_SetSwapInterval(0);
-            
+
             // Initialize the platform layer now that we have GL
             GamePlatform.Initialize(new SdlGamePlatform(_gl, _audio));
         }
@@ -110,8 +106,8 @@ namespace Thundershock.OpenGL
                 _ => LogLevel.Trace
             };
 
-            if (logLevel != LogLevel.Trace)
-                App.Logger.Log(messageString, logLevel);
+            
+            App.Logger.Log(messageString, logLevel);
         }
 #endif
         
@@ -295,6 +291,14 @@ namespace Thundershock.OpenGL
 
         private void CreateSdlWindow()
         {
+            // Housekeeping?
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlRedSize, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlGreenSize, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlBlueSize, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlDepthSize, 24);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlStencilSize, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlDoublebuffer, 1);
+
             var flags = GetWindowModeFlags();
             flags |= (uint) Sdl.SdlWindowFlags.SdlWindowOpengl;
             flags |= (uint) Sdl.SdlWindowFlags.SdlWindowShown;

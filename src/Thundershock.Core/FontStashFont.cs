@@ -49,6 +49,7 @@ namespace Thundershock.Core
         {
             var font = _fontSystem.GetFont(_fontSize);
             font.DrawText(renderer, text, location, color);
+            renderer.IncreaseLayer();
         }
 
         public override Vector2 MeasureString(string text)

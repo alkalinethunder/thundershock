@@ -105,7 +105,7 @@ namespace Thundershock.Gui.Elements
         {
             if (HotTracking)
             {
-                var pos = GuiSystem.ScreenToViewport(new Vector2(e.X, e.Y)) - TopLevel.GetOnScreenLocation();
+                var pos = GuiSystem.ScreenToViewport(new Vector2(e.X, e.Y));
 
                 if (TryGetItem((int) pos.X, (int) pos.Y,  out int index))
                 {
@@ -134,7 +134,7 @@ namespace Thundershock.Gui.Elements
         {
             if (e.Button == MouseButton.Primary)
             {
-                var pos = GuiSystem.ScreenToViewport(new Vector2(e.X, e.Y)) - TopLevel.GetOnScreenLocation();
+                var pos = GuiSystem.ScreenToViewport(new Vector2(e.X, e.Y));
 
                 if (TryGetItem((int) pos.X, (int) pos.Y, out int index))
                 {

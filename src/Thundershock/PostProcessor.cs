@@ -202,9 +202,9 @@ namespace Thundershock
             _effectBuffer2?.Dispose();
             _intermediate?.Dispose();
 
-            _effectBuffer1 = new RenderTarget2D(_gpu, width, height);
-            _effectBuffer2 = new RenderTarget2D(_gpu, width, height);
-            _intermediate = new RenderTarget2D(_gpu, width, height);
+            _effectBuffer1 = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
+            _effectBuffer2 = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
+            _intermediate = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
         }
 
         private void SetBlurOffsets(float dx, float dy)

@@ -65,6 +65,7 @@ namespace Thundershock.Gui.Elements
                 if (_viewportAlignment != value)
                 {
                     _viewportAlignment = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -77,6 +78,7 @@ namespace Thundershock.Gui.Elements
                 if (_viewportPos != value)
                 {
                     _viewportPos = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -729,6 +731,8 @@ namespace Thundershock.Gui.Elements
                 var rect = e.BoundingBox;
                 while (e != null)
                 {
+                    if (e is RootElement) break;
+                    
                     rect = Rectangle.Intersect(e.BoundingBox, rect);
                     e = e.Parent;
                 }

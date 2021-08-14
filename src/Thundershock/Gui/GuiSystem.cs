@@ -30,6 +30,8 @@ namespace Thundershock.Gui
         private string _tooltip;
         private Vector2 _tooltipPosition;
         private Renderer2D _renderer;
+
+        private bool _showFPS = false;
         
         public event EventHandler<MouseMoveEventArgs> GlobalMouseMove;
 
@@ -113,6 +115,11 @@ namespace Thundershock.Gui
 
         public bool KeyDown(KeyEventArgs e)
         {
+            if (e.Key == Keys.F3)
+            {
+                _showFPS = !_showFPS;
+            }
+            
             return Bubble(_focused, x => x.FireKeyDown(e));
         }
 
@@ -252,7 +259,7 @@ namespace Thundershock.Gui
             {
                 var anchor = element.ViewportAnchor;
                 var align = element.ViewportAlignment;
-                var pos = element.ViewportPosition;
+                var aPos = element.ViewportPosition;
 
                 var rect = screenRectangle;
                 
@@ -270,6 +277,13 @@ namespace Thundershock.Gui
                     if (rect.Height <= 0)
                         rect.Height = size.Y;
                 }
+
+                var pos = screenRectangle.Size * new Vector2(anchor.Left, anchor.Top);
+                pos -= (rect.Size * align);
+                pos += aPos;
+
+                rect.X = pos.X;
+                rect.Y = pos.Y;
                 
                 layout.SetChildBounds(element, rect);
             }
@@ -278,41 +292,19 @@ namespace Thundershock.Gui
         public void Render(GameTime gameTime)
         {
             var screen = BoundingBox;
-            var projection = Matrix4x4.CreateOrthographicOffCenter(0, screen.Width, screen.Height, 0, -1, 1);
-            
-            foreach (var elem in _topLevels)
-            {
-                var pos = screen.Size * new Vector2(elem.ViewportAnchor.Left, elem.ViewportAnchor.Top);
-                var bounds = elem.BoundingBox;
-                pos -= (bounds.Size * elem.ViewportAlignment);
-                pos += elem.ViewportPosition;
-
-                _renderer.ProjectionMatrix = Matrix4x4.CreateTranslation(pos.X, pos.Y, 0) * projection;
-
-                pos = ViewportToScreen(pos);                
-                var size = ViewportToScreen(bounds.Size);
-                
-                bounds.X = pos.X;
-                bounds.Y = pos.Y;
-                bounds.Width = size.X;
-                bounds.Height = size.Y;
-                
-                _renderer.Begin();
-
-                _guiRendererState.Clip = bounds;
-                _guiRendererState.Offset = pos;
-                PaintElements(gameTime, elem);
-                
-                _renderer.End();
-            }
+            var projection = Matrix4x4.CreateOrthographicOffCenter(0, screen.Width, screen.Height, 0, _renderer.MaxBatchCount, -_renderer.MaxBatchCount);
 
             _renderer.ProjectionMatrix = projection;
-            
-            _guiRendererState.Offset = Vector2.Zero;
+
             _guiRendererState.Clip = _gpu.ViewportBounds;
             
-            _renderer.SetClipBounds(null);
-            
+            _renderer.Begin();
+
+            foreach (var elem in _topLevels)
+            {
+                PaintElements(gameTime, elem);
+            }
+
             if (!string.IsNullOrWhiteSpace(_tooltip))
             {
                 var font = _activeStyle.DefaultFont;
@@ -331,15 +323,29 @@ namespace Thundershock.Gui
                 {
                     _tooltipPosition.Y -= bottomLeft.Y - BoundingBox.Bottom;
                 }
-
-                _renderer.Begin();
-
+                
                 _renderer.FillRectangle(new Rectangle((int)_tooltipPosition.X, (int)_tooltipPosition.Y, (int)measure.X, (int)measure.Y), Color.Black);
 
                 _renderer.DrawString(font, wrapped, _tooltipPosition + new Vector2(5, 5), Color.White);
-
-                _renderer.End();
             }
+
+            if (_showFPS)
+            {
+                DrawFPS(gameTime);
+            }
+            
+            _renderer.End();
+        }
+
+        private void DrawFPS(GameTime gameTime)
+        {
+            var text = Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds).ToString();
+
+            var m = _debugFont.MeasureString(text);
+            var rect = new Rectangle(0, 0, m.X, m.Y);
+
+            _renderer.FillRectangle(rect, Color.Black);
+            _renderer.DrawString(_debugFont, text, Vector2.Zero, Color.White);
         }
 
         private Element FindElement(int x, int y, bool requireInteractible = true)
@@ -349,21 +355,8 @@ namespace Thundershock.Gui
             for (var i = _topLevels.Count - 1; i >= 0; i--)
             {
                 var elem = _topLevels[i];
-                var bounds = elem.BoundingBox;
-                var anchor = elem.ViewportAnchor;
-                var align = elem.ViewportAlignment;
-                var pos = elem.ViewportPosition;
-
-                var px = x - (int) (screen.Width * anchor.Left);
-                var py = y - (int) (screen.Height * anchor.Top);
-
-                px += (int) (bounds.Width * align.X);
-                py += (int) (bounds.Height * align.Y);
-
-                px -= (int) pos.X;
-                py -= (int) pos.Y;
                 
-                var f = FindElement(elem, px, py, requireInteractible);
+                var f = FindElement(elem, x, y, requireInteractible);
 
                 if (f != null)
                     return f;
@@ -449,47 +442,32 @@ namespace Thundershock.Gui
 
         private void PaintElements(GameTime gameTime, Element element)
         {
-            // Skip rendering if the element is explicitly invisible.
+            // Don't paint invisible elements.
             if (element.Visibility != Visibility.Visible)
                 return;
             
-            // Skip rendering if the element is fully transparent.
+            // Don't paint fully transparent elements.
             if (element.Opacity <= 0)
                 return;
-
-            var cClip = _guiRendererState.Clip;
-            var bounds = element.BoundingBox;
-
-            var lc = ViewportToScreen(bounds.X, bounds.Y) + _guiRendererState.Offset;
-            var sz = ViewportToScreen(bounds.Width, bounds.Height);
-
-            bounds.X = lc.X;
-            bounds.Y = lc.Y;
-            bounds.Width = sz.X;
-            bounds.Height = sz.Y;
-
-            var clip = Rectangle.Intersect(cClip, bounds);
             
+            // Don't paint 0-size elements.
+            if (element.BoundingBox.IsEmpty)
+                return;
             
-            // Skip rendering if the clipping rectangle for the element is empty
-            // (the element is either off-screen or outside the bounds of its parent.)
+            // Clipping rectangle determines whether the element is actually visible on-screen.
+            // However, we do not actually do GPU clipping unless the element requests it.
+            // This is an optimization - because changing the scissor test region requires
+            // ending the current render batch.
+            var clip = element.ClipBounds;
+            
+            // Clip the element if the clip rect is empty...
             if (clip.IsEmpty)
                 return;
-
+            
+            // Update the GPU's scissor test bounds IF THIS ELEMENT WANTS US TO.
             if (element.Clip)
             {
                 _renderer.SetClipBounds(clip);
-            }
-
-            _guiRendererState.Clip = clip;
-
-            var opacity = _guiRendererState.Opacity;
-            _guiRendererState.Opacity *= element.Opacity;
-
-            var tint = _guiRendererState.Tint;
-            if (!element.Enabled)
-            {
-                _guiRendererState.Tint *= Color.Gray;
             }
             
             if (element.CanPaint)
@@ -508,16 +486,13 @@ namespace Thundershock.Gui
                 // Paint the child.
                 PaintElements(gameTime, child);
             }
-
-            _guiRendererState.Opacity = opacity;
-            _guiRendererState.Tint = tint;
             
+            // We have painted the element and its children. If clipping was requested,
+            // this is where we turn it off.
             if (element.Clip)
             {
                 _renderer.SetClipBounds(null);
             }
-
-            _guiRendererState.Clip = cClip;
         }
 
         public void RemoveFromViewport(Element element)
@@ -536,7 +511,6 @@ namespace Thundershock.Gui
             public float Opacity { get; set; } = 1;
             public Color Tint { get; set; } = Color.White;
             public Rectangle Clip { get; set; }
-            public Vector2 Offset { get; set; }
         }
     }
 }

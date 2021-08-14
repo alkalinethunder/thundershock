@@ -27,6 +27,9 @@ namespace Thundershock.Components
         /// set to Orthographic.
         /// </summary>
         public float OrthoHeight = 2160;
+
+        public int OrthoNear = 0;
+        public int OrthoFar = 1000;
         
         #endregion
 

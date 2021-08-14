@@ -96,7 +96,7 @@ namespace Thundershock.Gui.Elements
                 _scrollPanel.IsInteractable = true;
                 _scrollPanel.ViewportAnchor = FreePanel.CanvasAnchor.TopLeft;
                 _scrollPanel.ViewportPosition =
-                    TopLevel.GetOnScreenLocation() + new Vector2(BoundingBox.Left, BoundingBox.Bottom);
+                    new Vector2(this.BoundingBox.Left, this.BoundingBox.Bottom);
                 
                 _scrollPanel.MaximumHeight = 300;
                 

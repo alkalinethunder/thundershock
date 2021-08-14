@@ -74,6 +74,11 @@ namespace Thundershock.OpenGL
             
             // bind the index buffer
             _gl.VertexArrayElementBuffer(_vao, _indexBuffer);
+            
+            // TODO: Allow this to be set dynamically.
+            // Enable depth testing and set the depth test function.
+            _gl.Enable(GLEnum.DepthTest);
+            _gl.DepthFunc(GLEnum.Lequal);
         }
 
 
@@ -106,9 +111,12 @@ namespace Thundershock.OpenGL
                     _gl.CullFace(GLEnum.Front);
                     break;
             }
- {}            
-            // Bind to the vertex array object.
+ {}
+ // Bind to the vertex array object.
             _gl.BindVertexArray(_vao);
+
+            // _gl.Enable(GLEnum.CullFace);
+            // _gl.CullFace(CullFaceMode.Front);
             
             // TODO: Let the engine control blending.
             _gl.Enable(GLEnum.Blend);
@@ -245,7 +253,7 @@ namespace Thundershock.OpenGL
             _gl.VertexAttribPointer(1, 4, GLEnum.Float, false, (uint) vertSize * sizeof(float),
                 cptr);
 
-            _gl.EnableVertexAttribArray(2);
+             _gl.EnableVertexAttribArray(2);
             _gl.VertexAttribPointer(2, 2, GLEnum.Float, false, (uint) vertSize * sizeof(float),
                 tptr);
             */
@@ -321,14 +329,39 @@ namespace Thundershock.OpenGL
             }
         }
         
-        public override uint CreateRenderTarget(uint texture)
+        public override uint CreateRenderTarget(uint texture, uint w, uint h, DepthFormat depthFormat)
         {
             // Create a framebuffer.
             var fbo = _gl.GenFramebuffer();
-
+            
             // Attach it to the texture.
             _gl.BindFramebuffer(GLEnum.Framebuffer, fbo);
             _gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, texture, 0);
+
+            if (depthFormat != DepthFormat.None)
+            {
+                // Create a render buffer object for the depth buffer.
+                var rbo = _gl.GenRenderbuffer();
+                _gl.BindRenderbuffer(GLEnum.Renderbuffer, rbo);
+
+                switch (depthFormat)
+                {
+                    case DepthFormat.Depth24:
+                        _gl.RenderbufferStorage(GLEnum.Renderbuffer, GLEnum.Depth24Stencil8, w, h);
+                        break;
+                    case DepthFormat.Depth24Stencil8:
+                        _gl.RenderbufferStorage(GLEnum.Renderbuffer, GLEnum.Depth24Stencil8, w, h);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+
+
+                _gl.BindRenderbuffer(GLEnum.Renderbuffer, 0);
+
+                _gl.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.DepthStencilAttachment, GLEnum.Renderbuffer, rbo);
+            }
+            
             _gl.DrawBuffer(GLEnum.ColorAttachment0);
             _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
 
