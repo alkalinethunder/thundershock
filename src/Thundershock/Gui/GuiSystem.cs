@@ -469,6 +469,15 @@ namespace Thundershock.Gui
             {
                 _renderer.SetClipBounds(clip);
             }
+
+            var opacity = _guiRendererState.Opacity;
+            _guiRendererState.Opacity *= element.Opacity;
+
+            var tint = _guiRendererState.Tint;
+            if (!element.Enabled)
+            {
+                _guiRendererState.Tint *= Color.Gray;
+            }
             
             if (element.CanPaint)
             {
@@ -493,6 +502,9 @@ namespace Thundershock.Gui
             {
                 _renderer.SetClipBounds(null);
             }
+
+            _guiRendererState.Opacity = opacity;
+            _guiRendererState.Tint = tint;
         }
 
         public void RemoveFromViewport(Element element)
