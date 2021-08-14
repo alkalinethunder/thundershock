@@ -16,8 +16,6 @@ namespace Thundershock.Core.Rendering
         
         private int _sortLayer;
         private Rectangle _clipBounds;
-        private int[] _ibo = new int[128];
-        private int _indexPointer;
         private int _batchPointer;
         private int _vertexPointer;
         private Vertex[] _vertexArray = new Vertex[128];
@@ -55,7 +53,6 @@ namespace Thundershock.Core.Rendering
             _translucentBatchPointer = 0;
             _running = true;
             _batchPointer = 0;
-            _indexPointer = 0;
             _vertexPointer = 0;
             _effect = null;
         }
@@ -174,13 +171,15 @@ namespace Thundershock.Core.Rendering
                     // Submit the vertex buffer. All vertices for every single batch item are in here.
                     // This is a massive optimization since now we don't need to do this on every draw call.
                     _renderer.UploadVertices(_vertexArray.AsSpan(0, _vertexPointer));
-                    _renderer.UploadIndices(_ibo.AsSpan(0, _indexPointer));
-                    
+
                     for (var i = 0; i < _batchPointer; i++)
                     {
                         var item = _batch[i];
                         var tex = item.Texture;
 
+                        // upload the indices.
+                        _renderer.UploadIndices(item.Indices);
+                        
                         Debug.Assert(item.Length % 3 == 0);
                         Debug.Assert(item.Length / 3 == item.Triangles);
 
@@ -199,6 +198,9 @@ namespace Thundershock.Core.Rendering
                     {
                         var item = _translucentBatch[i];
                         var tex = item.Texture;
+
+                        // upload the indices.
+                        _renderer.UploadIndices(item.Indices);
 
                         Debug.Assert(item.Length % 3 == 0);
                         Debug.Assert(item.Length / 3 == item.Triangles);
@@ -219,7 +221,6 @@ namespace Thundershock.Core.Rendering
                     // the buffers.  We don't actually clear the buffers because resizing the arrays
                     // is a bit slow and unnecessary.
                     _vertexPointer = 0;
-                    _indexPointer = 0;
                     _batchPointer = 0;
                     _translucentBatchPointer = 0;
 
@@ -497,13 +498,16 @@ namespace Thundershock.Core.Rendering
         
         private class RenderItem
         {
+            private int[] _indices = new int[64];
+            
             private Renderer2D _renderer;
-            private int _batchStart;
             private int _batchIndex;
+
+            public Span<int> Indices => _indices.AsSpan(0, _batchIndex);
             
             public int Triangles => _batchIndex / 3;
 
-            public int Start => _batchStart;
+            public int Start => 0;
 
             public int Length => _batchIndex;
             
@@ -514,68 +518,19 @@ namespace Thundershock.Core.Rendering
             public RenderItem(Renderer2D renderer)
             {
                 _renderer = renderer;
-                _batchStart = _renderer._indexPointer;
             }
             
             public void AddIndex(int index)
             {
-                // Make room for new vertices if we need to
-                if (_renderer._indexPointer >= _renderer._ibo.Length)
-                    Array.Resize(ref _renderer._ibo, _renderer._indexPointer + 128);
-
-                // where should we place the index?
-                var ptr = _batchStart + _batchIndex;
+                // Make room if we've run out.
+                if (_batchIndex >= _indices.Length)
+                    Array.Resize(ref _indices, _indices.Length * 2);
                 
-                // Shift everything to the right by one index to make room.
-                if (ptr < _renderer._indexPointer)
-                {
-                    // How much shit must be shifted?
-                    var count = _renderer._indexPointer - ptr;
-
-                    // if there is only one index, no need to do a block copy.
-                    if (count == 1)
-                    {
-                        _renderer._ibo[ptr + 1] = _renderer._ibo[ptr];
-                    }
-                    else
-                    {
-                        // Move everything over.
-                        // Array.Copy(_renderer._ibo, ptr, _renderer._ibo, ptr + 1, count);
-                        Buffer.BlockCopy(_renderer._ibo, ptr * sizeof(int), _renderer._ibo, (ptr + 1) * sizeof(int),
-                            count * sizeof(int));
-                    }
-                    
-                    // Increase the total length.
-                    // _renderer._indexPointer++;
-                }
+                // Insert the index.
+                _indices[_batchIndex] = index;
                 
-                // Move the index into the array.
-                _renderer._ibo[ptr] = index;
-                
-                // Increase the length.
-                _renderer._indexPointer++;
-                
-                // Increase OUR length.
+                // Increase our size.
                 _batchIndex++;
-                
-                // Because we may have fucked up the index start positions of other batch items,
-                // we need to go through them and update them.
-                for (var i = 0; i < _renderer._translucentBatchPointer; i++)
-                {
-                    var b = _renderer._translucentBatch[i];
-
-                    if (b._batchStart > this._batchStart)
-                        b._batchStart++;
-                }
-
-                // And do it again for the opaque batch.
-                for (var i = 0; i < _renderer._batchPointer; i++)
-                {
-                    var b = _renderer._batch[i];
-
-                    if (b._batchStart > this._batchStart)
-                        b._batchStart++;
-                }
             }
         }
 
@@ -588,7 +543,7 @@ namespace Thundershock.Core.Rendering
 
             if (_vertexPointer >= _vertexArray.Length)
             {
-                Array.Resize(ref _vertexArray, _vertexArray.Length + 128);
+                Array.Resize(ref _vertexArray, _vertexArray.Length * 2);
             }
             
             return ptr;
