@@ -208,14 +208,32 @@ namespace Thundershock.Gui.Elements
                 _textIsDirty = true;
             }
 
+            RegenerateLines(alottedSize.X);
+            
+            var size = Vector2.Zero;
+            foreach (var line in _lines)
+            {
+                var m = line.Measure;
+
+                size.X = Math.Max(size.X, m.X);
+                size.Y += _lastFont.LineHeight;
+            }
+
+            _lastWidth = size.X;
+            
+            return size;
+        }
+
+        private void RegenerateLines(float wrapWidth)
+        {
             if (_textIsDirty)
             {
                 _lastFont = GetFont();
                 
                 var wrapped = _wrapMode switch
                 {
-                    TextWrapMode.WordWrap => WordWrap(_lastFont, _text, alottedSize.X),
-                    TextWrapMode.LetterWrap => LetterWrap(_lastFont, _text, alottedSize.X),
+                    TextWrapMode.WordWrap => WordWrap(_lastFont, _text, wrapWidth),
+                    TextWrapMode.LetterWrap => LetterWrap(_lastFont, _text, wrapWidth),
                     _ => _text
                 } ?? string.Empty;
 
@@ -234,44 +252,27 @@ namespace Thundershock.Gui.Elements
                 
                 _textIsDirty = false;
             }
-            
-            var size = Vector2.Zero;
-            foreach (var line in _lines)
-            {
-                var m = line.Measure;
-
-                size.X = Math.Max(size.X, m.X);
-                size.Y += _lastFont.LineHeight;
-            }
-
-            _lastWidth = size.X;
-            
-            return size;
         }
-
+        
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
+            var f = _lastFont;
+
+            if (f != _lastFont)
+            {
+                _lastFont = f;
+                _textIsDirty = true;
+                RegenerateLines(ContentRectangle.Width);
+            }
+
             if (_lines.Count > 0)
             {
-                var f = _lastFont;
                 var color = (ForeColor ?? StyleColor.Default).GetColor(GuiSystem.Style.DefaultForeground);
                 foreach (var line in _lines)
                 {
                     renderer.DrawString(f, line.Text, line.Position, color);
                 }
             }
-        }
-
-        protected override void OnUpdate(GameTime gameTime)
-        {
-            var f = GetFont();
-            if (f != _lastFont)
-            {
-                _lastFont = f;
-                _textIsDirty = true;
-            }
-            
-            base.OnUpdate(gameTime);
         }
 
         private class Line

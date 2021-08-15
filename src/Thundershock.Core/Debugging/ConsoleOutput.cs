@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Thundershock.Core.Debugging
 {
     /// <summary>
-    /// Implements system console output for the <see cref="Logger"/>.
+    /// Implements syst em console output for the <see cref="Logger"/>.
     /// </summary>
     public class ConsoleOutput : ILogOutput
     {

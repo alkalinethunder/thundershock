@@ -241,12 +241,6 @@ namespace Thundershock.Gui
         public void Update(GameTime gameTime)
         {
             PerformLayout();
-
-            for (var i = 0; i < _topLevels.Count; i++)
-            {
-                var tl = _topLevels[i];
-                tl.Update(gameTime);
-            }
         }
         
         private void PerformLayout()

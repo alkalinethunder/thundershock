@@ -217,11 +217,12 @@ namespace Thundershock.Gui.Elements.Console
 
         public void MoveLeft(int amount)
         {
-            if (_inputPos - amount < 0)
-                _inputPos = 0;
-            else
+            if (_inputPos - amount >= 0)
+            {
                 _inputPos -= amount;
-            _inputIsDirty = true;
+                _inputIsDirty = true;
+                InvalidateLayout();
+            }
         }
 
         private bool ParseColorCode(char code, out ConsoleColor color)
@@ -262,23 +263,32 @@ namespace Thundershock.Gui.Elements.Console
 
         public void MoveRight(int amount)
         {
-            if (_inputPos + amount > _input.Length)
-                _inputPos = _input.Length;
-            else
+            if (_inputPos + amount <= _input.Length)
+            {
                 _inputPos += amount;
-            _inputIsDirty = true;
+                _inputIsDirty = true;
+                InvalidateLayout();
+            }
         }
 
         public void MoveToHome()
         {
-            _inputPos = 0;
-            _inputIsDirty = true;
+            if (_inputPos != 0)
+            {
+                _inputPos = 0;
+                _inputIsDirty = true;
+                InvalidateLayout();
+            }
         }
 
         public void MoveToEnd()
         {
-            _inputPos = _input.Length;
-            _inputIsDirty = true;
+            if (_inputPos != _input.Length)
+            {
+                _inputPos = _input.Length;
+                _inputIsDirty = true;
+                InvalidateLayout();
+            }
         }
 
         public void ScrollUp(float amount)
@@ -298,6 +308,22 @@ namespace Thundershock.Gui.Elements.Console
             _scrollback -= amount;
             if (_scrollback < 0)
                 _scrollback = 0;
+        }
+
+        protected override void ArrangeOverride(Rectangle contentRectangle)
+        {
+            while (_linesWritten > MaxLinesRetained)
+            {
+                _text = _text.Substring(_text.IndexOf('\n') + 1);
+                _linesWritten--;
+            }
+
+            if (_textIsDirty || _inputIsDirty)
+            {
+                RegenTextElements();
+            }
+
+            base.ArrangeOverride(contentRectangle);
         }
 
         private void ApplyCompletion()
@@ -863,38 +889,6 @@ namespace Thundershock.Gui.Elements.Console
             }
         }
         
-        protected override void OnUpdate(GameTime gameTime)
-        {
-            base.OnUpdate(gameTime);
-
-            while (_linesWritten > MaxLinesRetained)
-            {
-                _text = _text.Substring(_text.IndexOf('\n') + 1);
-                _linesWritten--;
-                _textIsDirty = true;
-            }
-            
-            _cursorBlink += gameTime.ElapsedGameTime.TotalSeconds;
-            _blink += gameTime.ElapsedGameTime.TotalSeconds;
-
-            if (_cursorBlink >= CursorBlinkTime)
-            {
-                _cursorBlink = 0;
-                _cursorShow = !_cursorShow;
-            }
-
-            if (_blink >= BlinkTime)
-            {
-                _blink = 0;
-                _blinkShow = !_blinkShow;
-            }
-
-            if (_textIsDirty || _inputIsDirty)
-            {
-                RegenTextElements();
-            }
-        }
-
         protected override bool OnMouseScroll(MouseScrollEventArgs e)
         {
             var result = base.OnMouseScroll(e);
@@ -905,6 +899,8 @@ namespace Thundershock.Gui.Elements.Console
             else if (sb < 0)
                 sb = 0;
             _scrollback = sb;
+            
+            InvalidateLayout();
             
             return result;
         }
@@ -1051,6 +1047,24 @@ namespace Thundershock.Gui.Elements.Console
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
+            // Update cursor blink state.
+            _cursorBlink += gameTime.ElapsedGameTime.TotalSeconds;
+            _blink += gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (_cursorBlink >= CursorBlinkTime)
+            {
+                _cursorBlink = 0;
+                _cursorShow = !_cursorShow;
+            }
+
+            if (_blink >= BlinkTime)
+            {
+                _blink = 0;
+                _blinkShow = !_blinkShow;
+            }
+
+            
+            
             // It may be desirable for the game to not let us draw the background image specified in the
             // redterm palette. If this is the case, we won't - and we'll let the game itself decide exactly
             // how the background image is rendered. Some custom redwm layouts may not want to deal with
@@ -1238,6 +1252,7 @@ namespace Thundershock.Gui.Elements.Console
                     {
                         _input = _input.Remove(_inputPos, 1);
                         _inputIsDirty = true;
+                        InvalidateLayout();
                     }
 
                     break;
@@ -1256,6 +1271,7 @@ namespace Thundershock.Gui.Elements.Console
                         _inputPos--;
                         _input = _input.Remove(_inputPos, 1);
                         _inputIsDirty = true;
+                        InvalidateLayout();
                     }
                     break;
                 default:
@@ -1276,6 +1292,7 @@ namespace Thundershock.Gui.Elements.Console
             _input = _input.Insert(_inputPos, e.Character.ToString());
             _inputPos += 1;
             _inputIsDirty = true;
+            InvalidateLayout();
             result = true;
 
             return result;
@@ -1375,6 +1392,10 @@ namespace Thundershock.Gui.Elements.Console
             _textIsDirty = true;
 
             CountLines(text);
+            
+            // Invalidate the layout so we force
+            // re-calculation of text layout.
+            this.InvalidateLayout();
         }
         
         public void WriteLine(object value)
@@ -1411,6 +1432,10 @@ namespace Thundershock.Gui.Elements.Console
             _linesWritten = 0;
             _text = string.Empty;
             _textIsDirty = true;
+            
+            // Invalidate the layout so we force
+            // re-calculation of text layout.
+            this.InvalidateLayout();
         }
 
         public bool GetLine(out string text)

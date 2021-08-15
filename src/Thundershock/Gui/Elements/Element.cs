@@ -534,19 +534,6 @@ namespace Thundershock.Gui.Elements
         protected LayoutManager MyLayout => _layout;
         
         /// <summary>
-        /// Called on every tick if the element is enabled. Allows the element to update itself and any animations.
-        /// </summary>
-        /// <param name="gameTime">The time since last tick.</param>
-        public void Update(GameTime gameTime)
-        {
-            OnUpdate(gameTime);
-            foreach (var child in Children)
-            {
-                child.Update(gameTime);
-            }
-        }
-
-        /// <summary>
         /// Paints the element on the screen if painting is enabled.
         /// </summary>
         /// <param name="gameTime">Time since last tick.</param>
@@ -617,12 +604,6 @@ namespace Thundershock.Gui.Elements
         /// <param name="gameTime">Time since the last tick.</param>
         /// <param name="renderer">An instance of this GUI element's renderer.</param>
         protected virtual void OnPaint(GameTime gameTime, GuiRenderer renderer) {}
-        
-        /// <summary>
-        /// Called when it's time for this element to update.
-        /// </summary>
-        /// <param name="gameTime">Time since the last tick.</param>
-        protected virtual void OnUpdate(GameTime gameTime) {}
 
         /// <summary>
         /// Provides functionality for performing layout operations on GUI elements.

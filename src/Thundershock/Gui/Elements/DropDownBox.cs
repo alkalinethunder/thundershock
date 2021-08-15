@@ -59,6 +59,8 @@ namespace Thundershock.Gui.Elements
             _activator.MouseUp += ActivatorOnMouseUp;
             _itemList.SelectedIndexChanged += ItemListOnSelectedIndexChanged;
             _itemList.Blurred += ItemListOnBlurred;
+
+            _text.Text = "Select Item...";
         }
 
         private void ItemListOnBlurred(object sender, FocusChangedEventArgs e)
@@ -72,14 +74,13 @@ namespace Thundershock.Gui.Elements
 
         private void ItemListOnSelectedIndexChanged(object sender, EventArgs e)
         {
-            if (_itemList.SelectedIndex != _lastIndex && _isOpen)
-            {
-                SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
+            this._text.Text = _itemList.SelectedItem;
 
-                _scrollPanel.RemoveFromParent();
+            SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
 
-                _isOpen = false;
-            }
+            _scrollPanel.RemoveFromParent();
+
+            _isOpen = false;
         }
 
         private void ActivatorOnMouseUp(object sender, MouseButtonEventArgs e)
@@ -110,24 +111,8 @@ namespace Thundershock.Gui.Elements
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
             _itemList.MinimumWidth = contentRectangle.Width;
-            
+               
             base.ArrangeOverride(contentRectangle);
-        }
-
-        protected override void OnUpdate(GameTime gameTime)
-        {
-            _text.ForeColor = GuiSystem.Style.GetButtonTextColor(_activator);
-            
-            if (_itemList.SelectedIndex > -1)
-            {
-                _text.Text = _itemList.SelectedItem;
-            }
-            else
-            {
-                _text.Text = "Select item...";
-            }
-            
-            base.OnUpdate(gameTime);
         }
     }
 }
