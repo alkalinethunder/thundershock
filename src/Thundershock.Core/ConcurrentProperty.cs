@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Thundershock.Core
+﻿namespace Thundershock.Core
 {
     /// <summary>
     /// Represents a piece of arbitrary data that can be accessed safely across multiple threads.
@@ -8,7 +6,7 @@ namespace Thundershock.Core
     /// <typeparam name="T">The type of data to store in the concurrent property.</typeparam>
     public sealed class ConcurrentProperty<T>
     {
-        private T _value = default;
+        private T _value;
         private object _lock = new();
 
         /// <summary>
@@ -44,8 +42,15 @@ namespace Thundershock.Core
             }
         }
         
+        /// <summary>
+        /// Creates a new instance of the <see cref="ConcurrentProperty{T}"/> class.
+        /// </summary>
         public ConcurrentProperty() : this(default) {}
         
+        /// <summary>
+        /// Creates a new instance of the <see cref="ConcurrentProperty{T}"/> class with a default value.
+        /// </summary>
+        /// <param name="value">The value to initialize the property with.</param>
         public ConcurrentProperty(T value)
         {
             _value = value;

@@ -7,17 +7,17 @@ using Thundershock.Flumberboozles;
 using Thundershock.Gui.Styling;
 using Thundershock.Core.Input;
 using Thundershock.Core;
+using Thundershock.Core.Scripting;
 
 namespace Thundershock.Gui.Elements
 {
     /// <summary>
     /// Provides the base functionality for all GUI elements.
     /// </summary>
+    [ScriptType]
     public abstract class Element : IPropertySetOwner
     {
-        private bool _isRenderDataDirty = true;
-        private float _computedOpacity;
-        private Color _computedTint;
+        private bool _layoutInvalid = true;
         private GuiSystem _guiSystem;
         private float _opacity = 1;
         private float _minWidth;
@@ -40,6 +40,48 @@ namespace Thundershock.Gui.Elements
         private Rectangle _bounds;
         private Rectangle _contentRect;
         private Rectangle _clipRect;
+        private Vector2 _viewportAlignment;
+        private Vector2 _viewportPos;
+        private FreePanel.CanvasAnchor _viewportAnchor = FreePanel.CanvasAnchor.Fill;
+
+        public FreePanel.CanvasAnchor ViewportAnchor
+        {
+            get => _viewportAnchor;
+            set
+            {
+                if (_viewportAnchor != value)
+                {
+                    _viewportAnchor = value;
+                    InvalidateLayout();
+                }
+            }
+        }
+        
+        public Vector2 ViewportAlignment
+        {
+            get => _viewportAlignment;
+            set
+            {
+                if (_viewportAlignment != value)
+                {
+                    _viewportAlignment = value;
+                    InvalidateLayout();
+                }
+            }
+        }
+
+        public Vector2 ViewportPosition
+        {
+            get => _viewportPos;
+            set
+            {
+                if (_viewportPos != value)
+                {
+                    _viewportPos = value;
+                    InvalidateLayout();
+                }
+            }
+        }
         
         /// <summary>
         /// Gets a rectangle representing the area on the screen where this element is allowed to render.
@@ -47,16 +89,10 @@ namespace Thundershock.Gui.Elements
         public Rectangle ClipBounds => _clipRect;
 
         /// <summary>
-        /// Gets a value representing the opacity of this element, taking in account the opacity
-        /// of all parent elements as well.
+        /// Gets or sets a value indicating whether this UI element requires scissor clipping during its paint operation.
         /// </summary>
-        public float ComputedOpacity => _computedOpacity;
-        
-        /// <summary>
-        /// Gets a value representing the tint of this element, taking in account the tint of
-        /// all parents as well.
-        /// </summary>
-        public Color ComputedTint => _computedTint;
+        public bool Clip { get; protected set; } = false;
+
         
         /// <summary>
         /// Gets or sets a value indicating whether this UI element can receive keyboard focus.
@@ -91,7 +127,14 @@ namespace Thundershock.Gui.Elements
         public StyleFont Font
         {
             get => _font;
-            set => _font = value; 
+            set
+            {
+                if (_font != value)
+                {
+                    _font = value;
+                    InvalidateLayout();
+                }
+            }
         }
 
         /// <summary>
@@ -114,6 +157,54 @@ namespace Thundershock.Gui.Elements
 
         private string DefaultName
             => $"{GetType().Name}_{GetHashCode()}";
+
+        public Vector2 GetOnScreenLocation()
+        {
+            var anchor = this.ViewportAnchor;
+            var alignment = this.ViewportAlignment;
+            var pos = this.ViewportPosition;
+            var screen = GuiSystem.BoundingBox;
+            var size = MyLayout.GetContentSize();
+
+            var anchorLocation = screen.Size * new Vector2(anchor.Left, anchor.Top);
+            var aSize = screen.Size * new Vector2(anchor.Right, anchor.Bottom);
+
+            if (aSize.X * aSize.Y <= 0)
+            {
+                if (aSize.X <= 0)
+                    aSize.X = size.X;
+
+                if (aSize.Y <= 0)
+                    aSize.Y = size.Y;
+            }
+
+            var aPos = aSize * alignment;
+
+            anchorLocation -= aPos;
+
+            return pos + anchorLocation;
+        }
+        
+        public Element TopLevel
+        {
+            get
+            {
+                var p = Parent;
+
+                if (p is RootElement)
+                    return this;
+                
+                while (p != null)
+                {
+                    if (p.Parent is RootElement)
+                        return p;
+                    
+                    p = p.Parent;
+                }
+
+                return p;
+            }
+        }
         
         /// <summary>
         /// Gets or sets the name of this element as shown in the editor and debugging tools.
@@ -130,7 +221,14 @@ namespace Thundershock.Gui.Elements
         public HorizontalAlignment HorizontalAlignment
         {
             get => _hAlign;
-            set => _hAlign = value;
+            set
+            {
+                if (_hAlign != value)
+                {
+                    _hAlign = value;
+                    InvalidateLayout();
+                }
+            }
         }
 
         /// <summary>
@@ -139,7 +237,14 @@ namespace Thundershock.Gui.Elements
         public VerticalAlignment VerticalAlignment
         {
             get => _vAlign;
-            set => _vAlign = value;
+            set
+            {
+                if (_vAlign != value)
+                {
+                    _vAlign = value;
+                    InvalidateLayout();
+                }
+            }
         }
 
         /// <summary>
@@ -148,18 +253,9 @@ namespace Thundershock.Gui.Elements
         public float Opacity
         {
             get => _opacity;
-            set
-            {
-                value = MathHelper.Clamp(value, 0, 1);
-                
-                if (Math.Abs(_opacity - value) > 0.0001f)
-                {
-                    _opacity = value;
-                    InvalidateRenderData();
-                }
-            }
+            set => _opacity = MathHelper.Clamp(value, 0, 1);
         }
-        
+
         /// <summary>
         /// Gets a value representing whether this element can paint on the screen.
         /// </summary>
@@ -210,7 +306,14 @@ namespace Thundershock.Gui.Elements
         public Padding Padding
         {
             get => _padding;
-            set => _padding = value;
+            set
+            {
+                if (_padding != value)
+                {
+                    _padding = value;
+                    InvalidateLayout();
+                }
+            }
         }
 
         /// <summary>
@@ -219,7 +322,14 @@ namespace Thundershock.Gui.Elements
         public Padding Margin
         {
             get => _margin;
-            set => _margin = value;
+            set
+            {
+                if (_margin != value)
+                {
+                    _margin = value;
+                    InvalidateLayout();
+                }
+            }
         }
         
         /// <summary>
@@ -233,6 +343,7 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_fixedWidth - value) >= 0.0001f)
                 {
                     _fixedWidth = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -248,6 +359,7 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_fixedHeight - value) >= 0.0001f)
                 {
                     _fixedHeight = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -263,6 +375,7 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_minWidth - value) >= 0.0001f)
                 {
                     _minWidth = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -278,6 +391,7 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_minHeight - value) >= 0.0001f)
                 {
                     _minHeight = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -288,7 +402,14 @@ namespace Thundershock.Gui.Elements
         public Visibility Visibility
         {
             get => _visibility;
-            set => _visibility = value;
+            set
+            {
+                if (_visibility != value)
+                {
+                    _visibility = value;
+                    InvalidateLayout();
+                }
+            }
         }
         
         /// <summary>
@@ -302,6 +423,7 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_maxWidth - value) >= 0.0001f)
                 {
                     _maxWidth = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -317,6 +439,7 @@ namespace Thundershock.Gui.Elements
                 if (MathF.Abs(_maxHeight - value) >= 0.0001f)
                 {
                     _maxHeight = value;
+                    InvalidateLayout();
                 }
             }
         }
@@ -336,6 +459,31 @@ namespace Thundershock.Gui.Elements
             _name = DefaultName;
 
             _props = new(this);
+
+            if (this is RootElement)
+                _layoutInvalid = false;
+        }
+
+        /// <summary>
+        /// Removes this element from its parent element.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If this element was added as a top-level UI element to the UI system, then this method removes
+        /// the element from the list of toplevels. Otherwise this method removes the element from it's parent's
+        /// child list.
+        /// </pare>
+        /// </remarks>
+        public void RemoveFromParent()
+        {
+            if (Parent is RootElement re)
+            {
+                re.GuiSystem.RemoveFromViewport(this);
+            }
+            else if (Parent != null)
+            {
+                Parent.Children.Remove(this);
+            }
         }
 
         protected internal void SetGuiSystem(GuiSystem gui)
@@ -358,6 +506,8 @@ namespace Thundershock.Gui.Elements
                 child.MyLayout.SetBounds(contentRectangle);
             }
         }
+
+        private bool NeedsLayoutUpdate => _layoutInvalid || (Parent != null && Parent.NeedsLayoutUpdate);
         
         /// <summary>
         /// Called during layout to calculate the size of the element's children or content.
@@ -485,6 +635,14 @@ namespace Thundershock.Gui.Elements
             {
                 return _owner.Measure(alottedSize);
             }
+
+            public Vector2 GetChildContentSize(Element element)
+            {
+                if (element.NeedsLayoutUpdate)
+                    return element.MyLayout.GetContentSize();
+                else
+                    return element.ActualSize;
+            }
             
             internal LayoutManager(Element element)
             {
@@ -498,69 +656,73 @@ namespace Thundershock.Gui.Elements
 
             public void SetBounds(Rectangle rectangle)
             {
-                var contentSize = GetContentSize(rectangle.Size);
-
-                // Apply padding.
-                rectangle.X += _owner.Padding.Left;
-                rectangle.Y += _owner.Padding.Top;
-                rectangle.Width -= _owner.Padding.Width;
-                rectangle.Height -= _owner.Padding.Height;
-
-                var bounds = Rectangle.Empty;
-
-                switch (_owner.HorizontalAlignment)
+                if (_owner.NeedsLayoutUpdate)
                 {
-                    case HorizontalAlignment.Center:
-                        bounds.Width = (int) Math.Round(contentSize.X);
-                        bounds.X = rectangle.Left + ((rectangle.Width - bounds.Width) / 2);
-                        break;
-                    case HorizontalAlignment.Left:
-                        bounds.Width = (int) Math.Round(contentSize.X);
-                        bounds.X = rectangle.Left;
-                        break;
-                    case HorizontalAlignment.Right:
-                        bounds.Width = (int) Math.Round(contentSize.X);
-                        bounds.X = rectangle.Right - bounds.Width;
-                        break;
-                    case HorizontalAlignment.Stretch:
-                        bounds.Width = rectangle.Width;
-                        bounds.X = rectangle.Left;
-                        break;
+                    var contentSize = GetContentSize(rectangle.Size);
+
+                    // Apply padding.
+                    rectangle.X += _owner.Padding.Left;
+                    rectangle.Y += _owner.Padding.Top;
+                    rectangle.Width -= _owner.Padding.Width;
+                    rectangle.Height -= _owner.Padding.Height;
+
+                    var bounds = Rectangle.Empty;
+
+                    switch (_owner.HorizontalAlignment)
+                    {
+                        case HorizontalAlignment.Center:
+                            bounds.Width = (int) Math.Round(contentSize.X);
+                            bounds.X = rectangle.Left + ((rectangle.Width - bounds.Width) / 2);
+                            break;
+                        case HorizontalAlignment.Left:
+                            bounds.Width = (int) Math.Round(contentSize.X);
+                            bounds.X = rectangle.Left;
+                            break;
+                        case HorizontalAlignment.Right:
+                            bounds.Width = (int) Math.Round(contentSize.X);
+                            bounds.X = rectangle.Right - bounds.Width;
+                            break;
+                        case HorizontalAlignment.Stretch:
+                            bounds.Width = rectangle.Width;
+                            bounds.X = rectangle.Left;
+                            break;
+                    }
+
+                    switch (_owner.VerticalAlignment)
+                    {
+                        case VerticalAlignment.Center:
+                            bounds.Height = (int) Math.Round(contentSize.Y);
+                            bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
+                            break;
+                        case VerticalAlignment.Top:
+                            bounds.Height = (int) Math.Round(contentSize.Y);
+                            bounds.Y = rectangle.Top;
+                            break;
+                        case VerticalAlignment.Bottom:
+                            bounds.Height = (int) Math.Round(contentSize.Y);
+                            bounds.Y = rectangle.Bottom - bounds.Height;
+                            break;
+                        case VerticalAlignment.Stretch:
+                            bounds.Height = rectangle.Height;
+                            bounds.Y = rectangle.Top;
+                            break;
+                    }
+
+                    _owner._bounds = bounds;
+
+                    // Margins
+                    bounds.X += _owner.Margin.Left;
+                    bounds.Y += _owner.Margin.Top;
+                    bounds.Width -= _owner.Margin.Width;
+                    bounds.Height -= _owner.Margin.Height;
+
+                    _owner._contentRect = bounds;
+
+                    _owner._clipRect = ComputeClipRect();
+
+                    _owner.ArrangeOverride(_owner.ContentRectangle);
+                    _owner._layoutInvalid = false;
                 }
-
-                switch (_owner.VerticalAlignment)
-                {
-                    case VerticalAlignment.Center:
-                        bounds.Height = (int) Math.Round(contentSize.Y);
-                        bounds.Y = rectangle.Top + ((rectangle.Height - bounds.Height) / 2);
-                        break;
-                    case VerticalAlignment.Top:
-                        bounds.Height = (int) Math.Round(contentSize.Y);
-                        bounds.Y = rectangle.Top;
-                        break;
-                    case VerticalAlignment.Bottom:
-                        bounds.Height = (int) Math.Round(contentSize.Y);
-                        bounds.Y = rectangle.Bottom - bounds.Height;
-                        break;
-                    case VerticalAlignment.Stretch:
-                        bounds.Height = rectangle.Height;
-                        bounds.Y = rectangle.Top;
-                        break;
-                }
-
-                _owner._bounds = bounds;
-
-                // Margins
-                bounds.X += _owner.Margin.Left;
-                bounds.Y += _owner.Margin.Top;
-                bounds.Width -= _owner.Margin.Width;
-                bounds.Height -= _owner.Margin.Height;
-
-                _owner._contentRect = bounds;
-
-                _owner._clipRect = ComputeClipRect();
-
-                _owner.ArrangeOverride(_owner.ContentRectangle);
             }
 
             private Rectangle ComputeClipRect()
@@ -569,6 +731,8 @@ namespace Thundershock.Gui.Elements
                 var rect = e.BoundingBox;
                 while (e != null)
                 {
+                    if (e is RootElement) break;
+                    
                     rect = Rectangle.Intersect(e.BoundingBox, rect);
                     e = e.Parent;
                 }
@@ -791,71 +955,9 @@ namespace Thundershock.Gui.Elements
             return OnKeyUp(e);
         }
         
-        protected void InvalidateRenderData()
-        {
-            if (!_isRenderDataDirty)
-            {
-                foreach (var child in Children.Collapse())
-                    child._isRenderDataDirty = true;
-                
-                _isRenderDataDirty = true;
-                var p = Parent;
-                while (p != null)
-                {
-                    p._isRenderDataDirty = true;
-                    p = p.Parent;
-                }
-            }
-        }
-
-        public void RecomputeRenderData()
-        {
-            if (_isRenderDataDirty)
-            {
-                // This is simple. All we need is our current opacity and tint (enabled = white, disabled = gray)
-                var opacity = Opacity;
-                var tint = Enabled ? Color.White : Color.Gray;
-                
-                // And our parent.
-                var parent = Parent;
-                
-                // Recurse through the ancestry tree.
-                while (parent != null)
-                {
-                    // Multiply current opacity by parent opacity.
-                    opacity *= parent.Opacity;
-                    
-                    // Get the parent tint.
-                    var pColor = parent.Enabled ? Color.White : Color.Gray;
-                    
-                    // Compute linear color values for the parent color.
-                    var r = pColor.R;
-                    var g = pColor.G;
-                    var b = pColor.B;
-                    
-                    // And compute the values for our new color.
-                    var br = tint.R * r;
-                    var bg = tint.G * g;
-                    var bb = tint.B * b;
-
-                    // Apply the new computed values.
-                    tint = new Color(br, bg, bb);
-
-                    // Recurse up to the next parent.
-                    parent = parent.Parent;
-                }
-                
-                // Cache these computed values.
-                _computedOpacity = opacity;
-                _computedTint = tint;
-                
-                _isRenderDataDirty = false;
-            }
-        }
-        
         public void NotifyPropertyModified(string name)
         {
-            // Stub.
+            InvalidateLayout();
         }
         
         public class ElementCollection : ICollection<Element>
@@ -871,6 +973,11 @@ namespace Thundershock.Gui.Elements
             public IEnumerator<Element> GetEnumerator()
             {
                 return _children.GetEnumerator();
+            }
+
+            public Element this[int index]
+            {
+                get => _children[index];
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -902,12 +1009,16 @@ namespace Thundershock.Gui.Elements
                 
                 // fixes a stupid fucking bug
                 item._guiSystem = _owner.GuiSystem;
+                                
+                _children.Add(item);
+                item.InvalidateLayout();
+                
                 foreach (var offspring in item.Children.Collapse())
                 {
                     offspring._guiSystem = _owner.GuiSystem;
+                    offspring.InvalidateLayout();
                 }
-                
-                _children.Add(item);
+
             }
 
             public void Insert(int index, Element element)
@@ -925,16 +1036,20 @@ namespace Thundershock.Gui.Elements
 
                 element._guiSystem = _owner._guiSystem;
                 
+
+                _children.Insert(index, element);
+                element.InvalidateLayout();
+                
                 foreach (var offspring in element.Children.Collapse())
                 {
                     offspring._guiSystem = _owner.GuiSystem;
+                    offspring.InvalidateLayout();
                 }
-
-                _children.Insert(index, element);
             }
             
             public void Clear()
             {
+                _owner.InvalidateLayout();
                 while (_children.Any())
                     Remove(_children.First());
             }
@@ -959,11 +1074,35 @@ namespace Thundershock.Gui.Elements
                 
                 item.Parent = null;
                 item._guiSystem = null;
+
+                _owner.InvalidateLayout();
+                
                 return _children.Remove(item);
             }
 
             public int Count => _children.Count;
             public bool IsReadOnly => _owner.SupportsChildren;
+        }
+
+        protected void InvalidateLayout()
+        {
+            if (this is RootElement) return;
+            
+            if (!_layoutInvalid)
+            {
+                foreach (var offspring in Children.Collapse())
+                    offspring._layoutInvalid = true;
+                
+                _layoutInvalid = true;
+
+                var p = Parent;
+                while (p != null && !(p is RootElement))
+                {
+                    p._layoutInvalid = true;
+                    p = p.Parent;
+                }
+
+            }
         }
     }
 }

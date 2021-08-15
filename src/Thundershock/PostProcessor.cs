@@ -49,6 +49,7 @@ namespace Thundershock
         #region Resources
 
         private Effect _ppEffect;
+        private Effect.EffectProgram _fxaa;
         private Effect.EffectProgram _brightnessThreshold;
         private Effect.EffectProgram _gaussian;
         private Effect.EffectProgram _bloom;
@@ -157,6 +158,7 @@ namespace Thundershock
             _effectBuffer2.Dispose();
             
             // null
+            _fxaa = null;
             _bloom = null;
             _shadowmask = null;
             _intermediate = null;
@@ -176,6 +178,7 @@ namespace Thundershock
             _gaussian = _ppEffect.Programs["BloomGaussian"];
             _bloom = _ppEffect.Programs["Bloom"];
             _shadowmask = _ppEffect.Programs["CRT"];
+            _fxaa = _ppEffect.Programs["FXAA"];
             
             /* _brightnessThreshold.Parameters["Threshold"].SetValue(_bloomThreshold);
             // _gaussian.Parameters["Kernel"].SetValue(_gaussianKernel);
@@ -190,6 +193,7 @@ namespace Thundershock
             _gaussian.Parameters["transform"].SetValue(_matrix);
             _bloom.Parameters["transform"].SetValue(_matrix);
             _shadowmask.Parameters["transform"].SetValue(_matrix);
+            _fxaa.Parameters["transform"].SetValue(_matrix);
         }
 
         public void ReallocateEffectBuffers(int width, int height)
@@ -198,9 +202,9 @@ namespace Thundershock
             _effectBuffer2?.Dispose();
             _intermediate?.Dispose();
 
-            _effectBuffer1 = new RenderTarget2D(_gpu, width, height);
-            _effectBuffer2 = new RenderTarget2D(_gpu, width, height);
-            _intermediate = new RenderTarget2D(_gpu, width, height);
+            _effectBuffer1 = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
+            _effectBuffer2 = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
+            _intermediate = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
         }
 
         private void SetBlurOffsets(float dx, float dy)
@@ -240,6 +244,37 @@ namespace Thundershock
 
             return (float)((1.0 / Math.Sqrt(2 * Math.PI * theta)) *
                            Math.Exp(-(n * n) / (2 * theta * theta)));
+        }
+
+        private void PerformFXAA(RenderTarget2D frame, Rectangle rect)
+        {
+            var hWidth = rect.Width;
+            var hHeight = rect.Height;
+
+            _gpu.SetRenderTarget(_effectBuffer1);
+            _gpu.Clear(Color.Black);
+            
+            _fxaa.Parameters["inputSize"]?.SetValue(new Vector2(hWidth, hHeight));
+            _fxaa.Apply();
+
+            _gpu.PrepareRender();
+            _gpu.Textures[0] = frame;
+            
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+
+            _gpu.EndRender();
+            _gpu.Textures[0] = null;
+            
+            // Render to our intermediate buffer.
+            _gpu.SetRenderTarget(_intermediate);
+            _gpu.Clear(Color.Black);
+            _basicEffect.Programs.First().Apply();
+            _gpu.PrepareRender(BlendMode.Alpha);
+            _gpu.Textures[0] = _effectBuffer1;
+            _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
+            _gpu.EndRender();
+            _gpu.Textures[0] = null;
+            _gpu.SetRenderTarget(null);
         }
         
         private void PerformBloom(RenderTarget2D frame, Rectangle rect)
@@ -382,13 +417,12 @@ namespace Thundershock
             
             var rect = renderTarget.Bounds;
 
+            // TODO: Ability to disable FXAA.
+            PerformFXAA(renderTarget, rect);
+
             if (EnableBloom && Settings.EnableBloom)
             {
-                PerformBloom(renderTarget, rect);
-            }
-            else
-            {
-                NoEffect(renderTarget);
+                PerformBloom(_intermediate, rect);
             }
 
             if (Settings.EnableGlitch && _glitchIntensity > 0)

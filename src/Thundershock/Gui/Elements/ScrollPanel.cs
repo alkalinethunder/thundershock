@@ -15,6 +15,7 @@ namespace Thundershock.Gui.Elements
         public ScrollPanel()
         {
             IsInteractable = true;
+            Clip = true;
         }
         
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
@@ -76,6 +77,8 @@ namespace Thundershock.Gui.Elements
             if (nextOffset < 0) nextOffset = 0;
 
             _scrollOffset = nextOffset;
+
+            InvalidateLayout();
 
             return base.OnMouseScroll(e);
         }

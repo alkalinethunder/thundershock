@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Thundershock.Components;
+using Thundershock.Config;
 using Thundershock.Core;
 using Thundershock.Core.Ecs;
 using Thundershock.Core.Debugging;
@@ -25,6 +26,8 @@ namespace Thundershock
     {
         private const uint MaxEntityCount = 10000;
 
+        private ConfigurationManager _config;
+        private ScriptSystem _scriptSystem;
         private List<ISystem> _systems = new();
         private bool _paused;
         private bool _noClip;
@@ -42,6 +45,8 @@ namespace Thundershock
         /// Gets an instance of the all-seeing, all-knowing <see cref="GameLayer"/> that manages this scene.
         /// </summary>
         public GameLayer Game => _gameLoop;
+
+        public Registry Registry => _registry;
         
         /// <summary>
         /// Gets an instance of this scene's input system.
@@ -89,6 +94,10 @@ namespace Thundershock
             // Create the camera manager for this scene.
             _cameraManager = new(this);
             _registry = new Registry(MaxEntityCount);
+            
+            // Allows scripts to run code when the level loads up.
+            // Also allows us to implement a level script.
+            _scriptSystem = RegisterSystem<ScriptSystem>();
         }
         
         /// <summary>
@@ -102,18 +111,27 @@ namespace Thundershock
         
         internal void Load(GameLayer gameLoop)
         {
+            _config = gameLoop.GetComponent<ConfigurationManager>();
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
             _renderer = new Renderer2D(gameLoop.Graphics);
             _gameLoop = gameLoop;
             Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
             _sceneGui = new GuiSystem(_gameLoop.Graphics);
+
+            // Sorting isn't necessary for 3D scenes.
+            _renderer.EnableSorting = false;
             
             // Enable and load the post-process system IF the engine's command-line arguments say we should.
             if (!EntryPoint.GetBoolean(EntryBoolean.DisablePostProcessing))
             {
                 _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
                 _postProcessSystem.LoadContent();
+
+                _postProcessSystem.EnableBloom = _config.ActiveConfig.Effects.Bloom;
+                _postProcessSystem.EnableShadowMask = _config.ActiveConfig.Effects.ShadowMask;
+                
+                _config.ConfigurationLoaded += ConfigOnConfigurationLoaded;
             }
             
             // Help a playa out, spawn the default camera entity.
@@ -131,6 +149,19 @@ namespace Thundershock
             _gameLoop.GetComponent<CheatManager>().AddObject(_registry);
 
             OnLoad();
+            
+            // Trigger ISystem.OnLoad hook.
+            foreach (var sys in _systems)
+                sys.Load();
+        }
+
+        private void ConfigOnConfigurationLoaded(object? sender, EventArgs e)
+        {
+            if (_postProcessSystem != null)
+            {
+                _postProcessSystem.EnableBloom = _config.ActiveConfig.Effects.Bloom;
+                _postProcessSystem.EnableShadowMask = _config.ActiveConfig.Effects.ShadowMask;
+            }
         }
 
         internal bool MouseDown(MouseButtonEventArgs e)
@@ -231,6 +262,11 @@ namespace Thundershock
         
         internal void Unload()
         {
+            if (_postProcessSystem != null)
+            {
+                _config.ConfigurationLoaded -= ConfigOnConfigurationLoaded;
+            }
+            
             // Teardown all of the systems.
             while (_systems.Any())
             {
@@ -257,7 +293,9 @@ namespace Thundershock
             EnsureSceneRenderTargetSize();
 
             // Set the scene GUI viewport to match ours.
-            _sceneGui.SetViewportSize(_gameLoop.Window.Width, _gameLoop.Window.Height);
+            var windowAspect = (float) Game.Window.Width / (float) Game.Window.Height;
+            var guiSize = 900;
+            _sceneGui.SetViewportSize(guiSize * windowAspect, guiSize);
 
             if (!_paused)
             {
@@ -267,13 +305,6 @@ namespace Thundershock
                 
                 // Update the scene's GUI
                 _sceneGui.Update(gameTime);
-
-                // Update scripts.
-                foreach (var entity in _registry.View<ScriptComponent>())
-                {
-                    var script = _registry.GetComponent<ScriptComponent>(entity);
-                    script.Update(gameTime);
-                }
                 
                 OnUpdate(gameTime);
             }
@@ -284,7 +315,8 @@ namespace Thundershock
             // Switch the GPU to our scene render target for the first render pass where we
             // draw all scene elements.
             _gameLoop.Graphics.SetRenderTarget(_sceneRenderTarget);
-            
+            _gameLoop.Graphics.Clear(Color.Black);
+
             var cameras = _registry.View<CameraComponent, Transform>();
             if (cameras.Any())
             {
@@ -467,7 +499,7 @@ namespace Thundershock
             if (_sceneRenderTarget == null)
             {
                 _sceneRenderTarget =
-                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point, DepthFormat.Depth24Stencil8);
                 
                 // Tell the post-processor to resize its buffers.
                 _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
@@ -479,7 +511,7 @@ namespace Thundershock
                 {
                     _sceneRenderTarget.Dispose();
                     _sceneRenderTarget =
-                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height);
+                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point, DepthFormat.Depth24Stencil8);
                     
                     // Tell the post-processor to resize its buffers.
                     _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);

@@ -29,11 +29,11 @@ namespace Thundershock.Gui
             Bottom = bottom;
         }
 
-        public Padding(float h, float v) : this(h, v, h, v)
+        public Padding(float h, float v) : this(h/2, v/2, h/2, v/2)
         {
         }
 
-        public Padding(float all) : this(all, all)
+        public Padding(float all) : this(all, all, all, all)
         {
         }
 

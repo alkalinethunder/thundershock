@@ -12,9 +12,48 @@ namespace Thundershock.Gui.Elements
         public static readonly string AutoSizeProperty = "AutoSize";
         public static readonly string SizeProperty = "Size";
 
-        public CanvasAnchor DefaultAnchor { get; set; }
-        public bool DefaultAutoSize { get; set; }
-        public Vector2 DefaultAlignment { get; set; }
+        private CanvasAnchor _defaultAnchor;
+        private bool _defaultAutoSize;
+        private Vector2 _defaultAlignment;
+
+        public CanvasAnchor DefaultAnchor
+        {
+            get => _defaultAnchor;
+            set
+            {
+                if (_defaultAnchor != value)
+                {
+                    _defaultAnchor = value;
+                    InvalidateLayout();
+                }
+            }
+        }
+
+        public bool DefaultAutoSize
+        {
+            get => _defaultAutoSize;
+            set
+            {
+                if (_defaultAutoSize != value)
+                {
+                    _defaultAutoSize = value;
+                    InvalidateLayout();
+                }
+            }
+        }
+
+        public Vector2 DefaultAlignment
+        {
+            get => _defaultAlignment;
+            set
+            {
+                if (_defaultAlignment != value)
+                {
+                    _defaultAlignment = value;
+                    InvalidateLayout();
+                }
+            }
+        }
         
         public struct CanvasAnchor
         {
@@ -40,6 +79,31 @@ namespace Thundershock.Gui.Elements
             public static CanvasAnchor Vertical => new(0.5f, 0, 9.5f, 1);
             public static CanvasAnchor Center => new(0.5f, 0.5f, 0, 0);
             public static CanvasAnchor TopLeft => new(0, 0, 0, 0);
+
+            public static bool operator ==(CanvasAnchor a, CanvasAnchor b)
+            {
+                return (a.Left == b.Left && a.Top == b.Top && a.Right == b.Right && a.Bottom == b.Bottom);
+            }
+
+            public static bool operator !=(CanvasAnchor a, CanvasAnchor b)
+            {
+                return !(a == b);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is CanvasAnchor ca && ca == this;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Left, Top, Right, Bottom);
+            }
+
+            public override string ToString()
+            {
+                return $"CanvasAnchor(Left={Left}, Top={Top}, Bottom={Bottom}, Right={Right})";
+            }
         }
 
         private bool GetAutoSize(Element elem)

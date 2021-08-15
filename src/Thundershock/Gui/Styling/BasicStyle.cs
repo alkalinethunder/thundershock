@@ -8,8 +8,8 @@ namespace Thundershock.Gui.Styling
     {
         private Color _bgColor = Color.White;
         private Color _selectionColor = Color.Blue;
-        private Color _buttonColor = ThundershockPlatform.HtmlColor("#343434");
-        private Color _activeButtonColor = ThundershockPlatform.HtmlColor("#1baaf7");
+        private Color _buttonColor = Color.FromHtml("#343434");
+        private Color _activeButtonColor = Color.FromHtml("#1baaf7");
         
         public override Font DefaultFont => Gui.FallbackFont;
         public override int CheckSize => 18;

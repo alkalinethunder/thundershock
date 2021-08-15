@@ -43,7 +43,7 @@ namespace Thundershock.Core
 
         public T GetComponent<T>() where T : IGlobalComponent, new()
         {
-            return _components.OfType<T>().First() ?? RegisterComponent<T>();
+            return _components.OfType<T>().First();
         }
 
         public void Run(Logger logger)

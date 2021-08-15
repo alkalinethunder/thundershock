@@ -16,6 +16,7 @@ namespace Thundershock.Core
         private bool _fullscreen;
         private int _width = 640;
         private int _height = 480;
+        private bool _vsync;
         
         public AppBase App => _app;
 
@@ -42,6 +43,20 @@ namespace Thundershock.Core
         ///     </para>
         /// </remarks>
         public bool PrimaryMouseButtonIsRightMouseButton { get; set; }
+
+        public bool VSync
+        {
+            get => _vsync;
+            set
+            {
+                if (_vsync != value)
+                {
+                    _vsync = value;
+                    if (_app != null)
+                        UpdateVSync();
+                }
+            }
+        }
         
         public string Title
         {
@@ -151,6 +166,7 @@ namespace Thundershock.Core
             _app = app ?? throw new ArgumentNullException(nameof(app));
 
             Initialize();
+            UpdateVSync();
         }
 
         public void Update()
@@ -259,5 +275,7 @@ namespace Thundershock.Core
         public event EventHandler<KeyCharEventArgs> KeyChar;
         public event EventHandler<MouseButtonEventArgs> MouseDown;
         public event EventHandler<MouseButtonEventArgs> MouseUp;
+        
+        protected virtual void UpdateVSync() {}
     }
 }

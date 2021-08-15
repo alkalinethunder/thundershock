@@ -19,6 +19,11 @@ namespace Thundershock
         void Unload();
         
         /// <summary>
+        /// Triggers when the level has fully loaded.
+        /// </summary>
+        void Load();
+        
+        /// <summary>
         /// Called every time the scene updates.
         /// </summary>
         /// <param name="gameTime">The time since the last scene update.</param>

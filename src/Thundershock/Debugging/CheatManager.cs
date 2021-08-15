@@ -109,30 +109,43 @@ namespace Thundershock.Debugging
             
             // Static cheats
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
-            foreach (var type in ass.GetTypes())
             {
-                var cheatAlias = type.GetCustomAttributes(false).OfType<CheatAliasAttribute>().FirstOrDefault();
+                var types = Array.Empty<Type>();
 
-                if (cheatAlias == null)
-                    continue;
-
-                var name = cheatAlias.Name;
-
-                if (string.IsNullOrWhiteSpace(name))
-                    continue;
-
-                foreach (var method in type.GetMethods(BindingFlags.NonPublic |  BindingFlags.Static))
+                try
                 {
-                    var cheatAttrib = method.GetCustomAttributes(false).OfType<CheatAttribute>().FirstOrDefault();
+                    types = ass.GetTypes();
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.LogException(ex);
+                }
+                
+                foreach (var type in types)
+                {
+                    var cheatAlias = type.GetCustomAttributes(false).OfType<CheatAliasAttribute>().FirstOrDefault();
 
-                    if (cheatAttrib == null)
+                    if (cheatAlias == null)
                         continue;
 
-                    var cheatName = string.IsNullOrWhiteSpace(cheatAttrib.Name) ? method.Name : cheatAttrib.Name;
+                    var name = cheatAlias.Name;
 
-                    var fullname = $"{name}.{cheatName}";
+                    if (string.IsNullOrWhiteSpace(name))
+                        continue;
 
-                    AddCheat(fullname, method);
+                    foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static))
+                    {
+                        var cheatAttrib = method.GetCustomAttributes(false).OfType<CheatAttribute>().FirstOrDefault();
+
+                        if (cheatAttrib == null)
+                            continue;
+
+                        var cheatName = string.IsNullOrWhiteSpace(cheatAttrib.Name) ? method.Name : cheatAttrib.Name;
+
+                        var fullname = $"{name}.{cheatName}";
+
+                        AddCheat(fullname, method);
+                    }
                 }
             }
         }

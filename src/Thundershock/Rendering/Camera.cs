@@ -47,8 +47,8 @@ namespace Thundershock.Rendering
         public float OrthoBottom { get; set; } = 1080;
         public float PerspectiveWidth { get; set; } = 800;
         public float PerspectiveHeight { get; set; } = 800;
-        public float ZFar { get; set; } = 1;
-        public float ZNear { get; set; } = 0;
+        public float ZFar { get; set; } = -1000;
+        public float ZNear { get; set; } = 1000;
 
         public float PerspectiveNearDistance { get; set; } = 1f;
         public float PerspectiveFarDistance { get; set; } = 100;

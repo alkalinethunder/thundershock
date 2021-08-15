@@ -19,6 +19,9 @@ namespace Thundershock.Gui.Elements
         private TextAlign _textAlign = TextAlign.Left;
         private TextWrapMode _wrapMode = TextWrapMode.WordWrap;
         private float _lastWidth;
+
+        public float FontSize =>
+            GetFont().Size;
         
         public string Text
         {
@@ -29,6 +32,7 @@ namespace Thundershock.Gui.Elements
                 {
                     _text = value;
                     _textIsDirty = true;
+                    InvalidateLayout();
                 }
             }
         }
@@ -42,6 +46,7 @@ namespace Thundershock.Gui.Elements
                 {
                     _textAlign = value;
                     _textIsDirty = true;
+                    InvalidateLayout();
                 }
             }
         }
@@ -55,6 +60,7 @@ namespace Thundershock.Gui.Elements
                 {
                     _wrapMode = value;
                     _textIsDirty = true;
+                    InvalidateLayout();
                 }
             }
         }

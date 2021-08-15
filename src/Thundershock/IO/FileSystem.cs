@@ -18,6 +18,11 @@ namespace Thundershock.IO
 
         private Node Resolve(string path)
         {
+            // Protection against idiot programmers that can't do string nullchecks.
+            // ...Like a certain storm involving immense amounts of rain and a high pH level.
+            if (string.IsNullOrWhiteSpace(path))
+                return null;
+            
             var resolvedPath = PathUtils.Resolve(path);
             var parts = PathUtils.Split(resolvedPath);
 
@@ -240,6 +245,39 @@ namespace Thundershock.IO
             var vfs = new FileSystem(node);
 
             return vfs;
+        }
+
+        public void BulkCopy(FileSystem destfs, string sourceFolder, string destFolder)
+        {
+            foreach (var subdir in GetDirectories(sourceFolder))
+            {
+                var dname = PathUtils.GetFileName(subdir);
+
+                if (dname == "." || dname == "..")
+                    continue;
+                
+                var destpath = PathUtils.Combine(destFolder, dname);
+
+                if (!destfs.DirectoryExists(destpath))
+                    destfs.CreateDirectory(destpath);
+                
+                BulkCopy(destfs, subdir, destpath);
+            }
+
+            foreach (var file in GetFiles(sourceFolder))
+            {
+                var fname = Path.GetFileName(file);
+
+                var destpath = PathUtils.Combine(destFolder, fname);
+
+                using var destStream = destfs.OpenFile(destpath);
+                using var srcStream = OpenFile(file);
+                
+                srcStream.CopyTo(destStream);
+
+                destStream.Close();
+                srcStream.Close();
+            }
         }
     }
 }

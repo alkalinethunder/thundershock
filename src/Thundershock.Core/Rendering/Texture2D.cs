@@ -11,15 +11,15 @@ namespace Thundershock.Core.Rendering
 {
     public sealed class Texture2D : Texture
     {
-        public Texture2D(GraphicsProcessor gpu, int width, int height) : base(gpu, width, height)
+        public Texture2D(GraphicsProcessor gpu, int width, int height, TextureFilteringMode filterMode) : base(gpu, width, height, filterMode)
         {
         }
 
-        public static Texture2D FromResource(GraphicsProcessor gpu, Assembly ass, string resource)
+        public static Texture2D FromResource(GraphicsProcessor gpu, Assembly ass, string resource, TextureFilteringMode filterMode = TextureFilteringMode.Linear)
         {
             if (Resource.GetStream(ass, resource, out var stream))
             {
-                return FromStream(gpu, stream);
+                return FromStream(gpu, stream, filterMode);
             }
             else
             {
@@ -27,13 +27,13 @@ namespace Thundershock.Core.Rendering
             }
         }
 
-        public static Texture2D FromFile(GraphicsProcessor gpu, string path)
+        public static Texture2D FromFile(GraphicsProcessor gpu, string path, TextureFilteringMode filterMode = TextureFilteringMode.Linear)
         {
             using var file = File.OpenRead(path);
-            return FromStream(gpu, file);
+            return FromStream(gpu, file, filterMode);
         }
         
-        public static Texture2D FromStream(GraphicsProcessor gpu, Stream stream)
+        public static Texture2D FromStream(GraphicsProcessor gpu, Stream stream, TextureFilteringMode filterMode = TextureFilteringMode.Linear)
         {
             // load the stream as a bitmap using System.Drawing
             var bmp = (Bitmap) Image.FromStream(stream);
@@ -73,7 +73,7 @@ namespace Thundershock.Core.Rendering
             }
             
             // Create the texture.
-            var texture = new Texture2D(gpu, width, height);
+            var texture = new Texture2D(gpu, width, height, filterMode);
             
             // Upload the pixel data to the texture.
             texture.Upload(new ReadOnlySpan<byte>(bmpData, 0, bmpData.Length));
@@ -82,18 +82,20 @@ namespace Thundershock.Core.Rendering
             return texture;
         }
 
-        public static Texture2D FromPak(GraphicsProcessor gpu, Stream stream)
+        public static Texture2D FromPak(GraphicsProcessor gpu, Stream stream, TextureFilteringMode filterMode = TextureFilteringMode.Linear)
         {
             using var reader = new BinaryReader(stream, Encoding.UTF8);
 
             var width = reader.ReadInt32();
             var height = reader.ReadInt32();
 
-            var pixels = reader.ReadBytes((width * 4) * height);
+            var depth = reader.ReadByte();
+            
+            var pixels = reader.ReadBytes((width * depth) * height);
 
             reader.Close();
 
-            var tex = new Texture2D(gpu, width, height);
+            var tex = new Texture2D(gpu, width, height, filterMode);
             tex.Upload(pixels);
             return tex;
         }

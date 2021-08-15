@@ -26,7 +26,7 @@ namespace Thundershock.Core
         public Vector2 Location => new Vector2(X, Y);
         public Vector2 Center => new Vector2(X + (Width / 2), Y + (Height / 2));
         public Vector2 Size => new Vector2(Width, Height);
-        public bool IsEmpty => Width * Height == 0;
+        public bool IsEmpty => !(Width > 0 && Height > 0);
 
         public bool IntersectsWith(Rectangle rect)
         {

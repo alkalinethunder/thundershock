@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 using FontStashSharp.Interfaces;
 
 namespace Thundershock.Core.Rendering
@@ -10,18 +12,38 @@ namespace Thundershock.Core.Rendering
     /// </summary>
     public sealed class Renderer2D : IFontStashRenderer
     {
-        private int[] _ibo = new int[128];
-        private int _indexPointer;
+        public readonly int MaxBatchCount = 1000;
+        
+        private int _sortLayer;
+        private Rectangle _clipBounds;
         private int _batchPointer;
         private int _vertexPointer;
         private Vertex[] _vertexArray = new Vertex[128];
         private Effect _effect;
         private bool _running;
-        private RenderItem[] _batch = new RenderItem[128];
+        private RenderItem[] _batch = new RenderItem[16];
+        private RenderItem[] _translucentBatch = new RenderItem[16];
         private Texture2D _blankTexture;
         private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
         private Renderer _renderer;
-
+        private int _translucentBatchPointer = 0;
+        private bool _enableSorting = true;
+        
+        
+        public bool EnableSorting
+        {
+            get => _enableSorting;
+            set
+            {
+                if (_enableSorting != value)
+                {
+                    if (_running)
+                        throw new InvalidOperationException("Cannot modify this property while rendering.");
+                    _enableSorting = value;
+                }
+            }
+        }
+        
         public Matrix4x4 ProjectionMatrix
         {
             get => _projectionMatrix;
@@ -31,8 +53,8 @@ namespace Thundershock.Core.Rendering
         public Renderer2D(GraphicsProcessor gpu)
         {
             _renderer = new Renderer(gpu);
-            
-            _blankTexture = new Texture2D(gpu, 1, 1);
+
+            _blankTexture = new Texture2D(gpu, 1, 1, TextureFilteringMode.Point);
             _blankTexture.Upload(new byte[] {0xff, 0xff, 0xff, 0xff});
         }
         
@@ -43,42 +65,112 @@ namespace Thundershock.Core.Rendering
             {
                 throw new InvalidOperationException("Cannot begin a new batch of sprites as the current batch has not been ended.");
             }
-            
+
+            _translucentBatchPointer = 0;
             _running = true;
             _batchPointer = 0;
-            _indexPointer = 0;
             _vertexPointer = 0;
             _effect = null;
         }
-        
-        private RenderItem MakeRenderItem(Texture2D texture)
+
+        public void SetClipBounds(Rectangle? bounds)
         {
-            if (_running)
+            var realBounds = bounds ?? Rectangle.Empty;
+
+            if (_clipBounds != realBounds)
             {
-                var tex = texture ?? _blankTexture;
+                var wasRunning = _running;
+                var sort = _sortLayer;
                 
-                if (_batchPointer > 0)
+                if (_running)
+                    End();
+
+                _renderer.Graphics.ScissorRectangle = realBounds;
+                _renderer.Graphics.EnableScissoring = (realBounds.Width * realBounds.Height) > 0;
+                _clipBounds = realBounds;
+
+                if (wasRunning)
                 {
-                    var last = _batch[_batchPointer - 1];
-                    if (last.Texture == tex) return last;
+                    Begin();
+                    _sortLayer = sort;
                 }
+            }
+        }
 
-                var newBatchItem = new RenderItem(this);
-                newBatchItem.Texture = tex;
-                _batch[_batchPointer] = newBatchItem;
+        private RenderItem MakeRenderItem(Texture2D texture, float alpha)
+        {
+            Debug.Assert(_running);
+            var tex = texture ?? _blankTexture;
 
-                _batchPointer++;
-                if (_batchPointer >= _batch.Length)
-                    Array.Resize(ref _batch, _batch.Length + 128);
+            // So here is where we find out why this method now needs
+            // an alpha value....
+            //
+            // It's because we have two separate batches. One for opaque objects
+            // and one for translucent ones.
+            //
+            // Renderer will draw them differently, but this technique lets us
+            // submit one single index and vertex buffer.
+            //
+            if (alpha < 1)
+            {
+                for (var i = _translucentBatchPointer - 1; i >= 0; i--)
+                {
+                    var last = _translucentBatch[i];
 
-                return newBatchItem;
+                    Debug.Assert(last.IsOpaque == false);
+
+                    if (last.Texture == tex)
+                        return last;
+                }
             }
             else
             {
-                throw new InvalidOperationException("You must call Begin() before you do this.");
+                for (var i = _batchPointer - 1; i >= 0; i--)
+                {
+                    var last = _batch[i];
+
+                    Debug.Assert(last.IsOpaque);
+
+                    if (last.Texture == tex)
+                        return last;
+                }
             }
+            
+            var newBatchItem = null as RenderItem;
+
+            if (alpha < 1)
+            {
+                // Make room for new batch items if we have run out.
+                if (_translucentBatchPointer >= _translucentBatch.Length)
+                    Array.Resize(ref _translucentBatch, _translucentBatchPointer + 16);
+
+                newBatchItem = new RenderItem(this);
+                newBatchItem.IsOpaque = false;
+                _translucentBatch[_translucentBatchPointer] = newBatchItem;
+                _translucentBatchPointer++;
+
+                _translucentBatch[_translucentBatchPointer] = null;
+            }
+            else
+            {
+                // Make room for new batch items if we have run out.
+                if (_batchPointer >= _batch.Length)
+                    Array.Resize(ref _batch, _batchPointer + 16);
+
+                newBatchItem = new RenderItem(this);
+                newBatchItem.IsOpaque = true;
+
+                _batch[_batchPointer] = newBatchItem;
+                _batchPointer++;
+
+                _batch[_batchPointer] = null;
+            }
+
+            newBatchItem.Texture = tex;
+            
+            return newBatchItem;
         }
-        
+
         /// <summary>
         /// Ends the current batch and draws all polygons to the screen.
         /// </summary>
@@ -87,7 +179,7 @@ namespace Thundershock.Core.Rendering
         {
             if (_running)
             {
-                if (_batchPointer > 0)
+                if (_translucentBatchPointer + _batchPointer > 0)
                 {
                     _renderer.ProjectionMatrix = _projectionMatrix;
                     _renderer.Begin(_effect);
@@ -96,22 +188,45 @@ namespace Thundershock.Core.Rendering
                     // This is a massive optimization since now we don't need to do this on every draw call.
                     _renderer.UploadVertices(_vertexArray.AsSpan(0, _vertexPointer));
 
-                    // Another optimization is to upload all batch indices right now. Each batch item will
-                    // contain the information needed to only render the relevant triangles.
-                    _renderer.UploadIndices(_ibo.AsSpan(0, _indexPointer));
-
                     for (var i = 0; i < _batchPointer; i++)
                     {
                         var item = _batch[i];
                         var tex = item.Texture;
+
+                        // upload the indices.
+                        _renderer.UploadIndices(item.Indices);
+                        
+                        Debug.Assert(item.Length % 3 == 0);
+                        Debug.Assert(item.Length / 3 == item.Triangles);
 
                         var pCount = item.Triangles;
 
                         if (pCount >= 1)
                         {
                             _renderer.Textures[0] = tex;
+                            
+                            _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
+                        }
+                    }
 
-                            _renderer.ProjectionMatrix = ProjectionMatrix;
+                    
+                    for (var i = 0; i < _translucentBatchPointer; i++)
+                    {
+                        var item = _translucentBatch[i];
+                        var tex = item.Texture;
+
+                        // upload the indices.
+                        _renderer.UploadIndices(item.Indices);
+
+                        Debug.Assert(item.Length % 3 == 0);
+                        Debug.Assert(item.Length / 3 == item.Triangles);
+
+                        var pCount = item.Triangles;
+
+                        if (pCount >= 1)
+                        {
+                            _renderer.Textures[0] = tex;
+                            
                             _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
                         }
                     }
@@ -122,9 +237,15 @@ namespace Thundershock.Core.Rendering
                     // the buffers.  We don't actually clear the buffers because resizing the arrays
                     // is a bit slow and unnecessary.
                     _vertexPointer = 0;
-                    _indexPointer = 0;
                     _batchPointer = 0;
+                    _translucentBatchPointer = 0;
+
+                    _batch[_batchPointer] = null;
+                    _translucentBatch[_translucentBatchPointer] = null;
+                    
                 }
+
+                _sortLayer = 0;
             }
             else
             {
@@ -154,6 +275,7 @@ namespace Thundershock.Core.Rendering
             if (bounds.Width <= thickness * 2 || bounds.Height <= thickness * 2)
             {
                 FillRectangle(bounds, color);
+                return;
             }
             
             var left = new Rectangle(bounds.Left, bounds.Top, thickness, bounds.Height);
@@ -162,14 +284,19 @@ namespace Thundershock.Core.Rendering
             var bottom = new Rectangle(top.Left, bounds.Bottom - thickness, top.Width, top.Height);
             
             FillRectangle(left, color);
+            _sortLayer--;
             FillRectangle(top, color);
+            _sortLayer--;
             FillRectangle(right, color);
+            _sortLayer--;
             FillRectangle(bottom, color);
         }
 
         public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv)
         {
-            var batch = MakeRenderItem(texture);
+            IncreaseLayer();
+
+            var batch = MakeRenderItem(texture, color.A);
 
             var tl = AddVertex(rect.Location, color, uv.Location);
             var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top));
@@ -193,7 +320,7 @@ namespace Thundershock.Core.Rendering
         /// <param name="texture">The texture to fill the area with.</param>
         public void FillRectangle(Rectangle rect, Color color, Texture2D texture = null)
         {
-            var renderItem = MakeRenderItem(texture);
+            var renderItem = MakeRenderItem(texture, color.A);
 
             // add the 4 vertices
             var tl = AddVertex(new Vector2(rect.Left, rect.Top), color, TextureCoords.TopLeft);
@@ -212,6 +339,7 @@ namespace Thundershock.Core.Rendering
             renderItem.AddIndex(bl);
 
             // And that's how you draw a rectangle with two triangles!
+            IncreaseLayer();
         }
         
         /* Credit where credit's due
@@ -221,81 +349,15 @@ namespace Thundershock.Core.Rendering
          * and has been adapted to work within SpriteRocket2D.
          */
         
-        private void CreateLine(Vector2 p1, Vector2 p2, Color color, float lineWidth, out int v1, out int v2, out int v3, out int v4)
-        {
-            var d = Vector2.Normalize(p2 - p1);
-            var dt = new Vector2(-d.Y, d.X) * (lineWidth / 2f);
-
-            v1 = AddVertex(p1 + dt, color,TextureCoords.TopLeft);
-            v2 = AddVertex(p1 - dt, color, TextureCoords.TopRight);
-            v3 = AddVertex(p2 - dt, color, TextureCoords.BottomRight);
-            v4 = AddVertex(p2 + dt, color, TextureCoords.BottomLeft);
-        }
-        
         private const float RightStartAngle = 0;
         private const float RightEndAngle = (float) (2 * Math.PI);
-
-        /// <summary>
-        /// Draws lines between two or more points, as if the game was playing Connect the Dots.
-        /// </summary>
-        /// <param name="points">A sequence of two or more points to draw lines between.</param>
-        /// <param name="color">The color of each line.</param>
-        /// <param name="lineWidth">The thickness of each line.</param>
-        public void DrawLineStrip(ReadOnlySpan<Vector2> points, Color color, float lineWidth = 1)
-        {
-            if (points.Length < 2)
-                return;
-
-            var p1 = points[0];
-            var p2 = points[1];
-
-            CreateLine(p1, p2, color, lineWidth, out var i1, out var i2, out var i3, out var i4);
-
-            var renderItem = MakeRenderItem(null);
-
-            var i3Prev = i3;
-            var i4Prev = i4;
-            
-            renderItem.AddIndex(i1);
-            renderItem.AddIndex(i2);
-            renderItem.AddIndex(i3);
-            renderItem.AddIndex(i2);
-            renderItem.AddIndex(i3);
-            renderItem.AddIndex(i4);
-
-            p1 = p2;
-            
-            for (var i = 2; i < points.Length; i++)
-            {
-                p2 = points[i];
-
-                CreateLine(p1, p2, color, lineWidth, out i1, out i2, out i3, out i4);
-
-                renderItem.AddIndex(i1);
-                renderItem.AddIndex(i2);
-                renderItem.AddIndex(i3);
-                renderItem.AddIndex(i2);
-                renderItem.AddIndex(i3);
-                renderItem.AddIndex(i4);
-
-                renderItem.AddIndex(i3Prev);
-                renderItem.AddIndex(i4Prev);
-                renderItem.AddIndex(i2);
-
-                i3Prev = i3;
-                i4Prev = i4;
-                p1 = p2;
-            }
-
-        }
-        
-        private void FillTriangleFan(Vector2 center, ReadOnlySpan<Vector2> vs, Color color, Texture2D texture)
+        private void FillTriangleFan(Vector2 center, ref Span<Vector2> vs, Color color, Texture2D texture)
         {
             var c = vs.Length;
             if (c < 2)
                 throw new ArgumentException(@"Need at least 3 vertices for a triangle fan.", nameof(vs));
-
-            var renderItem = MakeRenderItem(texture);
+            
+            var renderItem = MakeRenderItem(texture, color.A);
 
             var texWidth = texture?.Width ?? 1;
             var texHeight = texture?.Height ?? 1;
@@ -327,8 +389,10 @@ namespace Thundershock.Core.Rendering
                 renderItem.AddIndex(v2);
                 v1 = v2;
             }
+            
+            IncreaseLayer();
         }
-        
+
         /// <summary>
         /// Draws a filled circle.
         /// </summary>
@@ -336,16 +400,16 @@ namespace Thundershock.Core.Rendering
         /// <param name="radius">The radius of the circle.</param>
         /// <param name="color">The color to draw the circle with.</param>
         /// <param name="maxError">https://youtu.be/hQ3GW7lVBWY</param>
-        public void FillCircle(Vector2 center, float radius, Color color, float maxError = .25f)
+        public void FillCircle(Vector2 center, float radius, Color color, float maxError = 0.25f)
         {
             FillCircle(center, radius, color, null, maxError);
         }
 
         public void FillCircle(Vector2 center, float radius, Color color, Texture2D texture, float maxError = 0.25f)
         {
-            FillCircleSegment(center, radius, RightStartAngle, RightEndAngle, color, texture, maxError);
+            FillCircleSegment(center, MathF.Round(radius), RightStartAngle, RightEndAngle, color, texture, maxError);
         }
-        
+
         void IFontStashRenderer.Draw(object texture, Vector2 pos, System.Drawing.Rectangle? src, System.Drawing.Color color, float rotation, Vector2 origin, Vector2 scale,
             float depth)
         {
@@ -378,7 +442,29 @@ namespace Thundershock.Core.Rendering
             tsDrawRect.X = pos.X;
             tsDrawRect.Y = pos.Y;
             
-            FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle);
+            // We can't use this method to draw the text
+            // since it increases the sort layer.
+            //
+            // So we'll do it ourselves, in-line.
+            // FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle);
+
+            var ri = MakeRenderItem(tsTexture, tsColor.A);
+
+            var vtl = AddVertex(tsDrawRect.Location, tsColor, tsRectangle.Location);
+            var vbr = AddVertex(tsDrawRect.Location + tsDrawRect.Size, tsColor,
+                tsRectangle.Location + tsRectangle.Size);
+            var vbl = AddVertex(tsDrawRect.Location + new Vector2(0, tsDrawRect.Height), tsColor,
+                tsRectangle.Location + new Vector2(0, tsRectangle.Height));
+            var vtr = AddVertex(tsDrawRect.Location + new Vector2(tsDrawRect.Width, 0), tsColor,
+                tsRectangle.Location + new Vector2(tsRectangle.Width, 0));
+
+            ri.AddIndex(vtl);
+            ri.AddIndex(vtr);
+            ri.AddIndex(vbl);
+
+            ri.AddIndex(vtr);
+            ri.AddIndex(vbr);
+            ri.AddIndex(vbl);
         }
 
         private static void CreateCircleSegment(Vector2 center, float radius, float step, float start, float end, ref Span<Vector2> result)
@@ -388,20 +474,29 @@ namespace Thundershock.Core.Rendering
             for (theta = start; theta < end; theta += step)
                 result[i++] = new Vector2((float) (center.X + radius * Math.Cos(theta)), (float) (center.Y + radius * Math.Sin(theta)));
 
-            if (Math.Abs(theta - end) > 0.00001f)
+            if (theta != end)
                 result[i] = center + new Vector2((float) (radius * Math.Cos(end)), (float) (radius * Math.Sin(end)));
         }
-        
+
         private void FillCircleSegment(Vector2 center, float radius, float start, float end, Color color, Texture2D texture, float maxError)
         {
+            if (radius <= 0)
+                return;
+
+            if (color.A <= 0)
+                return;
+            
             ComputeCircleSegments(radius, maxError, end - start, out var step, out var segments);
 
+            if (segments <= 0)
+                return;
+            
             Span<Vector2> points = stackalloc Vector2[segments + 1];
             CreateCircleSegment(center, radius, step, start, end, ref points);
             
-            FillTriangleFan(center, points, color, texture);
+            FillTriangleFan(center, ref points, color, texture);
         }
-        
+
         private void ComputeCircleSegments(float radius, float maxError, float range, out float step, out int segments)
         {
             var invErrRad = 1 - maxError / radius;
@@ -409,44 +504,62 @@ namespace Thundershock.Core.Rendering
             segments = (int) (range / step + 0.999f);
         }
         
+        internal void IncreaseLayer()
+        {
+            _sortLayer++;
+
+            Debug.Assert(_sortLayer <= MaxBatchCount);
+        }
+
+        
         private class RenderItem
         {
+            private int[] _indices = new int[64];
+            
             private Renderer2D _renderer;
-            private int _batchStart;
-            private int _batchLength;
+            private int _batchIndex;
 
-            public int Triangles => _batchLength / 3;
+            public Span<int> Indices => _indices.AsSpan(0, _batchIndex);
+            
+            public int Triangles => _batchIndex / 3;
 
-            public int Start => _batchStart;
+            public int Start => 0;
+
+            public int Length => _batchIndex;
             
             public Texture2D Texture { get; set; }
+            
+            public bool IsOpaque { get; set; }
             
             public RenderItem(Renderer2D renderer)
             {
                 _renderer = renderer;
-                _batchStart = _renderer._indexPointer;
             }
-
+            
             public void AddIndex(int index)
             {
-                _renderer._ibo[_renderer._indexPointer] = index;
-                _renderer._indexPointer++;
-                if (_renderer._indexPointer >= _renderer._ibo.Length)
-                    Array.Resize(ref _renderer._ibo, _renderer._ibo.Length + 128);
-                _batchLength++;
+                // Make room if we've run out.
+                if (_batchIndex >= _indices.Length)
+                    Array.Resize(ref _indices, _indices.Length * 2);
+                
+                // Insert the index.
+                _indices[_batchIndex] = index;
+                
+                // Increase our size.
+                _batchIndex++;
             }
         }
 
         private int AddVertex(Vector2 position, Color color, Vector2 texCoord)
         {
-            var vert = new Vertex(new Vector3(position, 0), color, texCoord);
+            var vert = new Vertex(new Vector3(position, EnableSorting ? MaxBatchCount - _sortLayer : 0), color, texCoord);
             var ptr = _vertexPointer;
             _vertexArray[_vertexPointer] = vert;
             _vertexPointer++;
 
             if (_vertexPointer >= _vertexArray.Length)
             {
-                Array.Resize(ref _vertexArray, _vertexArray.Length + 128);
+                Array.Resize(ref _vertexArray, _vertexArray.Length * 2);
             }
             
             return ptr;

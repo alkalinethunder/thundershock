@@ -1,8 +1,10 @@
 using System;
 using System.Numerics;
+using Thundershock.Core.Scripting;
 
 namespace Thundershock.Core
 {
+    [ScriptType]
     public struct Color
     {
         public float R;
@@ -115,6 +117,17 @@ namespace Thundershock.Core
         {
             return System.Drawing.Color.FromArgb((byte) (color.A * 255), (byte) (color.R * 255), (byte) (color.G * 255),
                 (byte) (color.B * 255));
+        }
+
+        public static Color operator *(Color a, Color b)
+        {
+            return new(a.R * b.R, a.G * b.G, a.B * b.B, a.A * b.A);
+        }
+        
+        public static Color FromHtml(string html)
+        {
+            var gdiColor = System.Drawing.ColorTranslator.FromHtml(html);
+            return gdiColor;
         }
     }
 }

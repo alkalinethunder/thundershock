@@ -45,6 +45,9 @@ namespace Thundershock
             // Set the BGM (MusicPlayer) volume
             MusicPlayer.MasterVolume = config.ActiveConfig.BgmVolume;
             
+            // v-sync
+            Window.VSync = config.ActiveConfig.VSync;
+            
             // the configured screen resolution
             var displayMode = config.GetDisplayMode();
             Logger.Log($"Display mode: {displayMode.Width}x{displayMode.Height} on monitor {displayMode.Monitor}");

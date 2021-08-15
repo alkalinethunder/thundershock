@@ -6,46 +6,38 @@ namespace Thundershock.Gui
 {
     public class GuiRenderer
     {
-        private float _opacity;
-        private Color _masterTint;
         private Renderer2D _spriteBatch;
+        private GuiSystem.GuiRendererState _state;
 
-        private Color GetProperTint(Color tint)
+        private void ComputeColor(ref Color color)
         {
-            var r = tint.R;
-            var g = tint.G;
-            var b = tint.B;
-
-            var mr = _masterTint.R;
-            var mg = _masterTint.G;
-            var mb = _masterTint.B;
-
-            r *= mr;
-            g *= mg;
-            b *= mb;
-
-            return new Color(r, g, b, tint.A) * _opacity;
+            color *= _state.Tint * _state.Opacity;
         }
         
-        public GuiRenderer(Renderer2D batch, float opacity, Color tint)
+        internal GuiRenderer(Renderer2D batcher, GuiSystem.GuiRendererState state)
         {
-            _spriteBatch = batch;
-            _opacity = opacity;
-            _masterTint = tint;
+            _spriteBatch = batcher;
+            _state = state;
         }
         
         public void FillRectangle(Rectangle rect, Color color)
         {
-            _spriteBatch.FillRectangle(rect, GetProperTint(color));
+            ComputeColor(ref color);
+            
+            _spriteBatch.FillRectangle(rect, color);
         }
 
         public void FillRectangle(Rectangle rect, Texture2D texture, Color color)
         {
-            _spriteBatch.FillRectangle(rect, GetProperTint(color), texture);
+            ComputeColor(ref color);
+            
+            _spriteBatch.FillRectangle(rect, color, texture);
         }
         
         public void DrawRectangle(Rectangle rect, Color color, int thickness)
         {
+            ComputeColor(ref color);
+            
             _spriteBatch.DrawRectangle(rect, color, thickness);
         }
 
@@ -55,8 +47,9 @@ namespace Thundershock.Gui
             if (string.IsNullOrWhiteSpace(text))
                 return;
 
-            var tint = GetProperTint(color);
-            if (tint.A <= 0)
+            ComputeColor(ref color);
+            
+            if (color.A <= 0)
                 return;
             
             if (dropShadow != 0)
@@ -64,7 +57,7 @@ namespace Thundershock.Gui
                 DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black);
             }
 
-            _spriteBatch.DrawString(font, text, position, tint);
+            _spriteBatch.DrawString(font, text, position, color);
         }
 
         public void FillCircle(Vector2 center, float radius, Color color)
@@ -72,11 +65,11 @@ namespace Thundershock.Gui
         
         public void FillCircle(Vector2 center, float radius, Texture2D texture, Color tint)
         {
-            var color = GetProperTint(tint);
-            if (color.A <= 0)
+            ComputeColor(ref tint);
+            if (tint.A <= 0)
                 return;
             
-            _spriteBatch.FillCircle(center, radius, color, texture);
+            _spriteBatch.FillCircle(center, radius, tint, texture);
         }
     }
 }
