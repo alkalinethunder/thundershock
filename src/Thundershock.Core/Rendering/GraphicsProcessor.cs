@@ -50,6 +50,8 @@ namespace Thundershock.Core.Rendering
         public abstract void VerifyShaderProgram(uint program);
 
         public abstract EffectParameter GetEffectParameter(Effect.EffectProgram program, string name);
+
+        public abstract void ClearDepth();
     }
 
     public enum BlendMode

@@ -118,6 +118,9 @@ namespace Thundershock
             Font.GetDefaultFont(_gameLoop.Graphics);
             _renderer = new Renderer2D(_gameLoop.Graphics);
             _sceneGui = new GuiSystem(_gameLoop.Graphics);
+
+            // Sorting isn't necessary for 3D scenes.
+            _renderer.EnableSorting = false;
             
             // Enable and load the post-process system IF the engine's command-line arguments say we should.
             if (!EntryPoint.GetBoolean(EntryBoolean.DisablePostProcessing))

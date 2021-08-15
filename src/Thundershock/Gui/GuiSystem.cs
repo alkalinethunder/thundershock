@@ -291,6 +291,10 @@ namespace Thundershock.Gui
         
         public void Render(GameTime gameTime)
         {
+            // clear the depth buffer so that we can properly paint UI elements on top of
+            // things that've been already rendered.
+            _gpu.ClearDepth();
+            
             var screen = BoundingBox;
             var projection = Matrix4x4.CreateOrthographicOffCenter(0, screen.Width, screen.Height, 0, _renderer.MaxBatchCount, -_renderer.MaxBatchCount);
 

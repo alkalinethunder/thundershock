@@ -54,6 +54,11 @@ namespace Thundershock.OpenGL
                 return new Rectangle(viewport[0], viewport[1], viewport[2], viewport[3]);
             }
         }
+
+        public override void ClearDepth()
+        {
+            _gl.Clear((uint) GLEnum.DepthBufferBit);
+        }
         
         internal GlGraphicsProcessor(GL glContext)
         {

@@ -27,6 +27,22 @@ namespace Thundershock.Core.Rendering
         private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
         private Renderer _renderer;
         private int _translucentBatchPointer = 0;
+        private bool _enableSorting = true;
+        
+        
+        public bool EnableSorting
+        {
+            get => _enableSorting;
+            set
+            {
+                if (_enableSorting != value)
+                {
+                    if (_running)
+                        throw new InvalidOperationException("Cannot modify this property while rendering.");
+                    _enableSorting = value;
+                }
+            }
+        }
         
         public Matrix4x4 ProjectionMatrix
         {
@@ -536,7 +552,7 @@ namespace Thundershock.Core.Rendering
 
         private int AddVertex(Vector2 position, Color color, Vector2 texCoord)
         {
-            var vert = new Vertex(new Vector3(position, MaxBatchCount - _sortLayer), color, texCoord);
+            var vert = new Vertex(new Vector3(position, EnableSorting ? MaxBatchCount - _sortLayer : 0), color, texCoord);
             var ptr = _vertexPointer;
             _vertexArray[_vertexPointer] = vert;
             _vertexPointer++;
