@@ -370,7 +370,16 @@ namespace Thundershock.OpenGL
             _gl.DrawBuffer(GLEnum.ColorAttachment0);
             _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
 
-            
+            // Bind the framebuffer, check its status, unbind.
+            _gl.BindFramebuffer(GLEnum.Framebuffer, fbo);
+            var result = _gl.CheckFramebufferStatus(GLEnum.Framebuffer);
+            if (result != GLEnum.FramebufferComplete)
+            {
+                throw new InvalidOperationException("Failed to perform a render target switch.");
+            }
+
+            _gl.BindFramebuffer(GLEnum.Framebuffer, _fbo);
+
             // Return it.
             return fbo;
         }
@@ -384,12 +393,6 @@ namespace Thundershock.OpenGL
         {
             _fbo = target.RenderTargetId;
             _gl.BindFramebuffer(GLEnum.Framebuffer, target.RenderTargetId);
-            
-            var result = _gl.CheckFramebufferStatus(GLEnum.Framebuffer);
-            if (result != GLEnum.FramebufferComplete)
-            {
-                throw new InvalidOperationException("Failed to perform a render target switch.");
-            }
             _gl.Viewport(0, 0, (uint) target.Width, (uint) target.Height);
         }
 
