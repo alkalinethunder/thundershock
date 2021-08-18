@@ -19,7 +19,7 @@ namespace Thundershock.Debugging
         
         protected override void OnInit()
         {
-            _gui = new GuiSystem(App.Window.GraphicsProcessor);
+            _gui = new GuiSystem(GamePlatform.GraphicsProcessor);
 
             Logger.GetLogger().AddOutput(this);
 

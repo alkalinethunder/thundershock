@@ -24,7 +24,8 @@ namespace Thundershock.Debugging
                 : type.Name;
 
             foreach (var method in
-                type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
+                type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Union(type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)))
             {
                 var cheatAttrib = method.GetCustomAttributes(true).OfType<CheatAttribute>().FirstOrDefault();
 
@@ -133,7 +134,7 @@ namespace Thundershock.Debugging
                     if (string.IsNullOrWhiteSpace(name))
                         continue;
 
-                    foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static))
+                    foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Union(type.GetMethods(BindingFlags.Public | BindingFlags.Static)))
                     {
                         var cheatAttrib = method.GetCustomAttributes(false).OfType<CheatAttribute>().FirstOrDefault();
 

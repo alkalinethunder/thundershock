@@ -16,10 +16,10 @@ namespace Thundershock.Debugging
 
         protected override void OnInit()
         {
-            _font = Font.GetDefaultFont(App.Window.GraphicsProcessor);
+            _font = Font.GetDefaultFont(GamePlatform.GraphicsProcessor);
             _font.Size = 16;
 
-            _renderer = new Renderer2D(App.Window.GraphicsProcessor);
+            _renderer = new Renderer2D(GamePlatform.GraphicsProcessor);
 
             _cheater = App.GetComponent<CheatManager>();
         }

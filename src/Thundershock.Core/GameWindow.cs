@@ -19,8 +19,6 @@ namespace Thundershock.Core
         private bool _vsync;
         
         public AppBase App => _app;
-
-        public abstract AudioBackend AudioBackend { get; }
         
         /// <summary>
         /// Gets or sets a value indicating whether the primary mouse button is the right mouse button.
@@ -92,12 +90,9 @@ namespace Thundershock.Core
             get => _borderless;
             set
             {
-                if (_borderless != value)
-                {
-                    _borderless = value;
-                    if (_app != null)
-                        OnWindowModeChanged();
-                }
+                _borderless = value;
+                if (_app != null)
+                    OnWindowModeChanged();
             }
         }
         
@@ -106,12 +101,9 @@ namespace Thundershock.Core
             get => _fullscreen;
             set
             {
-                if (_fullscreen != value)
-                {
-                    _fullscreen = value;
-                    if (_app != null)
-                        OnWindowModeChanged();
-                }
+                _fullscreen = value;
+                if (_app != null)
+                    OnWindowModeChanged();
             }
         }
 
@@ -120,17 +112,14 @@ namespace Thundershock.Core
             get => _width;
             set
             {
-                if (_width != value)
+                if (value <= 0)
+                    throw new InvalidOperationException("Window size must be greater than zero.");
+
+                _width = value;
+
+                if (_app != null)
                 {
-                    if (value <= 0)
-                        throw new InvalidOperationException("Window size must be greater than zero.");
-
-                    _width = value;
-
-                    if (_app != null)
-                    {
-                        OnClientSizeChanged();
-                    }
+                    OnClientSizeChanged();
                 }
             }
         }
@@ -140,23 +129,18 @@ namespace Thundershock.Core
             get => _height;
             set
             {
-                if (_height != value)
+                if (value <= 0)
+                    throw new InvalidOperationException("Window size must be greater than zero.");
+
+                _height = value;
+
+                if (_app != null)
                 {
-                    if (value <= 0)
-                        throw new InvalidOperationException("Window size must be greater than zero.");
-
-                    _height = value;
-
-                    if (_app != null)
-                    {
-                        OnClientSizeChanged();
-                    }
+                    OnClientSizeChanged();
                 }
             }
         }
 
-        
-        public abstract GraphicsProcessor GraphicsProcessor { get; }
         
         public void Show(AppBase app)
         {
@@ -240,8 +224,6 @@ namespace Thundershock.Core
         {
             _width = width;
             _height = height;
-
-            GraphicsProcessor.SetViewportArea(0, 0, width, height);
         }
         
         protected void DispatchKeyEvent(Keys key, char character, bool isPressed, bool isRepeated, bool isText)

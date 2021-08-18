@@ -12,20 +12,20 @@ namespace Thundershock.Config
     /// Provides Thundershock-based applications with a central settings/configuration management system.
     /// </summary>
     [CheatAlias("Conf")]
-    public class ConfigurationManager : GlobalComponent
+    public static class ConfigurationManager
     {
-        private FileSystem _fs;
-        private GameConfiguration _gameConfig;
+        private static FileSystem _fs;
+        private static GameConfiguration _gameConfig;
 
         /// <summary>
         /// This event is fired when the configuration file is loaded or re-loaded.
         /// </summary>
-        public event EventHandler ConfigurationLoaded;
+        public static event EventHandler ConfigurationLoaded;
         
         /// <summary>
         /// Gets an instance of <see cref="GameConfiguration"/> containing the current engine settings.
         /// </summary>
-        public GameConfiguration ActiveConfig => _gameConfig;
+        public static GameConfiguration ActiveConfig => _gameConfig;
 
         /// <summary>
         /// Returns all display modes available for the current monitor.
@@ -44,7 +44,7 @@ namespace Thundershock.Config
         /// reject the request and cause a crash.
         /// </para>
         /// </remarks>
-        public IEnumerable<DisplayMode> GetAvailableDisplayModes()
+        public static IEnumerable<DisplayMode> GetAvailableDisplayModes()
         {
             return GamePlatform.GetAvailableDisplayModes(ActiveConfig.Monitor);
         }
@@ -53,7 +53,7 @@ namespace Thundershock.Config
         /// Gets the current screen mode.
         /// </summary>
         /// <returns>Returns the active display mode according to the configuration, or the primary screen's recommended display mode if the configured one is invalid.</returns>
-        public DisplayMode GetDisplayMode()
+        public static DisplayMode GetDisplayMode()
         {
             return GamePlatform.GetDisplayMode(ActiveConfig.Resolution, ActiveConfig.Monitor);
         }
@@ -61,7 +61,7 @@ namespace Thundershock.Config
         /// <summary>
         /// Discards the current configuration file and loads the engine's pre-programmed defaults.
         /// </summary>
-        public void ResetToDefaults()
+        public static void ResetToDefaults()
         {
             _gameConfig = new GameConfiguration();
             SaveConfiguration();
@@ -73,7 +73,7 @@ namespace Thundershock.Config
         /// </summary>
         /// <param name="value">The desired screen resolution in the form of WIDTHxHEIGHT.</param>
         /// <exception cref="InvalidOperationException">The resolution value could not be parsed.</exception>
-        public void SetDisplayMode(string value)
+        public static void SetDisplayMode(string value)
         {
             if (ParseDisplayMode(value, out int w, out int h))
             {
@@ -89,22 +89,21 @@ namespace Thundershock.Config
         /// <summary>
         /// Applies and saves changes made to the current configuration.
         /// </summary>
-        public void ApplyChanges()
+        public static void ApplyChanges()
         {
-            ConfigurationLoaded?.Invoke(this, EventArgs.Empty);
+            ConfigurationLoaded?.Invoke(null, EventArgs.Empty);
             SaveConfiguration();
         }
 
         /// <summary>
         /// Discards changes made to the current configuration and reloads the old one.
         /// </summary>
-        public void DiscardChanges()
+        public static void DiscardChanges()
         {
             LoadInitialConfig();
         }
         
-        /// <inheritdoc />
-        protected override void OnLoad()
+        internal static void Initialize()
         {
             // Create the local data path if it does not already exist.
             if (!Directory.Exists(ThundershockPlatform.LocalDataPath))
@@ -116,17 +115,14 @@ namespace Thundershock.Config
             // Load the initial configuration.
             LoadInitialConfig();
         }
-
-        /// <inheritdoc />
-        protected override void OnUnload()
+        
+        internal static void Unload()
         {
-            base.OnUnload();
-            
             // Save the configuration.
             SaveConfiguration();
         }
 
-        private bool ParseDisplayMode(string displayMode, out int width, out int height)
+        private static bool ParseDisplayMode(string displayMode, out int width, out int height)
         {
             var result = false;
 
@@ -156,7 +152,7 @@ namespace Thundershock.Config
             return result;
         }
         
-        private void SaveConfiguration()
+        private static void SaveConfiguration()
         {
             var json = JsonSerializer.Serialize(_gameConfig, typeof(GameConfiguration), new JsonSerializerOptions
             {
@@ -166,7 +162,7 @@ namespace Thundershock.Config
             _fs.WriteAllText("/config.json", json);
         }
         
-        private void LoadInitialConfig()
+        private static void LoadInitialConfig()
         {
             _gameConfig = null;
 
@@ -186,18 +182,18 @@ namespace Thundershock.Config
                 SaveConfiguration();
             }
 
-            ConfigurationLoaded?.Invoke(this, EventArgs.Empty);
+            ConfigurationLoaded?.Invoke(null, EventArgs.Empty);
         }
 
         [Cheat("Fullscreen")]
-        internal void Cheat_IsFullscreen(bool value)
+        internal static void Cheat_IsFullscreen(bool value)
         {
             ActiveConfig.IsFullscreen = value;
             ApplyChanges();
         }
 
         [Cheat("SetResolution")]
-        internal void Cheat_SetResolution(string value)
+        internal static void Cheat_SetResolution(string value)
         {
             ActiveConfig.Resolution = value;
             ApplyChanges();

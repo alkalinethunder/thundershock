@@ -26,7 +26,6 @@ namespace Thundershock
     {
         private const uint MaxEntityCount = 10000;
 
-        private ConfigurationManager _config;
         private ScriptSystem _scriptSystem;
         private List<ISystem> _systems = new();
         private bool _paused;
@@ -111,7 +110,6 @@ namespace Thundershock
         
         internal void Load(GameLayer gameLoop)
         {
-            _config = gameLoop.GetComponent<ConfigurationManager>();
             _deathFont = Font.GetDefaultFont(gameLoop.Graphics);
             _renderer = new Renderer2D(gameLoop.Graphics);
             _gameLoop = gameLoop;
@@ -128,10 +126,11 @@ namespace Thundershock
                 _postProcessSystem = new PostProcessor(_gameLoop.Graphics);
                 _postProcessSystem.LoadContent();
 
-                _postProcessSystem.EnableBloom = _config.ActiveConfig.Effects.Bloom;
-                _postProcessSystem.EnableShadowMask = _config.ActiveConfig.Effects.ShadowMask;
+                _postProcessSystem.EnableFXAA = ConfigurationManager.ActiveConfig.Effects.FXAA;
+                _postProcessSystem.EnableBloom = ConfigurationManager.ActiveConfig.Effects.Bloom;
+                _postProcessSystem.EnableShadowMask = ConfigurationManager.ActiveConfig.Effects.ShadowMask;
                 
-                _config.ConfigurationLoaded += ConfigOnConfigurationLoaded;
+                ConfigurationManager.ConfigurationLoaded += ConfigOnConfigurationLoaded;
             }
             
             // Help a playa out, spawn the default camera entity.
@@ -159,8 +158,9 @@ namespace Thundershock
         {
             if (_postProcessSystem != null)
             {
-                _postProcessSystem.EnableBloom = _config.ActiveConfig.Effects.Bloom;
-                _postProcessSystem.EnableShadowMask = _config.ActiveConfig.Effects.ShadowMask;
+                _postProcessSystem.EnableFXAA = ConfigurationManager.ActiveConfig.Effects.FXAA;
+                _postProcessSystem.EnableBloom = ConfigurationManager.ActiveConfig.Effects.Bloom;
+                _postProcessSystem.EnableShadowMask = ConfigurationManager.ActiveConfig.Effects.ShadowMask;
             }
         }
 
@@ -264,7 +264,7 @@ namespace Thundershock
         {
             if (_postProcessSystem != null)
             {
-                _config.ConfigurationLoaded -= ConfigOnConfigurationLoaded;
+                ConfigurationManager.ConfigurationLoaded -= ConfigOnConfigurationLoaded;
             }
             
             // Teardown all of the systems.
@@ -292,10 +292,10 @@ namespace Thundershock
             // Ensure that the scene render target matches the viewport size.
             EnsureSceneRenderTargetSize();
 
-            // Set the scene GUI viewport to match ours.
+            // GUI scaling.
+            var guiHeight = 800;
             var windowAspect = (float) Game.Window.Width / (float) Game.Window.Height;
-            var guiSize = 900;
-            _sceneGui.SetViewportSize(guiSize * windowAspect, guiSize);
+            _sceneGui.SetViewportSize(guiHeight * windowAspect, guiHeight);
 
             if (!_paused)
             {
@@ -499,7 +499,7 @@ namespace Thundershock
             if (_sceneRenderTarget == null)
             {
                 _sceneRenderTarget =
-                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point, DepthFormat.Depth24Stencil8);
+                    new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Linear, DepthFormat.Depth24Stencil8);
                 
                 // Tell the post-processor to resize its buffers.
                 _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);
@@ -511,7 +511,7 @@ namespace Thundershock
                 {
                     _sceneRenderTarget.Dispose();
                     _sceneRenderTarget =
-                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Point, DepthFormat.Depth24Stencil8);
+                        new RenderTarget2D(_gameLoop.Graphics, _gameLoop.Window.Width, _gameLoop.Window.Height, TextureFilteringMode.Linear, DepthFormat.Depth24Stencil8);
                     
                     // Tell the post-processor to resize its buffers.
                     _postProcessSystem.ReallocateEffectBuffers(_sceneRenderTarget.Width, _sceneRenderTarget.Height);

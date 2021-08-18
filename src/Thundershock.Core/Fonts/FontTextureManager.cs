@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using FontStashSharp.Interfaces;
 using Thundershock.Core.Rendering;
 
@@ -15,7 +16,17 @@ namespace Thundershock.Core.Fonts
         
         public object CreateTexture(int width, int height)
         {
-            return new Texture2D(_gpu, width, height, TextureFilteringMode.Point);
+            return new Texture2D(_gpu, width, height, TextureFilteringMode.Linear);
+        }
+
+        public Point GetTextureSize(object texture)
+        {
+            if (texture is Texture2D ts)
+            {
+                return new Point(ts.Width, ts.Height);
+            }
+
+            return Point.Empty;
         }
 
         public void SetTextureData(object texture, System.Drawing.Rectangle bounds, byte[] data)

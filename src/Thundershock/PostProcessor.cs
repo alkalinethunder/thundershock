@@ -117,6 +117,7 @@ namespace Thundershock
 
         #region Global Settings
 
+        public bool EnableFXAA { get; set; } = true;
         public bool EnableShadowMask { get; set; } = true;
         public bool EnableBloom { get; set; } = true;
 
@@ -143,6 +144,10 @@ namespace Thundershock
             _baseIntensity = cam.BloomBaseIntensity;
             _baseSaturation = cam.BloomBaseSaturation;
             _blurAmount = cam.BloomBlurAmount;
+
+            this.Settings.EnableBloom = cam.EnableBloom;
+            this.Settings.EnableFXAA = cam.EnableFXAA;
+            this.Settings.EnableShadowMask = cam.EnableCrt;
         }
         
         public void UnloadContent()
@@ -418,7 +423,14 @@ namespace Thundershock
             var rect = renderTarget.Bounds;
 
             // TODO: Ability to disable FXAA.
-            PerformFXAA(renderTarget, rect);
+            if (EnableFXAA && Settings.EnableFXAA)
+            {
+                PerformFXAA(renderTarget, rect);
+            }
+            else
+            {
+                NoEffect(renderTarget);
+            }
 
             if (EnableBloom && Settings.EnableBloom)
             {
@@ -506,6 +518,7 @@ namespace Thundershock
         {
             private PostProcessor _processor;
 
+            public bool EnableFXAA { get; set; } = true;
             public bool EnableBloom { get; set; } = true;
             public bool EnableShadowMask { get; set; } = true;
             public bool EnableGlitch { get; set; }

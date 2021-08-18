@@ -1,4 +1,5 @@
 using System;
+using Gdk;
 using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
@@ -12,15 +13,9 @@ namespace Thundershock
     public abstract class NewGameAppBase : GraphicalAppBase
     {
         /// <inheritdoc />
-        protected override GameWindow CreateGameWindow()
-        {
-            return new SdlGameWindow();
-        }
-
-        /// <inheritdoc />
         protected override void OnPreInit()
         {
-            GetComponent<ConfigurationManager>().ConfigurationLoaded += OnConfigurationLoaded;
+            ConfigurationManager.ConfigurationLoaded += OnConfigurationLoaded;
             ApplyConfig();
             base.OnPreInit();
         }
@@ -40,66 +35,37 @@ namespace Thundershock
         private void ApplyConfig()
         {
             Logger.Log("Configuration has been (re-)loaded.");
-            var config = GetComponent<ConfigurationManager>();
 
             // Set the BGM (MusicPlayer) volume
-            MusicPlayer.MasterVolume = config.ActiveConfig.BgmVolume;
+            MusicPlayer.MasterVolume = ConfigurationManager.ActiveConfig.BgmVolume;
             
             // v-sync
-            Window.VSync = config.ActiveConfig.VSync;
+            Window.VSync = ConfigurationManager.ActiveConfig.VSync;
             
             // the configured screen resolution
-            var displayMode = config.GetDisplayMode();
+            var displayMode = ConfigurationManager.GetDisplayMode();
             Logger.Log($"Display mode: {displayMode.Width}x{displayMode.Height} on monitor {displayMode.Monitor}");
-            Logger.Log($"Full-screen: {config.ActiveConfig.IsFullscreen}");
-            Logger.Log($"V-sync: {config.ActiveConfig.VSync}");
-            Logger.Log($"Fixed time step: {config.ActiveConfig.FixedTimeStepping}");
-            Logger.Log($"Post-process Bloom: {config.ActiveConfig.Effects.Bloom}");
-            Logger.Log($"Post-process CRT Shadowmask: {config.ActiveConfig.Effects.ShadowMask}");
+            Logger.Log($"Full-screen: {ConfigurationManager.ActiveConfig.IsFullscreen}");
+            Logger.Log($"V-sync: {ConfigurationManager.ActiveConfig.VSync}");
+            Logger.Log($"Fixed time step: {ConfigurationManager.ActiveConfig.FixedTimeStepping}");
+            Logger.Log($"Post-process Bloom: {ConfigurationManager.ActiveConfig.Effects.Bloom}");
+            Logger.Log($"Post-process CRT Shadowmask: {ConfigurationManager.ActiveConfig.Effects.ShadowMask}");
 
             // input system
-            SwapMouseButtons = config.ActiveConfig.SwapMouseButtons;
+            SwapMouseButtons = ConfigurationManager.ActiveConfig.SwapMouseButtons;
 
             // post-processor settings.
             // Game.EnableBloom = config.ActiveConfig.Effects.Bloom;
             // Game.EnableShadowmask = config.ActiveConfig.Effects.ShadowMask;
-
-            // should we reset the gpu?
-            var applyGraphicsChanges = false;
-
-            // Resolution change
-            if (ScreenWidth != displayMode.Width || ScreenHeight != displayMode.Height)
-            {
-                SetScreenSize(displayMode.Width, displayMode.Height);
-                applyGraphicsChanges = true;
-            }
-
-            // v-sync
-            // if (Game.VSync != config.ActiveConfig.VSync)
-            // {
-                // Game.VSync = config.ActiveConfig.VSync;
-                // applyGraphicsChanges = true;
-            // }
-
-            // fixed time stepping
-            // if (Game.IsFixedTimeStep != config.ActiveConfig.FixedTimeStepping)
-            // {
-                // Game.IsFixedTimeStep = config.ActiveConfig.FixedTimeStepping;
-                // applyGraphicsChanges = true;
-            // }
-
+            
             // fullscreen mode
-            if (Window.IsFullScreen != config.ActiveConfig.IsFullscreen)
-            {
-                Window.IsFullScreen = config.ActiveConfig.IsFullscreen;
-                applyGraphicsChanges = true;
-            }
+            Window.IsFullScreen = ConfigurationManager.ActiveConfig.IsFullscreen;
+            Window.IsBorderless = false;
+            
+            // Resolution change
+            SetScreenSize(displayMode.Width, displayMode.Height);
 
-            // update the GPU if we need to
-            if (applyGraphicsChanges)
-            {
-                ApplyGraphicsChanges();
-            }
+            ApplyGraphicsChanges();
         }
         
         /// <summary>

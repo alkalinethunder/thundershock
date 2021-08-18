@@ -14,8 +14,8 @@ namespace Thundershock.Debugging
         
         protected override void OnInit()
         {
-            _renderer = new Renderer2D(App.Window.GraphicsProcessor);
-            _font = Font.GetDefaultFont(App.Window.GraphicsProcessor);
+            _renderer = new Renderer2D(GamePlatform.GraphicsProcessor);
+            _font = Font.GetDefaultFont(GamePlatform.GraphicsProcessor);
         }
 
         protected override void OnUnload()

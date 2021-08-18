@@ -1,4 +1,5 @@
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 
@@ -8,6 +9,7 @@ namespace Thundershock
     /// Represents the bottom-most layer in a Thundershock game. Provides code for managing
     /// the current scene and passing input events through to the scene's objects and systems.
     /// </summary>
+    [CheatAlias("Game")]
     public sealed class GameLayer : Layer
     {
         private Scene _currentScene;
@@ -31,7 +33,7 @@ namespace Thundershock
         /// <summary>
         /// Gets an instance of the engine's graphics processor.
         /// </summary>
-        public GraphicsProcessor Graphics => Window.GraphicsProcessor;
+        public GraphicsProcessor Graphics => GamePlatform.GraphicsProcessor;
 
         /// <summary>
         /// Gets a rectangle representing the bounds of the screen.

@@ -95,7 +95,14 @@ namespace Thundershock.Gui
             }
 
             if (shouldPerformLayout)
+            {
+                // Invalidate all top-levels.
+                foreach (var tl in _topLevels)
+                    tl.InvalidateLayout();
+                
+                // Perform a full UI layout.
                 PerformLayout();
+            }
         }
         
         public void LoadStyle<T>() where T : GuiStyle, new()
@@ -285,6 +292,9 @@ namespace Thundershock.Gui
         
         public void Render(GameTime gameTime)
         {
+            // reset the sorting layer of the UI renderer.
+            _renderer.SetLayer(0);
+            
             // clear the depth buffer so that we can properly paint UI elements on top of
             // things that've been already rendered.
             _gpu.ClearDepth();

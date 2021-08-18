@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 using FontStashSharp.Interfaces;
+using Thundershock.Core.Fonts;
 
 namespace Thundershock.Core.Rendering
 {
@@ -13,7 +14,8 @@ namespace Thundershock.Core.Rendering
     public sealed class Renderer2D : IFontStashRenderer
     {
         public readonly int MaxBatchCount = 1000;
-        
+
+        private FontTextureManager _fontManager;
         private int _sortLayer;
         private Rectangle _clipBounds;
         private int _batchPointer;
@@ -53,7 +55,7 @@ namespace Thundershock.Core.Rendering
         public Renderer2D(GraphicsProcessor gpu)
         {
             _renderer = new Renderer(gpu);
-
+            _fontManager = new(gpu);
             _blankTexture = new Texture2D(gpu, 1, 1, TextureFilteringMode.Point);
             _blankTexture.Upload(new byte[] {0xff, 0xff, 0xff, 0xff});
         }
@@ -420,7 +422,7 @@ namespace Thundershock.Core.Rendering
 
             // var transform = scaleMatrix * rotate;
 
-            pos -= origin;
+            pos -= (origin * scale);
             
             var tsColor = new Color(color.R, color.G, color.B, color.A);
 
@@ -435,8 +437,8 @@ namespace Thundershock.Core.Rendering
                 tsRectangle.Y = (float) src?.Top / tsTexture.Height;
                 tsRectangle.Height = (float) src?.Height / tsTexture.Height;
 
-                tsDrawRect.Width = (float) src?.Width;
-                tsDrawRect.Height = (float) src?.Height;
+                tsDrawRect.Width = (float) src?.Width * scale.X;
+                tsDrawRect.Height = (float) src?.Height * scale.Y;
             }
 
             tsDrawRect.X = pos.X;
@@ -466,6 +468,8 @@ namespace Thundershock.Core.Rendering
             ri.AddIndex(vbr);
             ri.AddIndex(vbl);
         }
+
+        ITexture2DManager IFontStashRenderer.TextureManager => _fontManager;
 
         private static void CreateCircleSegment(Vector2 center, float radius, float step, float start, float end, ref Span<Vector2> result)
         {
@@ -497,6 +501,11 @@ namespace Thundershock.Core.Rendering
             FillTriangleFan(center, ref points, color, texture);
         }
 
+        public void SetLayer(int layer)
+        {
+            _sortLayer = layer;
+        }
+        
         private void ComputeCircleSegments(float radius, float maxError, float range, out float step, out int segments)
         {
             var invErrRad = 1 - maxError / radius;
@@ -507,8 +516,6 @@ namespace Thundershock.Core.Rendering
         internal void IncreaseLayer()
         {
             _sortLayer++;
-
-            Debug.Assert(_sortLayer <= MaxBatchCount);
         }
 
         

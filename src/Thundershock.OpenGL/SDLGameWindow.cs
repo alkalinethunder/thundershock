@@ -13,17 +13,11 @@ namespace Thundershock.OpenGL
 {
     public sealed class SdlGameWindow : GameWindow
     {
-        private GL _gl;
         private int _wheelX;
         private int _wheelY;
         private IntPtr _sdlWindow;
         private IntPtr _glContext;
         private Sdl.SdlEvent _event;
-        private GlGraphicsProcessor _graphicsProcessor;
-        private OpenAlAudioBackend _audio;
-
-        public override AudioBackend AudioBackend => _audio;
-        public override GraphicsProcessor GraphicsProcessor => _graphicsProcessor;
         
         protected override void OnUpdate()
         {
@@ -36,19 +30,6 @@ namespace Thundershock.OpenGL
 
         protected override void Initialize()
         {
-            App.Logger.Log("Initializing SDL2...");
-            var errno = Sdl.SDL_Init(Sdl.SdlInitVideo);
-            if (errno != 0)
-            {
-                App.Logger.Log("SDL initialization HAS FAILED.", LogLevel.Fatal);
-                var errText = Sdl.SDL_GetError();
-
-                throw new Exception(errText);
-            }
-
-            App.Logger.Log("Initializing SDL_mixer audio backend...");
-            _audio = new OpenAlAudioBackend();
-
             CreateSdlWindow();
         }
 
@@ -74,42 +55,7 @@ namespace Thundershock.OpenGL
 
             // Make the newly created context the current one.
             Sdl.SDL_GL_MakeCurrent(_sdlWindow, _glContext);
-
-            // Glue OpenGL and SDL2 together.
-            _gl = GL.GetApi(Sdl.SDL_GL_GetProcAddress);
-#if DEBUG
-            _gl.Enable(EnableCap.DebugOutput);
-            _gl.DebugMessageCallback(PrintGlError, 0);
-#endif
-            _graphicsProcessor = new GlGraphicsProcessor(_gl);
-            
-            // Set the viewport size.
-            _graphicsProcessor.SetViewportArea(0, 0, Width, Height);
-
-            // Initialize the platform layer now that we have GL
-            GamePlatform.Initialize(new SdlGamePlatform(_gl, _audio));
         }
-
-#if DEBUG
-        private void PrintGlError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
-        {
-            var buf = new byte[length];
-            Marshal.Copy(message, buf, 0, buf.Length);
-
-            var messageString = Encoding.UTF8.GetString(buf);
-
-            var logLevel = severity switch
-            {
-                GLEnum.DebugSeverityLow => LogLevel.Warning,
-                GLEnum.DebugSeverityMedium => LogLevel.Error,
-                GLEnum.DebugSeverityHigh => LogLevel.Fatal,
-                _ => LogLevel.Trace
-            };
-
-            
-            App.Logger.Log(messageString, logLevel);
-        }
-#endif
         
         private void PollEvents()
         {
@@ -262,12 +208,12 @@ namespace Thundershock.OpenGL
 
             var fsFlags = 0u;
             if (IsBorderless && IsFullScreen)
-                fsFlags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreen;
-            else if (IsFullScreen)
                 fsFlags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreenDesktop;
+            else if (IsFullScreen)
+                fsFlags |= (uint) Sdl.SdlWindowFlags.SdlWindowFullscreen;
             
             Sdl.SDL_SetWindowResizable(_sdlWindow, CanResize ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
-            Sdl.SDL_SetWindowBordered(_sdlWindow, IsBorderless ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
+            Sdl.SDL_SetWindowBordered(_sdlWindow, IsBorderless ? Sdl.SdlBool.SdlFalse : Sdl.SdlBool.SdlTrue);
             Sdl.SDL_SetWindowFullscreen(_sdlWindow, fsFlags);
 
             if (fsFlags > 0)
@@ -318,13 +264,9 @@ namespace Thundershock.OpenGL
             App.Logger.Log("Destroying current GL renderer...");
             Sdl.SDL_GL_DeleteContext(_glContext);
             _glContext = IntPtr.Zero;
-            _graphicsProcessor = null;
             
             App.Logger.Log("Destroying the SDL window...");
             Sdl.SDL_DestroyWindow(_sdlWindow);
-            
-            // Fucking. STOP.
-            _audio.Dispose();
         }
 
         protected override void UpdateVSync()

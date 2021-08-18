@@ -36,11 +36,21 @@ namespace Thundershock.Core
         
         public FontStashFont(GraphicsProcessor gpu, byte[] ttfData, int defaultSize)
         {
-            var texManager = new FontTextureManager(gpu);
-            _fontSystem = new FontSystem(texManager, 1024, 1024, 0, 0, false);
+            // TODO: Dynamic font quality settings.
+            var settings = new FontSystemSettings
+            {
+                FontResolutionFactor = 2.0f,
+                KernelWidth = 2,
+                KernelHeight = 2,
+                PremultiplyAlpha = false,
+                TextureWidth = 1024,
+                TextureHeight = 1024
+            };
+            
+            _fontSystem = new FontSystem(settings);
 
             _fontSystem.UseKernings = true;
-            
+
             _fontSystem.AddFont(ttfData);
             _fontSize = defaultSize;
         }

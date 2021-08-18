@@ -1065,7 +1065,13 @@ namespace Thundershock.Gui.Elements
             public bool IsReadOnly => _owner.SupportsChildren;
         }
 
-        protected void InvalidateLayout()
+        /// <summary>
+        /// Invalidates the current layout of this element and its children.
+        /// This discards the clipping rectangle and causes the bounding rectangles
+        /// to be recomputed on the next engine tick. Calling this method religiously
+        /// will severely impact the framerate.
+        /// </summary>
+        public void InvalidateLayout()
         {
             if (this is RootElement) return;
             

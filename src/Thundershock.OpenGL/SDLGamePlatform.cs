@@ -1,25 +1,46 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using Silk.NET.OpenGL;
 using Thundershock.Core;
 using Thundershock.Core.Audio;
+using Thundershock.Core.Debugging;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.OpenGL
 {
     public sealed class SdlGamePlatform : IGamePlatform
     {
         private GL _gl;
-        private OpenAlAudioBackend _audio;
-
-        public AudioBackend Audio => _audio;
         
-        internal SdlGamePlatform(GL gl, OpenAlAudioBackend al)
+        public SdlGamePlatform()
         {
-            _gl = gl;
-            _audio = al;
+            Logger.GetLogger().Log("Initializing SDL2...");
+            var errno = Sdl.SDL_Init(Sdl.SdlInitVideo);
+            if (errno != 0)
+            {
+                Logger.GetLogger().Log("SDL initialization HAS FAILED.", LogLevel.Fatal);
+                var errText = Sdl.SDL_GetError();
+
+                throw new Exception(errText);
+            }
+            
+            // Create the Silk.NET GL context.
+            _gl = GL.GetApi(Sdl.SDL_GL_GetProcAddress);
         }
 
+        public GraphicsProcessor CreateGraphicsProcessor()
+        {
+            // GL debug mode.
+#if DEBUG
+            _gl.Enable(EnableCap.DebugOutput);
+            _gl.DebugMessageCallback(PrintGlError, 0);
+#endif
+
+            return new GlGraphicsProcessor(_gl);
+        }
+        
         public string GraphicsCardDescription
         {
             get
@@ -84,5 +105,26 @@ namespace Thundershock.OpenGL
                 yield return new DisplayMode(mode.w, mode.h, monitor, 0, 0);
             }
         }
+        
+#if DEBUG
+        private void PrintGlError(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userparam)
+        {
+            var buf = new byte[length];
+            Marshal.Copy(message, buf, 0, buf.Length);
+
+            var messageString = Encoding.UTF8.GetString(buf);
+
+            var logLevel = severity switch
+            {
+                GLEnum.DebugSeverityLow => LogLevel.Warning,
+                GLEnum.DebugSeverityMedium => LogLevel.Error,
+                GLEnum.DebugSeverityHigh => LogLevel.Fatal,
+                _ => LogLevel.Trace
+            };
+
+            
+            Logger.GetLogger().Log(messageString, logLevel);
+        }
+#endif
     }
 }

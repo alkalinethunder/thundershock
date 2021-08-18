@@ -6,6 +6,7 @@ using Thundershock.Core;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
 using Thundershock.Debugging;
+using Thundershock.OpenGL;
 
 namespace Thundershock
 {
@@ -27,7 +28,7 @@ namespace Thundershock
         /// <summary>
         /// Gets an instance of the graphics processor.
         /// </summary>
-        public GraphicsProcessor Graphics => Window.GraphicsProcessor;
+        public GraphicsProcessor Graphics => GamePlatform.GraphicsProcessor;
         
         /// <summary>
         /// Gets an instance of the game window.
@@ -61,13 +62,16 @@ namespace Thundershock
         /// <inheritdoc />
         protected sealed override void Bootstrap()
         {
+            // Initialize the configuration manager
+            ConfigurationManager.Initialize();
+            
             Logger.Log("Creating the game window...");
             _gameWindow = CreateGameWindow();
-            _gameWindow.Show(this);
+            
             Logger.Log("Game window created.");
 
             PreInit();
-            
+
             RunLoop();
 
             Logger.Log("RunLoop just returned. That means we're about to die.");
@@ -98,7 +102,7 @@ namespace Thundershock
 
                 _layerManager.Update(gameTimeInfo);
                 
-                _gameWindow.GraphicsProcessor.Clear(Color.Black);
+                GamePlatform.GraphicsProcessor.Clear(Color.Black);
                 
                 _layerManager.Render(gameTimeInfo);
                 
@@ -123,10 +127,24 @@ namespace Thundershock
 
         private void PreInit()
         {
+            // Show the game window.
+            _gameWindow.Show(this);
+            
+            // Use SDL as the windowing platform.
+            GamePlatform.Initialize(new SdlGamePlatform());
+            
+            // Initialize the OpenGL graphics layer.
+            GamePlatform.InitializeGraphics();
+
+            // Use OpenAL for audio.
+            GamePlatform.InitializeAudio<OpenAlAudioBackend>();
+
+            // Set the viewport width and height
+            GamePlatform.GraphicsProcessor.SetViewportArea(0, 0, _gameWindow.Width, _gameWindow.Height);
+            
             _layerManager = new LayerManager(this);
             
             Logger.Log("PreInit reached. Setting up core components.");
-            RegisterComponent<ConfigurationManager>();
 
             // Bind input events to the layer manager.
             _gameWindow.KeyDown += GameWindowOnKeyDown;
@@ -212,6 +230,9 @@ namespace Thundershock
             // TODO: V-Sync, Fixed Time Stepping, Monitor Positioning
             _gameWindow.Width = _width;
             _gameWindow.Height = _height;
+            
+            // Set the viewport size to match.
+            GamePlatform.GraphicsProcessor.SetViewportArea(0, 0, _width, _height);
         }
 
         /// <summary>
@@ -247,7 +268,16 @@ namespace Thundershock
         /// When overridden in a derived class, creates the game window.
         /// </summary>
         /// <returns>An instance of the newly created game window.</returns>
-        protected abstract GameWindow CreateGameWindow();
+        private GameWindow CreateGameWindow()
+        {
+            var win = new SdlGameWindow();
+
+            win.IsFullScreen = ConfigurationManager.ActiveConfig.IsFullscreen;
+            win.VSync = ConfigurationManager.ActiveConfig.VSync;
+            win.PrimaryMouseButtonIsRightMouseButton = ConfigurationManager.ActiveConfig.SwapMouseButtons;
+            
+            return win;
+        }
 
         /// <summary>
         /// Loads and activates a new scene.

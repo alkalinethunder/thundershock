@@ -110,6 +110,15 @@ namespace Thundershock.Components
 
         #endregion
 
+        #region FXAA
+
+        /// <summary>
+        /// Indicates whether FXAA should be used.
+        /// </summary>
+        public bool EnableFXAA = true;
+
+        #endregion
+        
         #region World
 
         /// <summary>
