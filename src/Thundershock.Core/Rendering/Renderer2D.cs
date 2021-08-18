@@ -515,13 +515,14 @@ namespace Thundershock.Core.Rendering
         
         internal void IncreaseLayer()
         {
-            _sortLayer++;
+            if (EnableSorting)
+                _sortLayer++;
         }
 
         
         private class RenderItem
         {
-            private int[] _indices = new int[64];
+            private int[] _indices = new int[1024];
             
             private Renderer2D _renderer;
             private int _batchIndex;
@@ -559,11 +560,21 @@ namespace Thundershock.Core.Rendering
 
         private int AddVertex(Vector2 position, Color color, Vector2 texCoord)
         {
-            var vert = new Vertex(new Vector3(position, EnableSorting ? MaxBatchCount - _sortLayer : 0), color, texCoord);
             var ptr = _vertexPointer;
-            _vertexArray[_vertexPointer] = vert;
             _vertexPointer++;
 
+            unsafe
+            {
+                fixed (Vertex* v = &_vertexArray[ptr])
+                {
+                    v->TextureCoordinates = texCoord;
+                    v->Color = color;
+                    v->Position.X = position.X;
+                    v->Position.Y = position.Y;
+                    v->Position.Z = MaxBatchCount - _sortLayer;
+                }
+            }
+            
             if (_vertexPointer >= _vertexArray.Length)
             {
                 Array.Resize(ref _vertexArray, _vertexArray.Length * 2);

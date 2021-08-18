@@ -10,6 +10,7 @@ namespace Thundershock.OpenGL
 {
     public sealed class GlGraphicsProcessor : GraphicsProcessor
     {
+        private Rectangle _viewport;
         private Dictionary<ulong, uint> _shaderCache = new();
         private int[] _programTextureUnits;
         private uint _program;
@@ -42,17 +43,7 @@ namespace Thundershock.OpenGL
         
         public override Rectangle ViewportBounds
         {
-            get
-            {
-                var viewport = new int[4];
-                unsafe
-                {
-                    fixed (int* ptr = viewport)
-                        _gl.GetInteger(GLEnum.Viewport, ptr);
-                }
-
-                return new Rectangle(viewport[0], viewport[1], viewport[2], viewport[3]);
-            }
+            get => _viewport;
         }
 
         public override void ClearDepth()
@@ -331,6 +322,10 @@ namespace Thundershock.OpenGL
             if (_fbo == 0)
             {
                 _gl.Viewport(x, y, (uint) width, (uint) height);
+                _viewport.X = x;
+                _viewport.Y = y;
+                _viewport.Width = width;
+                _viewport.Height = height;
             }
         }
         
@@ -394,6 +389,11 @@ namespace Thundershock.OpenGL
             _fbo = target.RenderTargetId;
             _gl.BindFramebuffer(GLEnum.Framebuffer, target.RenderTargetId);
             _gl.Viewport(0, 0, (uint) target.Width, (uint) target.Height);
+
+            _viewport.X = 0;
+            _viewport.Y = 0;
+            _viewport.Width = target.Width;
+            _viewport.Height = target.Height;
         }
 
         protected override void StopUsingRenderTarget()
@@ -401,6 +401,11 @@ namespace Thundershock.OpenGL
             _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
             _gl.Viewport(_viewportX, _viewportY, (uint) _viewportW, (uint) _viewportH);
             _fbo = 0;
+
+            _viewport.X = _viewportX;
+            _viewport.Y = _viewportY;
+            _viewport.Width = _viewportW;
+            _viewport.Height = _viewportH;
         }
 
         public override uint CreateShaderProgram()

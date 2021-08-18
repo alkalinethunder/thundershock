@@ -14,6 +14,9 @@ namespace Thundershock.Gui
     {
         private static Type _defaultStyleType;
 
+        private string _fps = string.Empty;
+        private double _fpsTimer;
+        private bool _updateFPS = true;
         private RootElement _rootElement;
         private Element.ElementCollection _topLevels;
         private GuiRendererState _guiRendererState;
@@ -247,6 +250,13 @@ namespace Thundershock.Gui
         
         public void Update(GameTime gameTime)
         {
+            _fpsTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            if (_fpsTimer >= 0.05)
+            {
+                _updateFPS = true;
+                _fpsTimer = 0;
+            }
+            
             PerformLayout();
         }
         
@@ -347,13 +357,17 @@ namespace Thundershock.Gui
 
         private void DrawFPS(GameTime gameTime)
         {
-            var text = Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds).ToString();
+            if (_updateFPS)
+            {
+                _fps = Math.Floor(1 / gameTime.ElapsedGameTime.TotalSeconds).ToString();
+                _updateFPS = false;
+            }
 
-            var m = _debugFont.MeasureString(text);
+            var m = _debugFont.MeasureString(_fps);
             var rect = new Rectangle(0, 0, m.X, m.Y);
 
             _renderer.FillRectangle(rect, Color.Black);
-            _renderer.DrawString(_debugFont, text, Vector2.Zero, Color.White);
+            _renderer.DrawString(_debugFont, _fps, Vector2.Zero, Color.White);
         }
 
         private Element FindElement(int x, int y, bool requireInteractible = true)
