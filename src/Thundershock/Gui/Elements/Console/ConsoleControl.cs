@@ -86,6 +86,7 @@ namespace Thundershock.Gui.Elements.Console
         {
             CanFocus = true;
             IsInteractable = true;
+            Clip = true;
         }
 
         private Color GetColor(ConsoleColor color)

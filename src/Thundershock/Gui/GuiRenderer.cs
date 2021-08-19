@@ -19,6 +19,13 @@ namespace Thundershock.Gui
             _spriteBatch = batcher;
             _state = state;
         }
+
+        public void FillRectangle(Rectangle rect, Texture2D texture, Color color, Rectangle uv)
+        {
+            ComputeColor(ref color);
+
+            _spriteBatch.FillRectangle(rect, color, texture, uv);
+        }
         
         public void FillRectangle(Rectangle rect, Color color)
         {
