@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
+using System.Runtime.CompilerServices;
 using FontStashSharp.Interfaces;
 using Thundershock.Core.Fonts;
 
@@ -20,7 +20,7 @@ namespace Thundershock.Core.Rendering
         private Rectangle _clipBounds;
         private int _batchPointer;
         private int _vertexPointer;
-        private Vertex[] _vertexArray = new Vertex[128];
+        private Vertex[] _vertexArray = new Vertex[1024];
         private Effect _effect;
         private bool _running;
         private RenderItem[] _batch = new RenderItem[16];
@@ -30,8 +30,8 @@ namespace Thundershock.Core.Rendering
         private Renderer _renderer;
         private int _translucentBatchPointer = 0;
         private bool _enableSorting = true;
-        
-        
+
+
         public bool EnableSorting
         {
             get => _enableSorting;
@@ -45,22 +45,22 @@ namespace Thundershock.Core.Rendering
                 }
             }
         }
-        
+
         public Matrix4x4 ProjectionMatrix
         {
             get => _projectionMatrix;
             set => _projectionMatrix = value;
         }
-        
+
         public Renderer2D(GraphicsProcessor gpu)
         {
             _renderer = new Renderer(gpu);
             _fontManager = new(gpu);
             _blankTexture = new Texture2D(gpu, 1, 1, TextureFilteringMode.Point);
-            _blankTexture.Upload(new byte[] {0xff, 0xff, 0xff, 0xff});
+            _blankTexture.Upload(new byte[] { 0xff, 0xff, 0xff, 0xff });
         }
-        
-        
+
+
         public void Begin(Matrix4x4? projection = null)
         {
             if (_running)
@@ -83,7 +83,7 @@ namespace Thundershock.Core.Rendering
             {
                 var wasRunning = _running;
                 var sort = _sortLayer;
-                
+
                 if (_running)
                     End();
 
@@ -137,7 +137,7 @@ namespace Thundershock.Core.Rendering
                         return last;
                 }
             }
-            
+
             var newBatchItem = null as RenderItem;
 
             if (alpha < 1)
@@ -169,7 +169,7 @@ namespace Thundershock.Core.Rendering
             }
 
             newBatchItem.Texture = tex;
-            
+
             return newBatchItem;
         }
 
@@ -197,7 +197,7 @@ namespace Thundershock.Core.Rendering
 
                         // upload the indices.
                         _renderer.UploadIndices(item.Indices);
-                        
+
                         Debug.Assert(item.Length % 3 == 0);
                         Debug.Assert(item.Length / 3 == item.Triangles);
 
@@ -206,12 +206,12 @@ namespace Thundershock.Core.Rendering
                         if (pCount >= 1)
                         {
                             _renderer.Textures[0] = tex;
-                            
+
                             _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
                         }
                     }
 
-                    
+
                     for (var i = 0; i < _translucentBatchPointer; i++)
                     {
                         var item = _translucentBatch[i];
@@ -228,7 +228,7 @@ namespace Thundershock.Core.Rendering
                         if (pCount >= 1)
                         {
                             _renderer.Textures[0] = tex;
-                            
+
                             _renderer.Draw(PrimitiveType.TriangleList, item.Start, pCount);
                         }
                     }
@@ -244,7 +244,7 @@ namespace Thundershock.Core.Rendering
 
                     _batch[_batchPointer] = null;
                     _translucentBatch[_translucentBatchPointer] = null;
-                    
+
                 }
 
                 _sortLayer = 0;
@@ -253,7 +253,7 @@ namespace Thundershock.Core.Rendering
             {
                 throw new InvalidOperationException("Cannot end the current batch as it has not yet begun.");
             }
-            
+
             _running = false;
         }
 
@@ -279,12 +279,12 @@ namespace Thundershock.Core.Rendering
                 FillRectangle(bounds, color);
                 return;
             }
-            
+
             var left = new Rectangle(bounds.Left, bounds.Top, thickness, bounds.Height);
             var right = new Rectangle(bounds.Right - thickness, bounds.Top, thickness, bounds.Height);
             var top = new Rectangle(left.Right, bounds.Top, bounds.Width - (thickness * 2), thickness);
             var bottom = new Rectangle(top.Left, bounds.Bottom - thickness, top.Width, top.Height);
-            
+
             FillRectangle(left, color);
             _sortLayer--;
             FillRectangle(top, color);
@@ -296,24 +296,18 @@ namespace Thundershock.Core.Rendering
 
         public void FillRectangle(Rectangle rect, Color color, Texture2D texture, Rectangle uv)
         {
+            var renderItem = MakeRenderItem(texture, color.A);
+
+            Span<Vertex> vertices = ReserveQuad(renderItem);
+            float z = MaxBatchCount - _sortLayer;
+            vertices[0] = new Vertex(new Vector3(rect.Left, rect.Top, z), color, new Vector2(uv.Left, uv.Top));
+            vertices[1] = new Vertex(new Vector3(rect.Right, rect.Top, z), color, new Vector2(uv.Right, uv.Top));
+            vertices[2] = new Vertex(new Vector3(rect.Left, rect.Bottom, z), color, new Vector2(uv.Left, uv.Bottom));
+            vertices[3] = new Vertex(new Vector3(rect.Right, rect.Bottom, z), color, new Vector2(uv.Right, uv.Bottom));
+
             IncreaseLayer();
-
-            var batch = MakeRenderItem(texture, color.A);
-
-            var tl = AddVertex(rect.Location, color, uv.Location);
-            var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, new Vector2(uv.Right, uv.Top));
-            var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, new Vector2(uv.Left, uv.Bottom));
-            var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, new Vector2(uv.Right, uv.Bottom));
-            
-            batch.AddIndex(tr);
-            batch.AddIndex(bl);
-            batch.AddIndex(tl);
-            
-            batch.AddIndex(tr);
-            batch.AddIndex(br);
-            batch.AddIndex(bl);
         }
-        
+
         /// <summary>
         /// Draws a filled rectangle.
         /// </summary>
@@ -324,55 +318,49 @@ namespace Thundershock.Core.Rendering
         {
             var renderItem = MakeRenderItem(texture, color.A);
 
-            // add the 4 vertices
-            var tl = AddVertex(new Vector2(rect.Left, rect.Top), color, TextureCoords.TopLeft);
-            var tr = AddVertex(new Vector2(rect.Right, rect.Top), color, TextureCoords.TopRight);
-            var bl = AddVertex(new Vector2(rect.Left, rect.Bottom), color, TextureCoords.BottomLeft);
-            var br = AddVertex(new Vector2(rect.Right, rect.Bottom), color, TextureCoords.BottomRight);
+            Span<Vertex> vertices = ReserveQuad(renderItem);
+            float z = MaxBatchCount - _sortLayer;
+            vertices[0] = new Vertex(new Vector3(rect.Left, rect.Top, z), color, TextureCoords.TopLeft);
+            vertices[1] = new Vertex(new Vector3(rect.Right, rect.Top, z), color, TextureCoords.TopRight);
+            vertices[2] = new Vertex(new Vector3(rect.Left, rect.Bottom, z), color, TextureCoords.BottomLeft);
+            vertices[3] = new Vertex(new Vector3(rect.Right, rect.Bottom, z), color, TextureCoords.BottomRight);
 
-            // firsst triangle
-            renderItem.AddIndex(tr);
-            renderItem.AddIndex(bl);
-            renderItem.AddIndex(tl);
-
-            // second triangle
-            renderItem.AddIndex(tr);
-            renderItem.AddIndex(br);
-            renderItem.AddIndex(bl);
-
-            // And that's how you draw a rectangle with two triangles!
             IncreaseLayer();
         }
-        
+
         /* Credit where credit's due
          * =========================
          *
          * The following code is from https://github.com/Jjagg/OpenWheels,
          * and has been adapted to work within SpriteRocket2D.
          */
-        
+
         private const float RightStartAngle = 0;
-        private const float RightEndAngle = (float) (2 * Math.PI);
-        private void FillTriangleFan(Vector2 center, ref Span<Vector2> vs, Color color, Texture2D texture)
+        private const float RightEndAngle = (float)(2 * Math.PI);
+
+        private void FillTriangleFan(Vector2 center, Span<Vector2> vs, Color color, Texture2D texture)
         {
             var c = vs.Length;
             if (c < 2)
                 throw new ArgumentException(@"Need at least 3 vertices for a triangle fan.", nameof(vs));
-            
+
             var renderItem = MakeRenderItem(texture, color.A);
+            Span<Vertex> vertexBuffer = ReserveVertices(1 + c, out int vertexPointer);
+            Span<int> indexBuffer = renderItem.ReserveIndices((c - 1) * 3);
 
             var texWidth = texture?.Width ?? 1;
             var texHeight = texture?.Height ?? 1;
-            var texDiameter = (float) Math.Min(texWidth, texHeight);
-            var u = texDiameter / (float) texWidth;
-            var v = texDiameter / (float) texHeight;
+            var texDiameter = (float)Math.Min(texWidth, texHeight);
+            var u = texDiameter / (float)texWidth;
+            var v = texDiameter / (float)texHeight;
 
             var ul = (1f - u) / 2;
             var ut = (1f - v) / 2;
 
             var point5 = new Vector2(0.5f, 0.5f);
-            var centerIndex = AddVertex(center, color, point5);
-            
+            var centerIndex = vertexPointer;
+            vertexBuffer[0] = new Vertex(new Vector3(center, 0), color, point5);
+
             var rs = Vector2.Distance(center, vs[0]);
 
             var imageRect = Rectangle.FromHalfExtents(center, rs);
@@ -380,18 +368,21 @@ namespace Thundershock.Core.Rendering
 
             var uv1 = Rectangle.MapVec2(vs[0], imageRect, uvRect);
 
-            var v1 = AddVertex(vs[0], color, uv1);
+            int indexOffset = 0;
+            var v1 = vertexPointer + 1;
+            vertexBuffer[1] = new Vertex(new Vector3(vs[0], 0), color, uv1);
 
             for (var i = 1; i < c; i++)
             {
                 var uv = Rectangle.MapVec2(vs[i], imageRect, uvRect);
-                var v2 = AddVertex(vs[i], color, uv);
-                renderItem.AddIndex(centerIndex);
-                renderItem.AddIndex(v1);
-                renderItem.AddIndex(v2);
+                var v2 = vertexPointer + 1 + i;
+                vertexBuffer[i + 1] = new Vertex(new Vector3(vs[i], 0), color, uv);
+                indexBuffer[indexOffset++] = centerIndex;
+                indexBuffer[indexOffset++] = v1;
+                indexBuffer[indexOffset++] = v2;
                 v1 = v2;
             }
-            
+
             IncreaseLayer();
         }
 
@@ -412,8 +403,8 @@ namespace Thundershock.Core.Rendering
             FillCircleSegment(center, MathF.Round(radius), RightStartAngle, RightEndAngle, color, texture, maxError);
         }
 
-        void IFontStashRenderer.Draw(object texture, Vector2 pos, System.Drawing.Rectangle? src, System.Drawing.Color color, float rotation, Vector2 origin, Vector2 scale,
-            float depth)
+        void IFontStashRenderer.Draw(
+            object texture, Vector2 pos, System.Drawing.Rectangle? src, System.Drawing.Color color, float rotation, Vector2 origin, Vector2 scale, float depth)
         {
             var tsTexture = texture as Texture2D;
 
@@ -423,63 +414,74 @@ namespace Thundershock.Core.Rendering
             // var transform = scaleMatrix * rotate;
 
             pos -= (origin * scale);
-            
+
             var tsColor = new Color(color.R, color.G, color.B, color.A);
 
             var tsRectangle = Rectangle.Unit;
             var tsDrawRect = new Rectangle(0, 0, tsTexture.Width, tsTexture.Height);
-            
+
             if (src != null)
             {
-                tsRectangle.X = (float) src?.Left / tsTexture.Width;
-                tsRectangle.Width = (float) src?.Width / tsTexture.Width;
-                
-                tsRectangle.Y = (float) src?.Top / tsTexture.Height;
-                tsRectangle.Height = (float) src?.Height / tsTexture.Height;
+                System.Drawing.Rectangle srcv = src.GetValueOrDefault();
+                float w = srcv.Width;
+                float h = srcv.Height;
 
-                tsDrawRect.Width = (float) src?.Width * scale.X;
-                tsDrawRect.Height = (float) src?.Height * scale.Y;
+                tsRectangle.X = (float)srcv.Left / tsTexture.Width;
+                tsRectangle.Width = w / tsTexture.Width;
+
+                tsRectangle.Y = (float)srcv.Top / tsTexture.Height;
+                tsRectangle.Height = h / tsTexture.Height;
+
+                tsDrawRect.Width = w * scale.X;
+                tsDrawRect.Height = h * scale.Y;
             }
 
             tsDrawRect.X = pos.X;
             tsDrawRect.Y = pos.Y;
-            
+
             // We can't use this method to draw the text
             // since it increases the sort layer.
             //
             // So we'll do it ourselves, in-line.
             // FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle);
 
-            var ri = MakeRenderItem(tsTexture, tsColor.A);
+            var renderItem = MakeRenderItem(tsTexture, tsColor.A);
 
-            var vtl = AddVertex(tsDrawRect.Location, tsColor, tsRectangle.Location);
-            var vbr = AddVertex(tsDrawRect.Location + tsDrawRect.Size, tsColor,
-                tsRectangle.Location + tsRectangle.Size);
-            var vbl = AddVertex(tsDrawRect.Location + new Vector2(0, tsDrawRect.Height), tsColor,
-                tsRectangle.Location + new Vector2(0, tsRectangle.Height));
-            var vtr = AddVertex(tsDrawRect.Location + new Vector2(tsDrawRect.Width, 0), tsColor,
-                tsRectangle.Location + new Vector2(tsRectangle.Width, 0));
+            Span<Vertex> vertices = ReserveQuad(renderItem);
+            float z = MaxBatchCount - _sortLayer;
 
-            ri.AddIndex(vtl);
-            ri.AddIndex(vtr);
-            ri.AddIndex(vbl);
-
-            ri.AddIndex(vtr);
-            ri.AddIndex(vbr);
-            ri.AddIndex(vbl);
+            vertices[0] = new Vertex(
+                new Vector3(tsDrawRect.X, tsDrawRect.Y, z), 
+                tsColor,
+                tsRectangle.Location);
+            
+            vertices[1] = new Vertex(
+                new Vector3(tsDrawRect.X + tsDrawRect.Width, tsDrawRect.Y, z), 
+                tsColor, 
+                new Vector2(tsRectangle.X + tsRectangle.Width, tsRectangle.Y));
+            
+            vertices[2] = new Vertex(
+                new Vector3(tsDrawRect.X, tsDrawRect.Y + tsDrawRect.Height, z), 
+                tsColor, 
+                new Vector2(tsRectangle.X, tsRectangle.Y + tsRectangle.Height));
+            
+            vertices[3] = new Vertex(
+                new Vector3(tsDrawRect.X + tsDrawRect.Width, tsDrawRect.Y + tsDrawRect.Height, z),
+                tsColor, 
+                new Vector2(tsRectangle.X + tsRectangle.Width, tsRectangle.Y + tsRectangle.Height));
         }
 
         ITexture2DManager IFontStashRenderer.TextureManager => _fontManager;
 
-        private static void CreateCircleSegment(Vector2 center, float radius, float step, float start, float end, ref Span<Vector2> result)
+        private static void CreateCircleSegment(Vector2 center, float radius, float step, float start, float end, Span<Vector2> result)
         {
             var i = 0;
             float theta;
             for (theta = start; theta < end; theta += step)
-                result[i++] = new Vector2((float) (center.X + radius * Math.Cos(theta)), (float) (center.Y + radius * Math.Sin(theta)));
+                result[i++] = new Vector2((float)(center.X + radius * Math.Cos(theta)), (float)(center.Y + radius * Math.Sin(theta)));
 
             if (theta != end)
-                result[i] = center + new Vector2((float) (radius * Math.Cos(end)), (float) (radius * Math.Sin(end)));
+                result[i] = center + new Vector2((float)(radius * Math.Cos(end)), (float)(radius * Math.Sin(end)));
         }
 
         private void FillCircleSegment(Vector2 center, float radius, float start, float end, Color color, Texture2D texture, float maxError)
@@ -489,100 +491,123 @@ namespace Thundershock.Core.Rendering
 
             if (color.A <= 0)
                 return;
-            
+
             ComputeCircleSegments(radius, maxError, end - start, out var step, out var segments);
 
             if (segments <= 0)
                 return;
-            
+
             Span<Vector2> points = stackalloc Vector2[segments + 1];
-            CreateCircleSegment(center, radius, step, start, end, ref points);
-            
-            FillTriangleFan(center, ref points, color, texture);
+            CreateCircleSegment(center, radius, step, start, end, points);
+
+            FillTriangleFan(center, points, color, texture);
         }
 
         public void SetLayer(int layer)
         {
             _sortLayer = layer;
         }
-        
+
         private void ComputeCircleSegments(float radius, float maxError, float range, out float step, out int segments)
         {
             var invErrRad = 1 - maxError / radius;
-            step = (float) Math.Acos(2 * invErrRad * invErrRad - 1);
-            segments = (int) (range / step + 0.999f);
+            step = (float)Math.Acos(2 * invErrRad * invErrRad - 1);
+            segments = (int)(range / step + 0.999f);
         }
-        
+
         internal void IncreaseLayer()
         {
             if (EnableSorting)
                 _sortLayer++;
         }
 
-        
         private class RenderItem
         {
             private int[] _indices = new int[1024];
-            
-            private Renderer2D _renderer;
-            private int _batchIndex;
 
-            public Span<int> Indices => _indices.AsSpan(0, _batchIndex);
-            
-            public int Triangles => _batchIndex / 3;
+            private Renderer2D _renderer;
+            private int _indexPointer;
+
+            public Span<int> Indices => _indices.AsSpan(0, _indexPointer);
+
+            public int Triangles => _indexPointer / 3;
 
             public int Start => 0;
 
-            public int Length => _batchIndex;
-            
+            public int Length => _indexPointer;
+
             public Texture2D Texture { get; set; }
-            
+
             public bool IsOpaque { get; set; }
-            
+
             public RenderItem(Renderer2D renderer)
             {
                 _renderer = renderer;
             }
-            
-            public void AddIndex(int index)
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Span<int> ReserveIndices(int count)
             {
+                int indexPointer = _indexPointer;
+                _indexPointer += count;
+
                 // Make room if we've run out.
-                if (_batchIndex >= _indices.Length)
+                if (indexPointer + count > _indices.Length)
+                {
+                    EnsureIndexCapacity(count);
+                }
+
+                Span<int> span = _indices.AsSpan(indexPointer, count);
+                return span;
+            }
+
+            private void EnsureIndexCapacity(int count)
+            {
+                while (_indexPointer + count > _indices.Length)
+                {
                     Array.Resize(ref _indices, _indices.Length * 2);
-                
-                // Insert the index.
-                _indices[_batchIndex] = index;
-                
-                // Increase our size.
-                _batchIndex++;
+                }
             }
         }
 
-        private int AddVertex(Vector2 position, Color color, Vector2 texCoord)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Span<Vertex> ReserveVertices(int count, out int vertexPointer)
         {
-            var ptr = _vertexPointer;
-            _vertexPointer++;
+            vertexPointer = _vertexPointer;
+            _vertexPointer += count;
 
-            unsafe
+            if (vertexPointer + count > _vertexArray.Length)
             {
-                fixed (Vertex* v = &_vertexArray[ptr])
-                {
-                    v->TextureCoordinates = texCoord;
-                    v->Color = color;
-                    v->Position.X = position.X;
-                    v->Position.Y = position.Y;
-                    v->Position.Z = MaxBatchCount - _sortLayer;
-                }
+                EnsureVertexCapacity(count);
             }
-            
-            if (_vertexPointer >= _vertexArray.Length)
+
+            Span<Vertex> span = _vertexArray.AsSpan(vertexPointer, count);
+            return span;
+        }
+
+        private Span<Vertex> ReserveQuad(RenderItem batch)
+        {
+            Span<Vertex> vertices = ReserveVertices(4, out int vertexPointer);
+
+            Span<int> indices = batch.ReserveIndices(6);
+            indices[0] = vertexPointer + 1;
+            indices[1] = vertexPointer + 2;
+            indices[2] = vertexPointer + 0;
+            indices[3] = vertexPointer + 1;
+            indices[4] = vertexPointer + 3;
+            indices[5] = vertexPointer + 2;
+
+            return vertices;
+        }
+
+        private void EnsureVertexCapacity(int count)
+        {
+            while (_vertexPointer + count > _vertexArray.Length)
             {
                 Array.Resize(ref _vertexArray, _vertexArray.Length * 2);
             }
-            
-            return ptr;
         }
-        
+
         private static class TextureCoords
         {
             public static Vector2 TopLeft => Vector2.Zero;
