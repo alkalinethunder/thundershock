@@ -293,7 +293,7 @@ namespace Thundershock
             EnsureSceneRenderTargetSize();
 
             // GUI scaling.
-            var guiHeight = 800;
+            var guiHeight = this.Gui.GetScaledHeight(Graphics.ViewportBounds.Height);
             var windowAspect = (float) Game.Window.Width / (float) Game.Window.Height;
             _sceneGui.SetViewportSize(guiHeight * windowAspect, guiHeight);
 

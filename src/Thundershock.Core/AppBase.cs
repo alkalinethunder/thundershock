@@ -51,6 +51,8 @@ namespace Thundershock.Core
             _logger = logger;
 
             Bootstrap();
+
+            GamePlatform.FinalShutdown();
         }
 
         public void RegisterComponent(IGlobalComponent component)

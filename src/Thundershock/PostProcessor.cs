@@ -43,6 +43,7 @@ namespace Thundershock
         private RenderTarget2D _effectBuffer1;
         private RenderTarget2D _effectBuffer2;
         private RenderTarget2D _intermediate;
+        private RenderTarget2D _bloomThresholdOutput;
 
         #endregion
 
@@ -210,6 +211,7 @@ namespace Thundershock
             _effectBuffer1 = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
             _effectBuffer2 = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
             _intermediate = new RenderTarget2D(_gpu, width, height, TextureFilteringMode.Point, DepthFormat.None);
+            _bloomThresholdOutput = new RenderTarget2D(_gpu, width / 2, height / 2, TextureFilteringMode.Linear, DepthFormat.None);
         }
 
         private void SetBlurOffsets(float dx, float dy)
@@ -288,7 +290,7 @@ namespace Thundershock
             var hHeight = rect.Height;
 
             // change to the first effect buffer.
-            _gpu.SetRenderTarget(_effectBuffer1);
+            _gpu.SetRenderTarget(_bloomThresholdOutput);
             _gpu.Clear(Color.Black);
             
             // Apply the bloom threshold program.
@@ -307,7 +309,7 @@ namespace Thundershock
             _gpu.Textures[1] = null;
 
             // Now we switch to Effect Buffer 2 so we can render the first blur pass.
-            _gpu.SetRenderTarget(_effectBuffer2);
+            _gpu.SetRenderTarget(_effectBuffer1);
             _gpu.Clear(Color.Black);
 
             SetBlurOffsets(1.0f / hWidth, 0f);
@@ -317,7 +319,7 @@ namespace Thundershock
             
             // Prepare for a render.
             _gpu.PrepareRender();
-            _gpu.Textures[0] = _effectBuffer1;
+            _gpu.Textures[0] = _bloomThresholdOutput;
             
             // Draw the quad.
             _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
@@ -328,13 +330,13 @@ namespace Thundershock
             
             // Switch to Effect Buffer 1 again and render the first blur pass with
             // an additional blur pass.
-            _gpu.SetRenderTarget(_effectBuffer1);
+            _gpu.SetRenderTarget(_effectBuffer2);
             _gpu.Clear(Color.Black);
             
             SetBlurOffsets(0f, 1f / hHeight);
 
             // Start the render after setting Effect Buffer 2 as the texture to render.
-            _gpu.Textures[0] = _effectBuffer2;
+            _gpu.Textures[0] = _effectBuffer1;
             _gpu.PrepareRender();
             
             // Draw the quad.
@@ -347,11 +349,11 @@ namespace Thundershock
             _gpu.SetRenderTarget(null);
             
             // Now for the actual bloom effect.
-            _gpu.SetRenderTarget(_effectBuffer2);
+            _gpu.SetRenderTarget(_effectBuffer1);
             _gpu.Clear(Color.Black);
             
             _gpu.Textures[0] = frame;
-            _gpu.Textures[1] = _effectBuffer1;
+            _gpu.Textures[1] = _effectBuffer2;
 
             _bloom.Parameters["baseIntensity"].SetValue(_baseIntensity);
             _bloom.Parameters["baseSaturation"].SetValue(_baseSaturation);
@@ -372,7 +374,7 @@ namespace Thundershock
             _gpu.Clear(Color.Black);
             _basicEffect.Programs.First().Apply();
             _gpu.PrepareRender(BlendMode.Additive);
-            _gpu.Textures[0] = _effectBuffer2;
+            _gpu.Textures[0] = _effectBuffer1;
             _gpu.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
             _gpu.EndRender();
             _gpu.Textures[0] = null;

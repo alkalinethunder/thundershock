@@ -62,6 +62,16 @@ namespace Thundershock.Core
             _gamePlatform = gamePlatform;
         }
 
+        public static void FinalShutdown()
+        {
+            if (_audioBackend != null)
+                _audioBackend.Dispose();
+
+            _audioBackend = null;
+            _gpu = null;
+            _gamePlatform = null;
+        }
+        
         public static DisplayMode GetDisplayMode(string resolution, int monitor)
         {
             if (monitor < 0 || monitor > MonitorCount)

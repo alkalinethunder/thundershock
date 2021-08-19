@@ -12,8 +12,14 @@ namespace Thundershock.Gui
 {
     public sealed class GuiSystem
     {
+        private const float _smallBreakpoint = 900;
+        private const float _mediumBreakpoint = 1080;
+        private const float _largeBreakpoint = 1440;
+        private const float _extraLargeBreakpoint = 2160;
+        private const float _extraSmallBreakpoint = 600;
         private static Type _defaultStyleType;
-
+        
+        
         private string _fps = string.Empty;
         private double _fpsTimer;
         private bool _updateFPS = true;
@@ -545,6 +551,19 @@ namespace Thundershock.Gui
             public float Opacity { get; set; } = 1;
             public Color Tint { get; set; } = Color.White;
             public Rectangle Clip { get; set; }
+        }
+
+        public float GetScaledHeight(float height)
+        {
+            if (height >= _extraLargeBreakpoint)
+                return _extraLargeBreakpoint;
+            if (height >= _largeBreakpoint)
+                return _largeBreakpoint;
+            if (height >= _mediumBreakpoint)
+                return _mediumBreakpoint;
+            if (height >= _smallBreakpoint)
+                return _smallBreakpoint;
+            return _extraSmallBreakpoint;
         }
     }
 }
