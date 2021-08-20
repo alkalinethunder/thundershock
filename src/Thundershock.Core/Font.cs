@@ -16,8 +16,10 @@ namespace Thundershock.Core
         public abstract char DefaultCharacter { get; set; }
         
         public abstract Vector2 MeasureString(string text);
-        public abstract void Draw(Renderer2D renderer, string text, Vector2 location, Color color);
-
+        public abstract TextRenderBuffer Draw(string text, Vector2 location, Color color, float z);
+        public abstract void Draw(TextRenderBuffer existingBuffer, string text, Vector2 location, Color color, float z);
+        public abstract TextRenderBuffer DrawLines(string[] lines, Vector2 locatiom, Color color, float z);
+        
         public static Font FromResource(GraphicsProcessor gpu, Assembly ass, string resource)
         {
             if (Resource.GetStream(ass, resource, out var stream))

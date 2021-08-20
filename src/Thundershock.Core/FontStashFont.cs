@@ -7,6 +7,8 @@ namespace Thundershock.Core
 {
     internal class FontStashFont : Font
     {
+        private static FontTextureManager _textureManager;
+        
         private FontSystem _fontSystem;
         private int _fontSize;
         
@@ -36,6 +38,12 @@ namespace Thundershock.Core
         
         public FontStashFont(GraphicsProcessor gpu, byte[] ttfData, int defaultSize)
         {
+            // Create the texture manager if it doesn't already exist.
+            if (_textureManager == null)
+            {
+                _textureManager = new FontTextureManager(gpu);
+            }
+            
             // TODO: Dynamic font quality settings.
             var settings = new FontSystemSettings
             {
@@ -55,11 +63,36 @@ namespace Thundershock.Core
             _fontSize = defaultSize;
         }
 
-        public override void Draw(Renderer2D renderer, string text, Vector2 location, Color color)
+        public override TextRenderBuffer Draw(string text, Vector2 location, Color color, float z)
         {
+            var textBuffer = new TextRenderBuffer(_textureManager, location, color);
             var font = _fontSystem.GetFont(_fontSize);
-            font.DrawText(renderer, text, location, color);
-            renderer.IncreaseLayer();
+            font.DrawText(textBuffer, text, Vector2.Zero, Color.White, layerDepth: z);
+            return textBuffer;
+        }
+
+        public override void Draw(TextRenderBuffer existingBuffer, string text, Vector2 location, Color color, float z)
+        {
+            existingBuffer.Color = color;
+            
+            var font = _fontSystem.GetFont(_fontSize);
+            var pos = location - existingBuffer.Location;
+            font.DrawText(existingBuffer, text, pos, Color.White, layerDepth: z);
+        }
+
+        public override TextRenderBuffer DrawLines(string[] lines, Vector2 location, Color color, float z)
+        {
+            var buffer = new TextRenderBuffer(_textureManager, location, color);
+            var font = _fontSystem.GetFont(_fontSize);
+            var pos = Vector2.Zero;
+            
+            foreach (var line in lines)
+            {
+                font.DrawText(buffer, line, pos, color, layerDepth: z);                
+                pos.Y += LineSpacing;
+            }
+
+            return buffer;
         }
 
         public override Vector2 MeasureString(string text)

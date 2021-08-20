@@ -9,7 +9,9 @@ namespace Thundershock.Gui
         private Renderer2D _spriteBatch;
         private GuiSystem.GuiRendererState _state;
 
-        private void ComputeColor(ref Color color)
+        public float Layer => _spriteBatch.Z;
+        
+        public void ComputeColor(ref Color color)
         {
             color *= _state.Tint * _state.Opacity;
         }
@@ -77,6 +79,11 @@ namespace Thundershock.Gui
                 return;
             
             _spriteBatch.FillCircle(center, radius, tint, texture);
+        }
+
+        public void DrawText(TextRenderBuffer text)
+        {
+            _spriteBatch.DrawText(text);
         }
     }
 }

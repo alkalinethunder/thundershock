@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using Thundershock.Core;
+using Thundershock.Core.Rendering;
 using Thundershock.Gui.Styling;
 using Rectangle = Thundershock.Core.Rectangle;
 
@@ -12,6 +13,7 @@ namespace Thundershock.Gui.Elements
 {
     public class TextBlock : ContentElement
     {
+        private TextRenderBuffer _cache;
         private Font _lastFont;
         private bool _textIsDirty = true;
         private List<Line> _lines = new();
@@ -203,6 +205,8 @@ namespace Thundershock.Gui.Elements
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
+            _cache = null;
+            
             if (Math.Abs(_lastWidth - alottedSize.X) >= 0.001f)
             {
                 _textIsDirty = true;
@@ -256,23 +260,43 @@ namespace Thundershock.Gui.Elements
         
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
+            var color = (ForeColor ?? StyleColor.Default).GetColor(GuiSystem.Style.DefaultForeground);
             var f = _lastFont;
 
+            if (_cache != null && _cache.Color != color)
+                _cache = null;
+            
             if (f != _lastFont)
             {
                 _lastFont = f;
                 _textIsDirty = true;
                 RegenerateLines(ContentRectangle.Width);
+                _cache = null;
             }
 
             if (_lines.Count > 0)
             {
-                var color = (ForeColor ?? StyleColor.Default).GetColor(GuiSystem.Style.DefaultForeground);
-                foreach (var line in _lines)
+                if (_cache == null)
                 {
-                    renderer.DrawString(f, line.Text, line.Position, color);
+                    renderer.ComputeColor(ref color);
+                    
+                    foreach (var line in _lines)
+                    {
+                        if (_cache == null)
+                        {
+                            _cache = f.Draw(line.Text, line.Position, color, renderer.Layer);
+                        }
+                        else
+                        {
+                            f.Draw(_cache, line.Text, line.Position, color, renderer.Layer);
+                        }
+                    }
                 }
+
+                renderer.DrawText(_cache);
             }
+            
+            
         }
 
         private class Line

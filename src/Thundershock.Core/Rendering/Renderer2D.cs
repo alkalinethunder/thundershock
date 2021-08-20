@@ -11,11 +11,10 @@ namespace Thundershock.Core.Rendering
     /// The Sprite Rocket is an extremely enhanced version of the MonoGame Sprite Batch with heaps more
     /// options for renderable polygons.
     /// </summary>
-    public sealed class Renderer2D : IFontStashRenderer
+    public sealed class Renderer2D
     {
         public readonly int MaxBatchCount = 1000;
 
-        private FontTextureManager _fontManager;
         private int _sortLayer;
         private Rectangle _clipBounds;
         private int _batchPointer;
@@ -31,7 +30,8 @@ namespace Thundershock.Core.Rendering
         private int _translucentBatchPointer = 0;
         private bool _enableSorting = true;
 
-
+        public float Z => MaxBatchCount - _sortLayer;
+        
         public bool EnableSorting
         {
             get => _enableSorting;
@@ -55,7 +55,6 @@ namespace Thundershock.Core.Rendering
         public Renderer2D(GraphicsProcessor gpu)
         {
             _renderer = new Renderer(gpu);
-            _fontManager = new(gpu);
             _blankTexture = new Texture2D(gpu, 1, 1, TextureFilteringMode.Point);
             _blankTexture.Upload(new byte[] { 0xff, 0xff, 0xff, 0xff });
         }
@@ -402,77 +401,7 @@ namespace Thundershock.Core.Rendering
         {
             FillCircleSegment(center, MathF.Round(radius), RightStartAngle, RightEndAngle, color, texture, maxError);
         }
-
-        void IFontStashRenderer.Draw(
-            object texture, Vector2 pos, System.Drawing.Rectangle? src, System.Drawing.Color color, float rotation, Vector2 origin, Vector2 scale, float depth)
-        {
-            var tsTexture = texture as Texture2D;
-
-            // var rotate = Matrix4x4.CreateRotationZ(rotation);
-            // var scaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1);
-
-            // var transform = scaleMatrix * rotate;
-
-            pos -= (origin * scale);
-
-            var tsColor = new Color(color.R, color.G, color.B, color.A);
-
-            var tsRectangle = Rectangle.Unit;
-            var tsDrawRect = new Rectangle(0, 0, tsTexture.Width, tsTexture.Height);
-
-            if (src != null)
-            {
-                System.Drawing.Rectangle srcv = src.GetValueOrDefault();
-                float w = srcv.Width;
-                float h = srcv.Height;
-
-                tsRectangle.X = (float)srcv.Left / tsTexture.Width;
-                tsRectangle.Width = w / tsTexture.Width;
-
-                tsRectangle.Y = (float)srcv.Top / tsTexture.Height;
-                tsRectangle.Height = h / tsTexture.Height;
-
-                tsDrawRect.Width = w * scale.X;
-                tsDrawRect.Height = h * scale.Y;
-            }
-
-            tsDrawRect.X = pos.X;
-            tsDrawRect.Y = pos.Y;
-
-            // We can't use this method to draw the text
-            // since it increases the sort layer.
-            //
-            // So we'll do it ourselves, in-line.
-            // FillRectangle(tsDrawRect, tsColor, tsTexture, tsRectangle);
-
-            var renderItem = MakeRenderItem(tsTexture, tsColor.A);
-
-            Span<Vertex> vertices = ReserveQuad(renderItem);
-            float z = MaxBatchCount - _sortLayer;
-
-            vertices[0] = new Vertex(
-                new Vector3(tsDrawRect.X, tsDrawRect.Y, z), 
-                tsColor,
-                tsRectangle.Location);
-            
-            vertices[1] = new Vertex(
-                new Vector3(tsDrawRect.X + tsDrawRect.Width, tsDrawRect.Y, z), 
-                tsColor, 
-                new Vector2(tsRectangle.X + tsRectangle.Width, tsRectangle.Y));
-            
-            vertices[2] = new Vertex(
-                new Vector3(tsDrawRect.X, tsDrawRect.Y + tsDrawRect.Height, z), 
-                tsColor, 
-                new Vector2(tsRectangle.X, tsRectangle.Y + tsRectangle.Height));
-            
-            vertices[3] = new Vertex(
-                new Vector3(tsDrawRect.X + tsDrawRect.Width, tsDrawRect.Y + tsDrawRect.Height, z),
-                tsColor, 
-                new Vector2(tsRectangle.X + tsRectangle.Width, tsRectangle.Y + tsRectangle.Height));
-        }
-
-        ITexture2DManager IFontStashRenderer.TextureManager => _fontManager;
-
+        
         private static void CreateCircleSegment(Vector2 center, float radius, float step, float start, float end, Span<Vector2> result)
         {
             var i = 0;
@@ -614,6 +543,50 @@ namespace Thundershock.Core.Rendering
             public static Vector2 TopRight => new Vector2(1, 0);
             public static Vector2 BottomLeft => new Vector2(0, 1);
             public static Vector2 BottomRight => Vector2.One;
+        }
+
+        public void DrawText(TextRenderBuffer textData)
+        {
+            var color = textData.Color;
+            
+            for (var i = 0; i < textData.ItemCount; i++)
+            {
+                var item = textData.Items[i];
+
+                var texture = item.Texture;
+
+                var ri = MakeRenderItem(texture, color.A);
+                
+                // Reserve and copy over the needed vertices.
+                var vertDestination = ReserveVertices(item.VertexCount, out var vertPtr);
+                var vertSrc = item.Vertices.AsSpan(0, item.VertexCount);
+                vertSrc.CopyTo(vertDestination);
+
+                var numQuads = vertSrc.Length / 4;
+                var numTriangles = numQuads * 2;
+                var numIndices = numTriangles * 6;
+                
+                // Allocate the indices we need.
+                var indices = ri.ReserveIndices(numIndices);
+                
+                for (var j = 0; j < numQuads; j++)
+                {
+                    var off = j * 4;
+                    var vOff = vertPtr + off;
+
+                    var iOff = j * 6;
+
+                    indices[iOff] = vOff + 1;
+                    indices[iOff + 1] = vOff + 2;
+                    indices[iOff + 2] = vOff;
+
+                    indices[iOff + 3] = vOff + 1;
+                    indices[iOff + 4] = vOff + 3;
+                    indices[iOff + 5] = vOff + 2;
+                }
+            }
+            
+            IncreaseLayer();
         }
     }
 }

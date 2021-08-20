@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Cairo;
 using Thundershock.Core;
 using Thundershock.Gui.Styling;
 using Thundershock.Core.Input;
+using Thundershock.Core.Rendering;
+using Color = Thundershock.Core.Color;
+using Rectangle = Thundershock.Core.Rectangle;
 
 namespace Thundershock.Gui.Elements.Console
 {
@@ -17,6 +21,8 @@ namespace Thundershock.Gui.Elements.Console
         private const double CursorBlinkTime = 0.75;
         private const double BlinkTime = 1;
 
+        private TextRenderBuffer _textCache;
+        
         private const int MaxLinesRetained = 5000;
 
         private int _linesWritten;
@@ -45,7 +51,7 @@ namespace Thundershock.Gui.Elements.Console
         private float _inputHeight;
         private string[] _relevantCompletions = Array.Empty<string>();
         private int _activeCompletion;
-        private bool _inputIsDirty;
+        private bool _inputIsDirty = true;
         private int _completionsPerPage = 10;
         private int _scrollbarWidth = 3;
         private float _scrollbackMax;
@@ -302,6 +308,8 @@ namespace Thundershock.Gui.Elements.Console
             {
                 _scrollback += amount;
             }
+
+            InvalidateLayout();
         }
 
         public void ScrollDown(float amount)
@@ -309,10 +317,14 @@ namespace Thundershock.Gui.Elements.Console
             _scrollback -= amount;
             if (_scrollback < 0)
                 _scrollback = 0;
+
+            InvalidateLayout();
         }
 
         protected override void ArrangeOverride(Rectangle contentRectangle)
         {
+            _textCache = null;
+            
             while (_linesWritten > MaxLinesRetained)
             {
                 _text = _text.Substring(_text.IndexOf('\n') + 1);
@@ -384,6 +396,9 @@ namespace Thundershock.Gui.Elements.Console
 
         private void RegenTextElements()
         {
+            // Destroy current text cache.
+            _textCache = null;
+            
             // last attributes of non-input elements.
             var attrs = _attributes;
             
@@ -1028,6 +1043,89 @@ namespace Thundershock.Gui.Elements.Console
                 }
             }
         }
+
+        private void PaintElementBackgrounds(GameTime gameTime, GuiRenderer renderer, List<TextElement> elements)
+        {
+            foreach (var element in elements)
+            {
+                var bg = element.Background;
+                var rect = element.MouseBounds;
+                rect.Y -= _scrollbackMax;
+                
+                if (_height >= ContentRectangle.Height)
+                    rect.Y += _scrollback;
+                
+                if (rect.Bottom < ContentRectangle.Top)
+                    continue;
+
+                if (rect.Top > ContentRectangle.Bottom)
+                    continue;
+
+                if (element.IsCursor && _cursorShow)
+                    bg = element.Foreground;
+
+                renderer.FillRectangle(rect, bg);
+
+                if (element.Underline)
+                {
+                    if (element.Blinking && !_blinkShow)
+                        continue;
+                    
+                    rect.Y = rect.Bottom - 2;
+                    rect.Height = 2;
+                    bg = element.Foreground;
+                    renderer.FillRectangle(rect, bg);
+                }
+            }   
+        }
+        
+        private void PaintElementBackgrounds(GameTime gameTime, GuiRenderer renderer)
+        {
+            PaintElementBackgrounds(gameTime, renderer, _elements);
+            PaintElementBackgrounds(gameTime, renderer, _inputElements);
+        }
+        
+        private void RepaintText(GameTime gameTime, GuiRenderer renderer)
+        {
+            foreach (var element in this._elements.Union(this._inputElements))
+            {
+                var font = element.Font;
+                var fg = element.Foreground;
+
+                if (element.IsCursor && _cursorShow)
+                {
+                    fg = element.Background;
+                }
+
+                if (element.Blinking && !_blinkShow)
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(element.Text))
+                    continue;
+
+                var pos = element.Position;
+                pos.Y -= _scrollbackMax;
+                if (_height >= ContentRectangle.Height)
+                    pos.Y += _scrollback;
+                
+                if (pos.Y + font.LineHeight < ContentRectangle.Top)
+                    continue;
+
+                if (pos.Y > ContentRectangle.Bottom)
+                    continue;
+                
+                renderer.ComputeColor(ref fg);
+
+                if (_textCache == null)
+                {
+                    _textCache = font.Draw(element.Text, pos, fg, renderer.Layer);
+                }
+                else
+                {
+                    font.Draw(_textCache, element.Text, pos, fg, renderer.Layer);
+                }
+            }
+        }
         
         protected override bool OnMouseUp(MouseButtonEventArgs e)
         {
@@ -1056,136 +1154,37 @@ namespace Thundershock.Gui.Elements.Console
             {
                 _cursorBlink = 0;
                 _cursorShow = !_cursorShow;
+                _textCache = null;
             }
 
             if (_blink >= BlinkTime)
             {
                 _blink = 0;
                 _blinkShow = !_blinkShow;
+                _textCache = null;
             }
 
-            
-            
+            // step 1: Draw background image if needed.
             // It may be desirable for the game to not let us draw the background image specified in the
             // redterm palette. If this is the case, we won't - and we'll let the game itself decide exactly
             // how the background image is rendered. Some custom redwm layouts may not want to deal with
             // drawing the wallpaper, and so in that case, we will.
             if (ColorPalette.BackgroundImage != null && DrawBackgroundImage)
                 renderer.FillRectangle(BoundingBox, ColorPalette.BackgroundImage, Color.White);
-            
+
+            // Step 2: Draw background.
             renderer.FillRectangle(BoundingBox, GetColor(ConsoleColor.Black));
-            
-            var paintCompletionsThisTime = true;
-            
-            // PASS #1: Draw text element backgrounds.
-            for (var i = _elements.Count - 1; i >= 0; i--)
-            {
-                var elem = _elements[i];
-                if (!PaintTextElementBackground(renderer, elem))
-                    break;
-            }
-            
-            for(var i = _inputElements.Count - 1; i >= 0; i--)
-            {
-                var elem = _inputElements[i];
-                if (!PaintTextElementBackground(renderer, elem))
-                    break;
-            }
-            
-            // paint the scroollbar.
-            if (_scrollbarWidth > 0 && _height > BoundingBox.Height)
-            {
-                var sRect = BoundingBox;
-                sRect.X = sRect.Right - _scrollbarWidth;
-                sRect.Width = _scrollbarWidth;
 
-                renderer.FillRectangle(sRect, _scrollBg);
+            // Step 3: Draw element backgrounds.
+            PaintElementBackgrounds(gameTime, renderer);
 
-                var height = BoundingBox.Height / _height;
+            // Step 4 - if the text cache is dirty (null) then re-paint text vertices.
+            if (_textCache == null)
+                RepaintText(gameTime, renderer);
 
-                var pos = _height - BoundingBox.Height;
-                pos -= _scrollback;
-
-                sRect.Y = BoundingBox.Top + (int) ((pos / _height) * BoundingBox.Height);
-                sRect.Height = (int) (BoundingBox.Height * height);
-                renderer.FillRectangle(sRect, _scrollFg);
-            }
-
-            // PASS #2: Draw the actual text.
-            for (var i = _elements.Count - 1; i >= 0; i--)
-            {
-                var elem = _elements[i];
-                if (!PaintTextElementText(renderer, elem))
-                    break;
-            }
-            
-            for(var i = _inputElements.Count - 1; i >= 0; i--)
-            {
-                var elem = _inputElements[i];
-                if (!PaintTextElementText(renderer, elem))
-                    break;
-            }
-
-            if (paintCompletionsThisTime)
-            {
-                // Draw the completions menu
-                if (_paintCompletions && IsFocused)
-                {
-                    var cHeight = Math.Min(_relevantCompletions.Length, _completionsPerPage) * _regularFont.LineSpacing;
-                    var cPos = _completionY;
-
-                    // Scrolling
-                    cPos.Y -= _scrollbackMax;
-                    if (_height > BoundingBox.Height)
-                    {
-                        cPos.Y += (int) _scrollback;
-                    }
-
-                    // Make sure the menu doesn't go beyond the width of the terminal
-                    if (cPos.X + _completionsWidth > BoundingBox.Right)
-                    {
-                        var back = BoundingBox.Right - (cPos.X + _completionsWidth);
-                        cPos.X -= back;
-                    }
-
-                    // if the page height's going to go below the terminal bounds then we're going to render above the cursor.
-                    if (cPos.Y + cHeight > BoundingBox.Bottom)
-                    {
-                        // cursor
-                        cPos.Y -= _regularFont.LineSpacing;
-                        // menu
-                        cPos.Y -= cHeight;
-                    }
-
-                    // paint the background
-                    var bgRect = new Rectangle((int) cPos.X, (int) cPos.Y, (int) _completionsWidth, cHeight);
-                    renderer.FillRectangle(bgRect, ColorPalette.CompletionsBackground);
-
-                    // paint each line
-                    var c = 0;
-                    bgRect.Height = _regularFont.LineSpacing;
-                    for (int i = _completionPageStart; i < _relevantCompletions.Length; i++)
-                    {
-                        if (c > _completionsPerPage)
-                            break;
-
-                        c++;
-
-                        // render the background if we're the active element
-                        var color = ColorPalette.CompletionsText;
-                        if (i == _activeCompletion)
-                        {
-                            renderer.FillRectangle(bgRect, ColorPalette.CompletionsHighlight);
-                            color = ColorPalette.CompletionsHighlightText;
-                        }
-
-                        // draw the text
-                        renderer.DrawString(_regularFont, _relevantCompletions[i], bgRect.Location, color);
-
-                        bgRect.Y += _regularFont.LineSpacing;
-                    }
-                }
-            }
+            // Step 5: Paint all text.
+            if (_textCache != null)
+                renderer.DrawText(_textCache);
         }
 
         protected override bool OnBlurred(FocusChangedEventArgs e)

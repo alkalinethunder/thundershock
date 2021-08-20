@@ -5,9 +5,13 @@ namespace Thundershock.Core
 {
     public static class RenderHelpers
     {
-        public static void DrawString(this Renderer2D renderer, Font font, string text, Vector2 location, Color color)
+        public static TextRenderBuffer DrawString(this Renderer2D renderer, Font font, string text, Vector2 location, Color color)
         {
-            font.Draw(renderer, text, location, color);
+            var buffer = font.Draw(text, location, color, renderer.Z);
+
+            renderer.DrawText(buffer);
+
+            return buffer;
         }
     }
 }
