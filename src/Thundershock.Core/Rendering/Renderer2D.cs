@@ -563,8 +563,7 @@ namespace Thundershock.Core.Rendering
                 vertSrc.CopyTo(vertDestination);
 
                 var numQuads = vertSrc.Length / 4;
-                var numTriangles = numQuads * 2;
-                var numIndices = numTriangles * 6;
+                var numIndices = numQuads * 6;
                 
                 // Allocate the indices we need.
                 var indices = ri.ReserveIndices(numIndices);
