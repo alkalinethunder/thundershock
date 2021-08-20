@@ -154,6 +154,8 @@ namespace Thundershock.OpenGL
                     }
 
                     _al.GetSourceProperty(_source, GetSourceInteger.BuffersQueued, out _);
+                    
+                    Thread.Sleep(10); // Let's... Not tie up this entire CPU core...
                 }
             }
 
