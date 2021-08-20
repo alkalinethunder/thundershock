@@ -320,25 +320,7 @@ namespace Thundershock.Gui.Elements.Console
 
             InvalidateLayout();
         }
-
-        protected override void ArrangeOverride(Rectangle contentRectangle)
-        {
-            _textCache = null;
-            
-            while (_linesWritten > MaxLinesRetained)
-            {
-                _text = _text.Substring(_text.IndexOf('\n') + 1);
-                _linesWritten--;
-            }
-
-            if (_textIsDirty || _inputIsDirty)
-            {
-                RegenTextElements();
-            }
-
-            base.ArrangeOverride(contentRectangle);
-        }
-
+        
         private void ApplyCompletion()
         {
             if (_relevantCompletions.Any())
@@ -920,113 +902,7 @@ namespace Thundershock.Gui.Elements.Console
             
             return result;
         }
-
-        private bool PaintTextElementBackground(GuiRenderer renderer, TextElement elem)
-        {
-            // use the mouse rect to speed things up.
-            var rect = elem.MouseBounds;
-            
-            // Account for scrollback.
-            rect.Y -= (int)_scrollbackMax;
-            if (_height > ContentRectangle.Height)
-            {
-                rect.Y += (int)_scrollback;
-            }
-
-            if (rect.Bottom <= ContentRectangle.Top)
-                return false;
-            
-            // only paint this element if it's above the bottom of the terminal bounds.
-            if (rect.Top <= ContentRectangle.Bottom)
-            {
-                // Get the colors for the element.
-                var bg = elem.Background;
-                var fg = elem.Foreground;
-
-                // Handle background images.
-                if (bg.A < 255 && ColorPalette.BackgroundImage != null)
-                    bg = Color.Transparent;
-
-                // is this the cursor?
-                if (elem.IsCursor)
-                {
-                    // is the cursor blinked off?
-                    if (!_cursorShow)
-                    {
-                        // swap the colors of the cursor.
-                        var s = bg;
-                        bg = fg;
-                        fg = s;
-                    }
-                }
-
-                // if this is a blinking element, and the blinker is off, set foreground to transparent.
-                if (elem.Blinking && !_blinkShow)
-                {
-                    fg = Color.Transparent;
-                }
-
-                // render the background rect followed by the text.
-                renderer.FillRectangle(rect, bg);
-
-                // Render a nice text underline if that attribute is set.
-                if (elem.Underline)
-                {
-                    var h = rect.Height - 2;
-                    rect.Y += h;
-                    rect.Height = 2;
-                    renderer.FillRectangle(rect, fg);
-                }
-            }
-
-            return true;
-        }
-
-        private bool PaintTextElementText(GuiRenderer renderer, TextElement elem)
-        {
-            // use the mouse rect to speed things up.
-            var rect = elem.MouseBounds;
-            
-            // Account for scrollback.
-            rect.Y -= (int)_scrollbackMax;
-            if (_height > ContentRectangle.Height)
-            {
-                rect.Y += (int)_scrollback;
-            }
-
-            if (rect.Bottom <= ContentRectangle.Top)
-                return false;
-            
-            // only paint this element if it's above the bottom of the terminal bounds.
-            if (rect.Top <= ContentRectangle.Bottom)
-            {
-                // Get the colors for the element.
-                var fg = elem.Foreground;
-                
-                // is this the cursor?
-                if (elem.IsCursor)
-                {
-                    // is the cursor blinked off?
-                    if (!_cursorShow)
-                    {
-                        // swap the colors of the cursor.
-                        fg = elem.Background;
-                    }
-                }
-
-                // if this is a blinking element, and the blinker is off, set foreground to transparent.
-                if (elem.Blinking && !_blinkShow)
-                {
-                    return true;
-                }
-
-                // render the background rect followed by the text.
-                renderer.DrawString(elem.Font, elem.Text, rect.Location, fg);
-            }
-
-            return true;
-        }
-
+        
         private void TryOpenUrl(string text)
         {
             if (!string.IsNullOrWhiteSpace(text))
@@ -1144,6 +1020,15 @@ namespace Thundershock.Gui.Elements.Console
             return result;
         }
 
+        protected override void ArrangeOverride(Rectangle contentRectangle)
+        {
+            // Force regeneration of text elements the next time we paint.
+            _textIsDirty = true;
+            _inputIsDirty = true;
+            
+            base.ArrangeOverride(contentRectangle);
+        }
+
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
             // Update cursor blink state.
@@ -1162,6 +1047,19 @@ namespace Thundershock.Gui.Elements.Console
                 _blink = 0;
                 _blinkShow = !_blinkShow;
                 _textCache = null;
+            }
+            
+            // Pre-paint: Remove any old lines of text and refresh the text layout if we need to.
+            // This used to be in ArrangeOverride but it was causing more bugs than it was solving
+            // performance issues.
+            while (_linesWritten > MaxLinesRetained)
+            {
+                _text = _text.Substring(_text.IndexOf('\n') + 1);
+                _linesWritten--;
+            }
+            if (_textIsDirty || _inputIsDirty)
+            {
+                RegenTextElements();
             }
 
             // step 1: Draw background image if needed.
