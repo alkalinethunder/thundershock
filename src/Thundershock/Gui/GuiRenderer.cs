@@ -1,6 +1,9 @@
 ﻿using System.Numerics;
+using Gdk;
 using Thundershock.Core;
 using Thundershock.Core.Rendering;
+using Color = Thundershock.Core.Color;
+using Rectangle = Thundershock.Core.Rectangle;
 
 namespace Thundershock.Gui
 {
@@ -50,23 +53,33 @@ namespace Thundershock.Gui
             _spriteBatch.DrawRectangle(rect, color, thickness);
         }
 
-        public void DrawString(Font font, string text, Vector2 position, Color color,
-            int dropShadow = 0)
+        public void DrawString(Font font, string text, Vector2 position, Color color)
         {
-            if (string.IsNullOrWhiteSpace(text))
-                return;
-
             ComputeColor(ref color);
             
             if (color.A <= 0)
                 return;
+
+            _spriteBatch.DrawString(font, text, position, color);
+        }
+
+        public void DrawString(Font font, string text, Vector2 position, Color color,
+            int dropShadow)
+            => DrawString(font, text, position, color, dropShadow, Color.Black);
+
+        
+        public void DrawString(Font font, string text, Vector2 position, Color color,
+            int dropShadow, Color dropShadowColor)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
             
             if (dropShadow != 0)
             {
-                DrawString(font, text, position + new Vector2(dropShadow, dropShadow), Color.Black);
+                DrawString(font, text, position + new Vector2(dropShadow, dropShadow), dropShadowColor);
             }
 
-            _spriteBatch.DrawString(font, text, position, color);
+            DrawString(font, text, position, color);
         }
 
         public void FillCircle(Vector2 center, float radius, Color color)

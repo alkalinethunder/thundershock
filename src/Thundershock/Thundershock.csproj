@@ -23,6 +23,7 @@
     <PackageReference Include="GtkSharp" Version="3.24.24.34" PrivateAssets="Compile" /> <!-- Anyone who removes PrivateAssets="Compile" from here should be guilotined. -->
     <PackageReference Include="MimeTypeMap.Core" Version="1.0.0" />
     <PackageReference Include="NVorbis" Version="0.10.3" PrivateAssets="Compile" />
+    <PackageReference Include="Svg" Version="3.2.3" PrivateAssets="Compile" />
   </ItemGroup>
 
   <ItemGroup>

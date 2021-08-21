@@ -2,11 +2,14 @@
 using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Input;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Gui.Elements
 {
     public class TextEntry : ContentElement
     {
+        private Font _font;
+        private TextRenderBuffer _textCache;
         private int _inputPos;
         private string _text = string.Empty;
         private string _hint = "Enter text...";
@@ -20,7 +23,15 @@ namespace Thundershock.Gui.Elements
         public string HintText
         {
             get => _hint;
-            set => _hint = value ?? string.Empty;
+            set
+            {
+                if (_hint != value)
+                {
+                    _hint = value ?? string.Empty;
+                    _textCache = null;
+                    InvalidateLayout();
+                }
+            }
         }
 
         public string Text
@@ -35,6 +46,8 @@ namespace Thundershock.Gui.Elements
                     if (_inputPos > value.Length)
                         _inputPos = value.Length;
                     _text = value;
+                    _textCache = null;
+                    InvalidateLayout();
                 }
             }
         }
@@ -49,6 +62,7 @@ namespace Thundershock.Gui.Elements
 
         protected override Vector2 MeasureOverride(Vector2 alottedSize)
         {
+            _textCache = null;
             var f = GetFont();
 
             var text = _text ?? string.Empty;
@@ -87,6 +101,8 @@ namespace Thundershock.Gui.Elements
                     {
                         _text = _text.Remove(_inputPos, 1);
                         TextChanged?.Invoke(this, EventArgs.Empty);
+                        _textCache = null;
+                        InvalidateLayout();
                     }
                     break;
                 case Keys.Backspace:
@@ -95,6 +111,8 @@ namespace Thundershock.Gui.Elements
                         _inputPos--;
                         _text = _text.Remove(_inputPos, 1);
                         TextChanged?.Invoke(this, EventArgs.Empty);
+                        _textCache = null;
+                        InvalidateLayout();
                     }
                     break;
                 case Keys.Enter:
@@ -107,11 +125,11 @@ namespace Thundershock.Gui.Elements
 
         protected override bool OnKeyChar(KeyCharEventArgs e)
         {
-            GetFont();
-
             _text = _text.Insert(_inputPos, e.Character.ToString());
             TextChanged?.Invoke(this, EventArgs.Empty);
             _inputPos++;
+            _textCache = null;
+            InvalidateLayout();
 
             return true;
         }
@@ -120,19 +138,36 @@ namespace Thundershock.Gui.Elements
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
             var font = GetFont();
+
+            if (font != _font)
+            {
+                _font = font;
+                _textCache = null;
+            }
+
+            var color = ForeColor.GetColor(GuiSystem.Style.DefaultForeground);
             
             var pos = new Vector2(ContentRectangle.Left,
                 ContentRectangle.Top + ((ContentRectangle.Height - font.LineHeight) / 2));
 
-            var textColor = ForeColor.GetColor(GuiSystem.Style.DefaultForeground);
-            
-            if (string.IsNullOrEmpty(_text))
+            if (_textCache == null)
             {
-                renderer.DrawString(font, _hint, pos, textColor * 0.5f);
+                var textColor = color;
+
+                renderer.ComputeColor(ref textColor);
+
+                if (string.IsNullOrEmpty(_text))
+                {
+                    _textCache = font.Draw(_hint, pos, textColor * 0.5f, renderer.Layer);
+                }
+                else
+                {
+                    _textCache = font.Draw(_text, pos, textColor, renderer.Layer);
+                } 
             }
 
-            renderer.DrawString(font, _text, pos, textColor);
-
+            renderer.DrawText(_textCache);
+            
             if (HasAnyFocus)
             {
                 var cursorPos = pos;
@@ -140,8 +175,9 @@ namespace Thundershock.Gui.Elements
                 var measure = font.MeasureString(m);
                 cursorPos.X += measure.X;
 
-                GuiSystem.Style.DrawTextCursor(renderer, textColor, cursorPos, font.LineHeight);
+                GuiSystem.Style.DrawTextCursor(renderer, color, cursorPos, font.LineHeight);
             }
+
         }
     }
 }
