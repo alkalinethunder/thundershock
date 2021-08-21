@@ -3,12 +3,14 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
 using Thundershock.Debugging;
 
 namespace Thundershock.Content
 {
+    [CheatAlias("Thunderpak")]
     public static class PakUtils
     {
         private static readonly byte[] PakMagic = Encoding.UTF8.GetBytes("4k1NtHn0r");
@@ -325,6 +327,22 @@ namespace Thundershock.Content
             }
 
             throw new InvalidOperationException("Unsupported Pak File Version.");
+        }
+
+        [Cheat("MakePak")]
+        public static Task MakePakAsync(string source, string dest)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    MakePak(source, dest);
+                }
+                catch (Exception ex)
+                {
+                    Logger.GetLogger().LogException(ex);
+                }
+            });
         }
 
     }

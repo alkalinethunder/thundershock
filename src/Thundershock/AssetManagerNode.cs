@@ -29,6 +29,12 @@ namespace Thundershock
                     var node = new HostDirectoryNode(this, path, mount);
                     yield return node;
                 }
+
+                foreach (var mount in _pakFiles.Keys)
+                {
+                    var pak = _pakFiles[mount];
+                    yield return new PakNode(this, mount, pak, pak.RootDirectory);
+                }
             }
         }
         public override string Name => "/";
@@ -45,6 +51,17 @@ namespace Thundershock
                 throw new DirectoryNotFoundException(path);
             
             _directoryMounts.Add(mountName, path);
+        }
+
+        public void AddPak(string mountName, PakFile pakFile)
+        {
+            if (string.IsNullOrWhiteSpace(mountName))
+                throw new InvalidOperationException("Mount name is required.");
+            
+            if (_pakFiles.ContainsKey(mountName) || _pakFiles.ContainsKey(mountName))
+                throw new InvalidOperationException("Mount name already used.");
+
+            _pakFiles.Add(mountName, pakFile);
         }
     }
 }
