@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 
 namespace Thundershock.Content
 {
@@ -9,16 +10,18 @@ namespace Thundershock.Content
         private PakDirectory _directoryTree;
         private Stream _pakStream;
         private string _filePath;
+        private bool _useCompression;
 
         public PakDirectory RootDirectory => _directoryTree;
         public string PakFilePath => _filePath;
         
-        public PakFile(string file, Stream stream, PakDirectory directoryTree, long dataStart)
+        public PakFile(string file, Stream stream, PakDirectory directoryTree, long dataStart, bool useCompression)
         {
             _dataStart = dataStart;
             _filePath = file;
             _pakStream = stream;
             _directoryTree = directoryTree;
+            _useCompression = useCompression;
         }
 
         public Stream LoadData(PakDirectory directory)
@@ -48,7 +51,14 @@ namespace Thundershock.Content
 
             memStream.Seek(0, SeekOrigin.Begin);
 
-            return memStream;
+            if (_useCompression)
+            {
+                return new GZipStream(memStream, CompressionMode.Decompress, false);
+            }
+            else
+            {
+                return memStream;
+            }
         }
 
         public void Dispose()

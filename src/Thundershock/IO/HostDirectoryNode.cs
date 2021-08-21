@@ -5,13 +5,15 @@ namespace Thundershock.IO
 {
     public class HostDirectoryNode : Node
     {
+        private string _name;
         private string _directory;
         private Node _parent;
 
-        public HostDirectoryNode(Node parent, string hostPath)
+        public HostDirectoryNode(Node parent, string hostPath, string name = null)
         {
             _parent = parent;
             _directory = hostPath;
+            _name = name ?? Path.GetFileName(_directory);
         }
 
         public override void Delete(bool recursive)
@@ -52,6 +54,7 @@ namespace Thundershock.IO
                 }
             }
         }
-        public override string Name => Path.GetFileName(_directory);
+
+        public override string Name => _name;
     }
 }

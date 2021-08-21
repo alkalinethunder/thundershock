@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using Thundershock.Core;
@@ -59,7 +60,7 @@ namespace Thundershock.Content
             
             // Now we can write the version code. We'll use 1.0 for now.
             Logger.Log("Writing Pak version...");
-            writer.Write(1);
+            writer.Write(2); // Version 1 = uncompressed, version 2 = gzipped assets.
             
             // Use BinaryPack to serialize the directory tree.
             using (var memStream = new MemoryStream())
@@ -148,49 +149,64 @@ namespace Thundershock.Content
                     continue;
                 }
                 
-                // File length. We'll need this.
-                var fileLength = fileStream.Length;
-                Logger.Log($" >>> Data Length: {fileLength} bytes");
-                
-                // Current position of the pak data stream.
-                var dataStart = pakData.Position;
-                Logger.Log($" >>> Pak Start: d+{dataStart} bytes");
-                
-                // Create the file entry. We have all the info we need for that.
-                Logger.Log("Creating file entry...");
-                var fileEntry = new PakDirectory
+                // Version 2 PAKs use GZip compression to save disk space. Let's take the file contents
+                // and zip them up.
+                using (var zipResult = new MemoryStream())
                 {
-                    Name = fname,
-                    FileName = withExtension,
-                    DirectoryType = PakDirectoryType.File,
-                    DataStart = dataStart,
-                    DataLength = fileLength
-                };
-                
-                // Add the child to its parent folder.
-                folderOrRoot.Children.Add(fileEntry);
-                Logger.Log("File entry added to Pak directory.");
-                
-                // Now let's start reading the data from the file into the pak data stream.
-                // I would use CopyTo for this but doing it manually means we can log the progress.
-                Logger.Log("Preparing to copy file data into PakFile...");
-                var block = new byte[8 * 1024 * 1024];
-                var lastProgress = -1d;
-                while (fileLength > 0)
-                {
-                    var progress = Math.Round((fileStream.Position / (float) fileStream.Length) * 100);
-                    var readCount = (int) Math.Min(fileLength, block.Length);
-
-                    if (lastProgress < progress)
+                    // Copy the file data in.
+                    using (var zippo =
+                        new GZipStream(zipResult, CompressionLevel.Optimal, true))
                     {
-                        Logger.Log(
-                            $" >>> Progress {progress}% - Written: {fileStream.Position} - Left: {fileLength} - Block size: {block.Length} - Next read: {readCount}");
-                        lastProgress = progress;
+                        fileStream.CopyTo(zippo);
                     }
+                    
+                    // Seek the zip result back to the start.
+                    zipResult.Seek(0, SeekOrigin.Begin);
 
-                    fileStream.Read(block, 0, readCount);
-                    pakData.Write(block, 0, readCount);
-                    fileLength -= readCount;
+                    // File length. We'll need this.
+                    var fileLength = zipResult.Length;
+                    Logger.Log($" >>> Data Length (compressed): {fileLength} bytes");
+
+                    // Current position of the pak data stream.
+                    var dataStart = pakData.Position;
+                    Logger.Log($" >>> Pak Start: d+{dataStart} bytes");
+
+                    // Create the file entry. We have all the info we need for that.
+                    Logger.Log("Creating file entry...");
+                    var fileEntry = new PakDirectory
+                    {
+                        Name = fname,
+                        FileName = withExtension,
+                        DirectoryType = PakDirectoryType.File,
+                        DataStart = dataStart,
+                        DataLength = fileLength
+                    };
+
+                    // Add the child to its parent folder.
+                    folderOrRoot.Children.Add(fileEntry);
+                    Logger.Log("File entry added to Pak directory.");
+
+                    // Now let's start reading the data from the file into the pak data stream.
+                    // I would use CopyTo for this but doing it manually means we can log the progress.
+                    Logger.Log("Preparing to copy file data into PakFile...");
+                    var block = new byte[8 * 1024 * 1024];
+                    var lastProgress = -1d;
+                    while (fileLength > 0)
+                    {
+                        var progress = Math.Round((fileStream.Position / (float) fileStream.Length) * 100);
+                        var readCount = (int) Math.Min(fileLength, block.Length);
+
+                        if (lastProgress < progress)
+                        {
+                            Logger.Log(
+                                $" >>> Progress {progress}% - Written: {fileStream.Position} - Left: {fileLength} - Block size: {block.Length} - Next read: {readCount}");
+                            lastProgress = progress;
+                        }
+
+                        zipResult.Read(block, 0, readCount);
+                        pakData.Write(block, 0, readCount);
+                        fileLength -= readCount;
+                    }
                 }
 
                 Logger.Log(" >>> Done.");
@@ -273,8 +289,9 @@ namespace Thundershock.Content
 
             // Read the pak file version. Not useful right now but future proofing is handy.
             var version = reader.ReadInt32();
-
-            if (version == 1)
+            var useCompression = version == 2;
+            
+            if (version == 1 || version == 2)
             {
                 // Now we can read the Directory Tree.
                 var directoryTreeSize = reader.ReadInt64();
@@ -302,7 +319,7 @@ namespace Thundershock.Content
 
                 var currPos = stream.Position;
 
-                var node = new PakFile(path, stream, directoryTree, currPos);
+                var node = new PakFile(path, stream, directoryTree, currPos, useCompression);
 
                 return node;
             }
