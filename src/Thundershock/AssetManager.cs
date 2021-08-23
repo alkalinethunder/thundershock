@@ -1,11 +1,13 @@
 ﻿using System.IO;
 using Thundershock.Content;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Rendering;
 using Thundershock.IO;
 
 namespace Thundershock
 {
+    [CheatAlias("AssetManager")]
     public static class AssetManager
     {
         private static AssetManagerNode _node = new();
@@ -55,6 +57,16 @@ namespace Thundershock
             var pakFile = PakUtils.OpenPak(path);
 
             _node.AddPak(mount, pakFile);
+        }
+
+        [Cheat("ListMounts")]
+        private static void Cheat_ShowMounts()
+        {
+            var fs = GetFS();
+            foreach (var dir in fs.GetDirectories("/"))
+            {
+                Logger.GetLogger().Log(dir);
+            }
         }
     }
 }

@@ -263,7 +263,7 @@ namespace Thundershock.Gui.Elements
             var color = (ForeColor ?? StyleColor.Default).GetColor(GuiSystem.Style.DefaultForeground);
             var f = _lastFont;
 
-            if (_cache != null && _cache.Color != color)
+            if (_cache != null && (_cache.Color != color || _cache.Depth != renderer.Layer))
                 _cache = null;
             
             if (f != _lastFont)

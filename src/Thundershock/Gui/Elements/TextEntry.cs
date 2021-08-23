@@ -145,6 +145,9 @@ namespace Thundershock.Gui.Elements
                 _textCache = null;
             }
 
+            if (_textCache != null && _textCache.Depth != renderer.Layer)
+                _textCache = null;
+            
             var color = ForeColor.GetColor(GuiSystem.Style.DefaultForeground);
             
             var pos = new Vector2(ContentRectangle.Left,

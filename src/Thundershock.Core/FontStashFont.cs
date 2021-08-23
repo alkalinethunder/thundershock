@@ -65,7 +65,7 @@ namespace Thundershock.Core
 
         public override TextRenderBuffer Draw(string text, Vector2 location, Color color, float z)
         {
-            var textBuffer = new TextRenderBuffer(_textureManager, location, color);
+            var textBuffer = new TextRenderBuffer(_textureManager, location, color, z);
             var font = _fontSystem.GetFont(_fontSize);
             font.DrawText(textBuffer, text, Vector2.Zero, Color.White, layerDepth: z);
             return textBuffer;
@@ -82,7 +82,7 @@ namespace Thundershock.Core
 
         public override TextRenderBuffer DrawLines(string[] lines, Vector2 location, Color color, float z)
         {
-            var buffer = new TextRenderBuffer(_textureManager, location, color);
+            var buffer = new TextRenderBuffer(_textureManager, location, color, z);
             var font = _fontSystem.GetFont(_fontSize);
             var pos = Vector2.Zero;
             

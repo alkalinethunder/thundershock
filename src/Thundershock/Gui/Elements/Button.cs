@@ -103,7 +103,7 @@ namespace Thundershock.Gui.Elements
             var textColor = GuiSystem.Style.GetButtonTextColor(this);
             renderer.ComputeColor(ref textColor);
 
-            if (_textCache != null && _textCache.Color != textColor)
+            if (_textCache != null && (_textCache.Color != textColor || _textCache.Depth != renderer.Layer))
             {
                 _textCache = null;
             }

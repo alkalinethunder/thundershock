@@ -60,12 +60,14 @@ namespace Thundershock.Core.Rendering
         
         public Color Color { get; set; }
         public Vector2 Location { get; }
+        public float Depth { get; }
         
-        internal TextRenderBuffer(FontTextureManager textureManager, Vector2 location, Color color)
+        internal TextRenderBuffer(FontTextureManager textureManager, Vector2 location, Color color, float depth)
         {
             this.Color = color;
             this.Location = location;
             _textureManager = textureManager;
+            Depth = depth;
         }
 
         private TextRenderBufferItem MakeItem(Texture2D texture)

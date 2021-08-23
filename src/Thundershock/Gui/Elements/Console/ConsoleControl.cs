@@ -1057,6 +1057,7 @@ namespace Thundershock.Gui.Elements.Console
                 _text = _text.Substring(_text.IndexOf('\n') + 1);
                 _linesWritten--;
             }
+
             if (_textIsDirty || _inputIsDirty)
             {
                 RegenTextElements();
@@ -1076,6 +1077,11 @@ namespace Thundershock.Gui.Elements.Console
             // Step 3: Draw element backgrounds.
             PaintElementBackgrounds(gameTime, renderer);
 
+            // If the text cache isn't null but its depth doesn't match the UI's depth value, then we'll
+            // recreate it.
+            if (_textCache != null && _textCache.Depth != renderer.Layer) // Fuck off, I don't care about rounding errors.
+                _textCache = null;
+            
             // Step 4 - if the text cache is dirty (null) then re-paint text vertices.
             if (_textCache == null)
                 RepaintText(gameTime, renderer);
