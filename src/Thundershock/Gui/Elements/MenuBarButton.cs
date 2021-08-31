@@ -1,12 +1,15 @@
 ﻿using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Input;
+using Thundershock.Core.Rendering;
 using Thundershock.Gui.Styling;
 
 namespace Thundershock.Gui.Elements
 {
     internal class MenuBarButton : ContentElement
     {
+        private TextRenderBuffer _textCache;
+        private Font _lastFont;
         private string _text = "Menu Item";
         private float _hPad = 5;
         private float _vPad = 2;
@@ -16,7 +19,14 @@ namespace Thundershock.Gui.Elements
         public string Text
         {
             get => _text;
-            set => _text = value ?? string.Empty;
+            set
+            {
+                if (_text != value)
+                {
+                    _text = value ?? string.Empty;
+                    _textCache = null;
+                }
+            }
         }
 
         public MenuBarButton()
@@ -42,12 +52,7 @@ namespace Thundershock.Gui.Elements
 
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
-            var text = Text;
-            var font = GetFont();
             var selState = SelectionStyle.None;
-            var textPos = ContentRectangle.Location;
-            textPos.X += _hPad;
-            textPos.Y += _vPad;
             
             if (_isPressed)
                 selState = SelectionStyle.ItemActive;
@@ -55,7 +60,26 @@ namespace Thundershock.Gui.Elements
                 selState = SelectionStyle.ItemHover;
 
             GuiSystem.Style.PaintMenuBarItemBackground(this, gameTime, renderer, selState);
-            GuiSystem.Style.PaintMenuItemText(this, gameTime, renderer, text, font, textPos, selState);
+
+            var font = GetFont();
+
+            if (_lastFont != font)
+            {
+                _textCache = null;
+                _lastFont = font;
+            }
+
+            if (_textCache == null || _textCache.Depth != renderer.Layer)
+            {
+                var text = Text;
+                var textPos = ContentRectangle.Location;
+                textPos.X += _hPad;
+                textPos.Y += _vPad;
+
+                _textCache = GuiSystem.Style.PaintMenuItemText(this, gameTime, renderer, text, font, textPos, selState);
+            }
+
+            renderer.DrawText(_textCache);
         }
 
         protected override bool OnMouseEnter(MouseMoveEventArgs e)

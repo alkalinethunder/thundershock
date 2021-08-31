@@ -1,12 +1,15 @@
 ﻿using System.Numerics;
 using Thundershock.Core;
 using Thundershock.Core.Input;
+using Thundershock.Core.Rendering;
 using Thundershock.Gui.Styling;
 
 namespace Thundershock.Gui.Elements
 {
     internal sealed class MenuItemButton : ContentElement
     {
+        private TextRenderBuffer _textCache;
+        private Font _lastFont;
         private bool _isHovered = false;
         private bool _isPressed = false;
         private float _hPad = 5;
@@ -16,7 +19,14 @@ namespace Thundershock.Gui.Elements
         public string Text
         {
             get => _text;
-            set => _text = value ?? string.Empty;
+            set
+            {
+                if (_text != value)
+                {
+                    _text = value;
+                    _textCache = null;
+                }
+            }
         }
 
         private Font GetFont()
@@ -71,20 +81,33 @@ namespace Thundershock.Gui.Elements
         protected override void OnPaint(GameTime gameTime, GuiRenderer renderer)
         {
             var font = GetFont();
-            var text = Text;
-            var textPos = ContentRectangle.Location;
             var selState = SelectionStyle.None;
             
-            textPos.X += _hPad;
-            textPos.Y += _vPad;
-
             if (_isPressed)
                 selState = SelectionStyle.ItemActive;
             else if (_isHovered)
                 selState = SelectionStyle.ItemHover;
 
             GuiSystem.Style.PaintMenuBarItemBackground(this, gameTime, renderer, selState);
-            GuiSystem.Style.PaintMenuItemText(this, gameTime, renderer, text, font, textPos, selState);
+            
+            if (font != _lastFont)
+            {
+                _lastFont = font;
+                _textCache = null;
+            }
+
+            if (_textCache == null || _textCache.Depth != renderer.Layer)
+            {
+                var text = Text;
+                var textPos = ContentRectangle.Location;
+
+                textPos.X += _hPad;
+                textPos.Y += _vPad;
+
+                _textCache = GuiSystem.Style.PaintMenuItemText(this, gameTime, renderer, text, font, textPos, selState);
+            }
+
+            renderer.DrawText(_textCache);
         }
     }
 }

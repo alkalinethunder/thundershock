@@ -2,6 +2,7 @@
 using System.Numerics;
 using Thundershock.Gui.Elements;
 using Thundershock.Core;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Gui.Styling
 {
@@ -93,7 +94,7 @@ namespace Thundershock.Gui.Styling
             DrawSelectionBox(renderer, element.BoundingBox, selectionStyle);
         }
 
-        public abstract void PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text,
+        public abstract TextRenderBuffer PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text,
             Font font,
             Vector2 textPos, SelectionStyle selectionStyle);
     }

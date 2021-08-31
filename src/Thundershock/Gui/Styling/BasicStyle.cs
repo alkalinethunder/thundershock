@@ -1,6 +1,7 @@
 ﻿using Thundershock.Core;
 using Thundershock.Gui.Elements;
 using System.Numerics;
+using Thundershock.Core.Rendering;
 
 namespace Thundershock.Gui.Styling
 {
@@ -110,12 +111,12 @@ namespace Thundershock.Gui.Styling
             renderer.FillRectangle(element.BoundingBox, _bgColor);
         }
 
-        public override void PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text, Font font,
+        public override TextRenderBuffer PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text, Font font,
             Vector2 textPos, SelectionStyle selectionStyle)
         {
             var color = (selectionStyle == SelectionStyle.None) ? Color.Black : Color.White;
 
-            renderer.DrawString(font, text, textPos, color);
+            return font.Draw(text, textPos, color, renderer.Layer);
         }
     }
 }
