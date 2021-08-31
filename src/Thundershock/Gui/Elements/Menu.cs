@@ -46,7 +46,7 @@ namespace Thundershock.Gui.Elements
 
             if (Parent != null)
             {
-                Parent.Children.Remove(this);
+                RemoveFromParent();
             }
         }
 
@@ -75,8 +75,7 @@ namespace Thundershock.Gui.Elements
                 button.Properties.SetValue("menu", menu);
 
                 // Set up the menu canvas settings
-                menu.Properties.SetValue(FreePanel.AutoSizeProperty, true);
-                menu.Properties.SetValue(FreePanel.AnchorProperty, FreePanel.CanvasAnchor.TopLeft);
+                menu.ViewportAnchor = FreePanel.CanvasAnchor.TopLeft;
 
                 // Activations
                 button.MouseEnter += MenuItemMouseEnter;
@@ -162,7 +161,7 @@ namespace Thundershock.Gui.Elements
                 }
 
                 // Now we can position the menu.
-                menu.Properties.SetValue(FreePanel.PositionProperty, menuRect.Location);
+                menu.ViewportPosition = menuRect.Location;
             }
         }
 

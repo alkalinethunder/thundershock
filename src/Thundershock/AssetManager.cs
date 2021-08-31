@@ -59,6 +59,11 @@ namespace Thundershock
             _node.AddPak(mount, pakFile);
         }
 
+        public static void AddDirectory(string name, string path)
+        {
+            _node.AddDirectory(name, path);
+        }
+        
         [Cheat("ListMounts")]
         private static void Cheat_ShowMounts()
         {

@@ -50,8 +50,7 @@ namespace Thundershock.Gui.Elements
                 button.Properties.SetValue(MenuBarMenuTag, menu);
 
                 // Set up the menu canvas positioning since it's a top-level.
-                menu.Properties.SetValue(FreePanel.AutoSizeProperty, true);
-                menu.Properties.SetValue(FreePanel.AnchorProperty, FreePanel.CanvasAnchor.TopLeft);
+                menu.ViewportAnchor = FreePanel.CanvasAnchor.TopLeft;
 
                 _menus.Add(menu);
             }
@@ -117,7 +116,7 @@ namespace Thundershock.Gui.Elements
                 }
 
                 // We now know where the menu should be.
-                menu.Properties.SetValue(FreePanel.PositionProperty, new Vector2(menuRect.Left, menuRect.Top));
+                menu.ViewportPosition = new Vector2(menuRect.Left, menuRect.Top);
             }
         }
 
