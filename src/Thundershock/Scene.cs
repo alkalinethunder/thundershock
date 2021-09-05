@@ -525,6 +525,12 @@ namespace Thundershock
             _noClip = value;
         }
 
+        [Cheat("GetType")]
+        internal void PrintType()
+        {
+            Logger.GetLogger().Log(this.GetType().FullName);
+        }
+        
         [Cheat]
         internal void Play()
         {

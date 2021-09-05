@@ -92,12 +92,20 @@ namespace Thundershock.IO
             if (!node.CanRead)
                 throw new InvalidOperationException("Is a directory.");
 
+            using var memory = new MemoryStream();
             using var s = node.Open(false);
 
-            var arr = new byte[s.Length];
-            s.Read(arr, 0, arr.Length);
+            var blockSize = 1024;
+            var block = new byte[blockSize];
+            var read = 0;
 
-            return arr;
+            do
+            {
+                read = s.Read(block, 0, block.Length);
+                memory.Write(block, 0, read);
+            } while (read >= blockSize);
+
+            return memory.ToArray();
         }
         
         public string ReadAllText(string path)
