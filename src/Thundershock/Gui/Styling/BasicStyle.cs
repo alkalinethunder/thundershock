@@ -108,7 +108,7 @@ namespace Thundershock.Gui.Styling
 
         public override void PaintElementBackground(Element element, GameTime gameTime, GuiRenderer renderer)
         {
-            renderer.FillRectangle(element.BoundingBox, _bgColor);
+            renderer.FillRectangle(element.BoundingBox, (element.BackColor ?? StyleColor.Default).GetColor(_bgColor));
         }
 
         public override TextRenderBuffer PaintMenuItemText(Element element, GameTime gameTime, GuiRenderer renderer, string text, Font font,
