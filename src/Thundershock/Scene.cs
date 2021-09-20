@@ -9,7 +9,6 @@ using Thundershock.Core.Ecs;
 using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
-using Thundershock.Debugging;
 using Thundershock.GameFramework;
 using Thundershock.Gui;
 using Thundershock.Gui.Elements;
@@ -140,13 +139,7 @@ namespace Thundershock
             
             // Ensure that the scene render target matches the viewport size.
             EnsureSceneRenderTargetSize();
-
-            _gameLoop.GetComponent<CheatManager>().AddObject(this);
-
-            // Add common scene cheats.
-            _gameLoop.GetComponent<CheatManager>().AddObject(_postProcessSystem);
-            _gameLoop.GetComponent<CheatManager>().AddObject(_registry);
-
+            
             OnLoad();
             
             // Trigger ISystem.OnLoad hook.
@@ -274,11 +267,6 @@ namespace Thundershock
                 sys.Unload();
                 _systems.Remove(sys);
             }
-            
-            _gameLoop.GetComponent<CheatManager>().RemoveObject(this);
-            
-            _gameLoop.GetComponent<CheatManager>().RemoveObject(_postProcessSystem);
-            _gameLoop.GetComponent<CheatManager>().RemoveObject(_registry);
             
             OnUnload();
             _sceneRenderTarget.Dispose();
@@ -528,7 +516,7 @@ namespace Thundershock
         [Cheat("GetType")]
         internal void PrintType()
         {
-            Logger.GetLogger().Log(this.GetType().FullName);
+            Logger.Log(this.GetType().FullName);
         }
         
         [Cheat]
@@ -540,7 +528,7 @@ namespace Thundershock
         [Cheat]
         internal void PrimaryCamPos()
         {
-            Logger.GetLogger().Log(PrimaryCamera.GetComponent<Transform>().ToString());
+            Logger.Log(PrimaryCamera.GetComponent<Transform>().ToString());
         }
         
         [Cheat]

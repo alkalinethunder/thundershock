@@ -424,7 +424,7 @@ namespace Thundershock.OpenGL
             if (_shaderCache.ContainsKey(hash))
             {
                 var shader = _shaderCache[hash];
-                Logger.GetLogger()
+                Logger
                     .Log($"re-using cached shader {shader} in program {program}, have some free GPU memory :)",
                         LogLevel.Trace);
                 _gl.AttachShader(program, shader);
@@ -448,17 +448,17 @@ namespace Thundershock.OpenGL
                     foreach (var line in lines)
                     {
                         if (line.Contains("warning"))
-                            Logger.GetLogger().Log(line, LogLevel.Warning);
+                            Logger.Log(line, LogLevel.Warning);
                         else if (line.Contains("error"))
-                            Logger.GetLogger().Log(line, LogLevel.Error);
+                            Logger.Log(line, LogLevel.Error);
                         else
-                            Logger.GetLogger().Log(line);
+                            Logger.Log(line);
                     }
                 }
 
                 if (result == (int) GLEnum.False)
                 {
-                    Logger.GetLogger().Log("Shader compilation failed.", LogLevel.Error);
+                    Logger.Log("Shader compilation failed.", LogLevel.Error);
                     _gl.DeleteShader(shader);
                     return;
                 }

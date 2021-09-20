@@ -7,11 +7,11 @@ namespace Thundershock
 {
     public abstract class Layer
     {
-        private GraphicalAppBase _app;
+        private GraphicalApplication _app;
 
-        protected GraphicalAppBase App => _app;
+        protected GraphicalApplication App => _app;
         
-        public void Initialize(GraphicalAppBase app)
+        public void Initialize(GraphicalApplication app)
         {
             Debug.Assert(_app == null, "Layer is already initialized.");
             _app = app ?? throw new ArgumentNullException(nameof(app));

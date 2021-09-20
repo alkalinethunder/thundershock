@@ -12,18 +12,17 @@ namespace Thundershock.Core
             
             if (ass == null)
             {
-                Logger.GetLogger().Log($"Tried to get an embedded resource from an invalid assembly.", LogLevel.Error);
+                Logger.Log($"Tried to get an embedded resource from an invalid assembly.", LogLevel.Error);
                 return false;
             }
 
-            Logger.GetLogger()
-                .Log($"Retrieving embedded resource " + resourceName + " from assembly " + ass);
+            Logger.Log($"Retrieving embedded resource " + resourceName + " from assembly " + ass);
 
             stream = ass.GetManifestResourceStream(resourceName);
             
             if (stream == null)
             {
-                Logger.GetLogger().Log("Resource not found.", LogLevel.Error);
+                Logger.Log("Resource not found.", LogLevel.Error);
                 return false;
             }
 
@@ -38,7 +37,7 @@ namespace Thundershock.Core
 
                 result = reader.ReadToEnd();
 
-                Logger.GetLogger().Log("Done.");
+                Logger.Log("Done.");
 
                 return true;
             }

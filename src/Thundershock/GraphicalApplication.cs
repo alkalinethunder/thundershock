@@ -3,9 +3,9 @@ using System.Diagnostics;
 using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.Core.Input;
 using Thundershock.Core.Rendering;
-using Thundershock.Debugging;
 using Thundershock.OpenGL;
 
 namespace Thundershock
@@ -13,7 +13,7 @@ namespace Thundershock
     /// <summary>
     /// Provides the base functionality for all graphics-capable Thundershock applications.
     /// </summary>
-    public abstract class GraphicalAppBase : AppBase
+    public abstract class GraphicalApplication : Application
     {
         private int _width;
         private int _height;
@@ -80,6 +80,8 @@ namespace Thundershock
             Logger.Log("Game window destroyed.");
         }
 
+        protected virtual void BeforeFrame(GameTime gameTime) {}
+        
         private void RunLoop()
         {
             Init();
@@ -93,13 +95,12 @@ namespace Thundershock
                 
                 // Run enqueued actions.
                 RunQueuedActions();
+
+                BeforeFrame(gameTimeInfo);
                 
                 // Tick the music player
                 _musicPlayer.Update(frameTime.TotalSeconds);
                 
-                // Tick all of the global app modules.
-                UpdateComponents(gameTimeInfo);
-
                 _layerManager.Update(gameTimeInfo);
                 
                 GamePlatform.GraphicsProcessor.Clear(Color.Black);
@@ -185,16 +186,6 @@ namespace Thundershock
 
         private void GameWindowOnKeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Keys.BackQuote)
-            {
-                if (!_layerManager.HasLayer<DevConsole>())
-                {
-                    var tcmd = new DevConsole();
-                    _layerManager.PushOverlay(tcmd);
-                    return;
-                }
-            }
-            
             _layerManager.FireKeyUp(e);
         }
 
@@ -205,8 +196,6 @@ namespace Thundershock
 
         private void Init()
         {
-            RegisterComponent<CheatManager>();
-
             _gameLayer = new GameLayer();
             _layerManager.PushLayer(_gameLayer);
             

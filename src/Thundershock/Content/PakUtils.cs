@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Thundershock.Core;
 using Thundershock.Core.Debugging;
-using Thundershock.Debugging;
 
 namespace Thundershock.Content
 {
@@ -15,8 +14,6 @@ namespace Thundershock.Content
     {
         private static readonly byte[] PakMagic = Encoding.UTF8.GetBytes("4k1NtHn0r");
 
-        public static Logger Logger => EntryPoint.CurrentApp.Logger;
-        
         public static void MakePak(string sourceDirectory, string pakDestination)
         {
             // Check to make sure the source directory exists.
@@ -340,7 +337,7 @@ namespace Thundershock.Content
                 }
                 catch (Exception ex)
                 {
-                    Logger.GetLogger().LogException(ex);
+                    Logger.LogException(ex);
                 }
             });
         }

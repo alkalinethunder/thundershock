@@ -12,14 +12,14 @@ namespace Thundershock
         private int _layerIndex;
         private int _overlayIndex;
         
-        private GraphicalAppBase _app;
+        private GraphicalApplication _app;
 
         public T GetFirstLayer<T>() where T : Layer
         {
             return _layers.OfType<T>().First();
         }
         
-        public LayerManager(GraphicalAppBase app)
+        public LayerManager(GraphicalApplication app)
         {
             _app = app ?? throw new ArgumentNullException(nameof(app));
         }

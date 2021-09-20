@@ -9,7 +9,7 @@ namespace Thundershock.Core
     {
         private int _mouseX;
         private int _mouseY;
-        private AppBase _app;
+        private Application _app;
         private string _windowTitle = "Thundershock Engine";
         private bool _canResize = true;
         private bool _borderless;
@@ -18,7 +18,7 @@ namespace Thundershock.Core
         private int _height = 480;
         private bool _vsync;
         
-        public AppBase App => _app;
+        public Application App => _app;
         
         /// <summary>
         /// Gets or sets a value indicating whether the primary mouse button is the right mouse button.
@@ -142,7 +142,7 @@ namespace Thundershock.Core
         }
 
         
-        public void Show(AppBase app)
+        public void Show(Application app)
         {
             if (_app != null)
                 throw new InvalidOperationException("Window is already open.");

@@ -16,11 +16,11 @@ namespace Thundershock.OpenGL
         
         public SdlGamePlatform()
         {
-            Logger.GetLogger().Log("Initializing SDL2...");
+            Logger.Log("Initializing SDL2...");
             var errno = Sdl.SDL_Init(Sdl.SdlInitVideo);
             if (errno != 0)
             {
-                Logger.GetLogger().Log("SDL initialization HAS FAILED.", LogLevel.Fatal);
+                Logger.Log("SDL initialization HAS FAILED.", LogLevel.Fatal);
                 var errText = Sdl.SDL_GetError();
 
                 throw new Exception(errText);
@@ -123,7 +123,7 @@ namespace Thundershock.OpenGL
             };
 
             
-            Logger.GetLogger().Log(messageString, logLevel);
+            Logger.Log(messageString, logLevel);
         }
 #endif
     }

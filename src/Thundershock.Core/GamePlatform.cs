@@ -76,21 +76,20 @@ namespace Thundershock.Core
         {
             if (monitor < 0 || monitor > MonitorCount)
             {
-                Logger.GetLogger()
-                    .Log("Config-specified monitor isn't valid so we're going to use the system's primary display.",
+                Logger.Log("Config-specified monitor isn't valid so we're going to use the system's primary display.",
                         LogLevel.Warning);
                 monitor = 0;
             }
 
             if (ParseDisplayMode(resolution, out var width, out var height))
             {
-                Logger.GetLogger().Log($"Available display modes for monitor {monitor} on {GraphicsCardDescription}:");
+                Logger.Log($"Available display modes for monitor {monitor} on {GraphicsCardDescription}:");
 
                 var result = DisplayMode.Invalid;
                 
                 foreach (var mode in GetAvailableDisplayModes(monitor))
                 {
-                    Logger.GetLogger().Log($" - {mode.Width}x{mode.Height} ({mode.MonitorX}, {mode.MonitorY})");
+                    Logger.Log($" - {mode.Width}x{mode.Height} ({mode.MonitorX}, {mode.MonitorY})");
                     if (result.IsInvalid && mode.Width == width && mode.Height == height)
                     {
                         result = mode;
@@ -99,8 +98,7 @@ namespace Thundershock.Core
 
                 if (result.IsInvalid)
                 {
-                    Logger.GetLogger()
-                        .Log(
+                    Logger.Log(
                             "Specified display mode " + resolution +
                             " not supported on this display, using default mode", LogLevel.Warning);
                     result = GetDefaultDisplayMode(monitor);
@@ -110,8 +108,7 @@ namespace Thundershock.Core
             }
             else
             {
-                Logger.GetLogger()
-                    .Log(
+                Logger.Log(
                         "Couldn't parse display resolution string " + resolution +
                         " into anything sensible - we're going to use the native screen resolution for this display.",
                         LogLevel.Warning);
@@ -152,7 +149,7 @@ namespace Thundershock.Core
         [Cheat("GPUName")]
         public static void PrintGpuInfo()
         {
-            Logger.GetLogger().Log(GraphicsCardDescription);
+            Logger.Log(GraphicsCardDescription);
         }
     }
 

@@ -9,12 +9,12 @@ namespace Thundershock.Core
     public static class EntryPoint
     {
         private static Dictionary<string, Type> _entryPoints = new Dictionary<string, Type>();
-        private static AppBase _current;
+        private static Application _current;
         private static Assembly _entryAssembly;
         private static EntryArgs _entryArgs;
 
         public static Assembly EntryAssembly => _entryAssembly;
-        public static AppBase CurrentApp => _current;
+        public static Application CurrentApp => _current;
 
         public static bool GetBoolean(EntryBoolean boolean)
         {
@@ -33,7 +33,7 @@ namespace Thundershock.Core
             };
         }
         
-        public static void RegisterApp<T>(string appName) where T : AppBase, new()
+        public static void RegisterApp<T>(string appName) where T : Application, new()
         {
             if (string.IsNullOrWhiteSpace(appName))
                 throw new FormatException(nameof(appName));
@@ -72,15 +72,18 @@ namespace Thundershock.Core
             return entryArgs;
         }
         
-        public static void Run<T>(string[] args) where T : AppBase, new()
+        public static void Run<T>(string[] args) where T : Application, new()
         {
+            // Initialize the LOgger
+            Logger.Initialize();
+            
             // Retrieve the entry-point assembly. This is important for building the docopt usage string.
             var entryPointAssembly = Assembly.GetEntryAssembly();
             
             // Null-check that assembly.
             if (entryPointAssembly == null)
             {
-                Logger.GetLogger().Log("Could not find entry-point assembly information.", LogLevel.Fatal);
+                Logger.Log("Could not find entry-point assembly information.", LogLevel.Fatal);
                 Environment.Exit(-1);
                 return;
             }
@@ -97,23 +100,22 @@ namespace Thundershock.Core
             _entryArgs = entryArgs;
 
             // create the logger and set up the default outputs
-            var logger = Logger.GetLogger();
             var console = new ConsoleOutput();
-            logger.AddOutput(console);
+            Logger.AddOutput(console);
             
             // verbose logging
             console.Verbose = entryArgs.Verbose;
             if (console.Verbose)
-                logger.Log("--verbose flag specified, verbose console logging is on.");
+                Logger.Log("--verbose flag specified, verbose console logging is on.");
             
             // the app we're going to run
-            var app = null as AppBase;
+            var app = null as Application;
 
             // Did the entry args specify an entry point?
             if (!string.IsNullOrWhiteSpace(entryArgs.AppEntry))
             {
                 // create the app specified
-                app = (AppBase) Activator.CreateInstance(_entryPoints[entryArgs.AppEntry], null);
+                app = (Application) Activator.CreateInstance(_entryPoints[entryArgs.AppEntry], null);
             }
             else
             {
@@ -121,34 +123,34 @@ namespace Thundershock.Core
                 app = new T();
             }
 
-            logger.Log("Created new app: " + app.GetType().FullName);
+            Logger.Log("Created new app: " + app.GetType().FullName);
             
             // *a distant rumble occurs in the distance, followed by a flash of light*
-            Bootstrap(logger, app);
+            Bootstrap(app);
             
             // we're done.
-            logger.Log("Thundershock has been torn down.");
+            Logger.Log("Thundershock has been torn down.");
             _entryAssembly = null;
             _entryArgs = null;
         }
 
-        private static void Bootstrap(Logger logger, AppBase app)
+        private static void Bootstrap(Application app)
         {
             if (_current != null)
                 throw new InvalidOperationException("Failed to bootstrap the app. Thundershock is already running.");
 
             // bind this thundershock app to this instance of thundershock.
             _current = app;
-            logger.Log($"Bootstrapping \"{_current.GetType().Name}\"...");
+            Logger.Log($"Bootstrapping \"{_current.GetType().Name}\"...");
             
             // Hand control off to the app.
             // We no longer need to worry about starting MonoGame - the app has COMPLETE control
             // over what it decides to use as a rendering system.
-            app.Run(logger);
+            app.Run();
             
             // The above method blocks until MonoGame tears itself down successfully. If we get this far, we can unbind the app.
             _current = null;
-            logger.Log("The boots were off and the straps are undone, the app is no longer being run.");
+            Logger.Log("The boots were off and the straps are undone, the app is no longer being run.");
         }
 
         private class EntryArgs

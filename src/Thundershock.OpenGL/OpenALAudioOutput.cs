@@ -58,7 +58,7 @@ namespace Thundershock.OpenGL
             _source = _al.GenSource();
             ThrowOnError();
             
-            Logger.GetLogger().Log("Generating OpenAL source: " + _source.ToString());
+            Logger.Log("Generating OpenAL source: " + _source.ToString());
             ThrowOnError();
             
             _al.SetSourceProperty(_source, SourceFloat.Gain, 1);

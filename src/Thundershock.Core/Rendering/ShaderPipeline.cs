@@ -56,8 +56,7 @@ namespace Thundershock.Core.Rendering
             {
                 if (string.IsNullOrWhiteSpace(macro.Content))
                 {
-                    Logger.GetLogger()
-                        .Log(
+                    Logger.Log(
                             $"Shader preprocessor: Warning PP1 (ln {macro.Line} ch {macro.Index}): Empty macro. Ignoring.",
                             LogLevel.Warning);
                     continue;
@@ -166,7 +165,7 @@ namespace Thundershock.Core.Rendering
                     {
                         if (!program.HasCompilations)
                         {
-                            Logger.GetLogger().Log("Empty shader program detected!", LogLevel.Warning);
+                            Logger.Log("Empty shader program detected!", LogLevel.Warning);
                             continue;
                         }
 

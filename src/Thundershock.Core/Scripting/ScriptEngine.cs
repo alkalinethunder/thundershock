@@ -117,27 +117,6 @@ namespace Thundershock.Core.Scripting
 
                 _engine.SetValue(name, TypeReference.CreateTypeReference(_engine, actualType));
             }
-            
-            // Here's where we get to define core global methods that all scripts must have access to.
-            // These are mostly util functions like debug logging, and stuff like that.
-            
-            // Expose the Logger to scripts.
-            var logger = Logger.GetLogger();
-            _engine.SetValue("Logger", logger);
-            
-            // Log level aliases.
-            _engine.SetValue("INFO", LogLevel.Info);
-            _engine.SetValue("WARN", LogLevel.Warning);
-            _engine.SetValue("ERROR", LogLevel.Error);
-            _engine.SetValue("FATAL", LogLevel.Fatal);
-            _engine.SetValue("TRACE", LogLevel.Trace);
-            _engine.SetValue("MESSAGE", LogLevel.Message);
-            
-            // Short-hands for logging.
-            _engine.Execute("function log(value) { Logger.Log(value.toString()); }");
-            _engine.Execute("function warn(value) { Logger.Log(value.toString(), WARN); }");
-            _engine.Execute("function error(value) { Logger.Log(value.toString(), ERROR); }");
-            _engine.Execute("function fatal(value) { Logger.Log(value.toString(), FATAL); }");
         }
 
         public void SetGlobal(string name, object value)
@@ -164,7 +143,7 @@ namespace Thundershock.Core.Scripting
                     }
                     catch (Exception ex)
                     {
-                        Logger.GetLogger().LogException(ex);
+                        Logger.LogException(ex);
                     }
 
                     foreach (var type in types)

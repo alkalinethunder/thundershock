@@ -2,7 +2,7 @@ using Thundershock.Core;
 
 namespace Thundershock
 {
-    public abstract class CommandLineApp : AppBase
+    public abstract class CommandLineApp : Application
     {
         protected abstract void Main();
 

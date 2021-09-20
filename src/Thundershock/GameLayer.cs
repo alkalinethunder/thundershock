@@ -103,15 +103,7 @@ namespace Thundershock
             LoadSceneInternal(scene);
             return scene;
         }
-
-        /// <summary>
-        /// Retrieves an instance of the given app component.
-        /// </summary>
-        /// <typeparam name="T">The type of app component to find.</typeparam>
-        /// <returns>An instance of the given app component type, or null if none was found.</returns>
-        public T GetComponent<T>() where T : IGlobalComponent, new()
-            => App.GetComponent<T>();
-
+        
         /// <summary>
         /// Exits the Thundershock engine.
         /// </summary>

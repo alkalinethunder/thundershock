@@ -87,7 +87,7 @@ namespace Thundershock
                 }
                 catch (Exception ex)
                 {
-                    Logger.GetLogger().LogException(ex);
+                    Logger.LogException(ex);
                 }
 
                 foreach (var type in types)

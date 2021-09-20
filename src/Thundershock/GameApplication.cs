@@ -3,6 +3,7 @@ using Gdk;
 using Thundershock.Audio;
 using Thundershock.Config;
 using Thundershock.Core;
+using Thundershock.Core.Debugging;
 using Thundershock.OpenGL;
 
 namespace Thundershock
@@ -10,7 +11,7 @@ namespace Thundershock
     /// <summary>
     /// Provides all application functionality needed for a Thundershock Engine game.
     /// </summary>
-    public abstract class NewGameAppBase : GraphicalAppBase
+    public abstract class GameApplication : GraphicalApplication
     {
         /// <inheritdoc />
         protected override void OnPreInit()

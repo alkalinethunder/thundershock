@@ -70,7 +70,7 @@ namespace Thundershock
             var fs = GetFS();
             foreach (var dir in fs.GetDirectories("/"))
             {
-                Logger.GetLogger().Log(dir);
+                Logger.Log(dir);
             }
         }
     }

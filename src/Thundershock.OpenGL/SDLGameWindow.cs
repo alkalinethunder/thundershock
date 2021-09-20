@@ -41,17 +41,17 @@ namespace Thundershock.OpenGL
             Sdl.SDL_GL_SetAttribute(Sdl.SdlGLattr.SdlGlContextProfileMask,
                 Sdl.SdlGLprofile.SdlGlContextProfileCore);
             
-            App.Logger.Log("Setting up the SDL OpenGL renderer...");
+            Logger.Log("Setting up the SDL OpenGL renderer...");
             var ctx = Sdl.SDL_GL_CreateContext(_sdlWindow);
             if (ctx == IntPtr.Zero)
             {
                 var err = Sdl.SDL_GetError();
-                App.Logger.Log(err, LogLevel.Error);
+                Logger.Log(err, LogLevel.Error);
                 throw new Exception(err);
             }
 
             _glContext = ctx;
-            App.Logger.Log("GL Context created.");
+            Logger.Log("GL Context created.");
 
             // Make the newly created context the current one.
             Sdl.SDL_GL_MakeCurrent(_sdlWindow, _glContext);
@@ -68,7 +68,7 @@ namespace Thundershock.OpenGL
         protected override void OnClosed()
         {
             DestroySdlWindow();
-            App.Logger.Log("...done.");
+            Logger.Log("...done.");
         }
 
         private void HandleSdlEvent()
@@ -84,10 +84,10 @@ namespace Thundershock.OpenGL
                     break;
                 case Sdl.SdlEventType.SdlQuit:
 
-                    App.Logger.Log("SDL just told us to quit... Letting thundershock know about that.");
+                    Logger.Log("SDL just told us to quit... Letting thundershock know about that.");
                     if (!App.Exit())
                     {
-                        App.Logger.Log("Thundershock app cancelled the exit request.");
+                        Logger.Log("Thundershock app cancelled the exit request.");
                     }
 
                     break;
@@ -249,10 +249,10 @@ namespace Thundershock.OpenGL
             flags |= (uint) Sdl.SdlWindowFlags.SdlWindowOpengl;
             flags |= (uint) Sdl.SdlWindowFlags.SdlWindowShown;
             
-            App.Logger.Log("Creating an SDL Window...");
+            Logger.Log("Creating an SDL Window...");
             _sdlWindow = Sdl.SDL_CreateWindow(Title, Sdl.SDL_WINDOWPOS_CENTERED_DISPLAY(0), Sdl.SDL_WINDOWPOS_CENTERED_DISPLAY(0), Width, Height,
                 (Sdl.SdlWindowFlags) flags);
-            App.Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
+            Logger.Log("SDL window is up. (640x480, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)");
 
             Sdl.SDL_SetWindowResizable(_sdlWindow, CanResize ? Sdl.SdlBool.SdlTrue : Sdl.SdlBool.SdlFalse);
             
@@ -261,17 +261,17 @@ namespace Thundershock.OpenGL
 
         private void DestroySdlWindow()
         {
-            App.Logger.Log("Destroying current GL renderer...");
+            Logger.Log("Destroying current GL renderer...");
             Sdl.SDL_GL_DeleteContext(_glContext);
             _glContext = IntPtr.Zero;
             
-            App.Logger.Log("Destroying the SDL window...");
+            Logger.Log("Destroying the SDL window...");
             Sdl.SDL_DestroyWindow(_sdlWindow);
         }
 
         protected override void UpdateVSync()
         {
-            App.Logger.Log("V-Sync status: " + (VSync ? "On" : "Off"));
+            Logger.Log("V-Sync status: " + (VSync ? "On" : "Off"));
 
             Sdl.SDL_GL_SetSwapInterval(VSync ? 1 : 0);
         }
